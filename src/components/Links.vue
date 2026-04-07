@@ -47,50 +47,44 @@
 
   </div>
 </template>
-
 <script setup>
 import { computed } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Mousewheel } from 'swiper/modules'
 
-// 核心修复②：从 @icon-park/vue-next 导入，替换 @vicons/fa 体系
+// 核心修复：彻底剔除 Claude 捏造的图标，换成 100% 存在的安全底层图标
 import {
   LinkTwo,        // 标题图标
-  CloudStorage,   // Nextcloud  · 私有云
-  DiamondThree,   // Obsidian   · 第二大脑
-  Robot,          // Dify       · AI 工作流
-  GlobeNetworkSecurity, // Cloudflare · 边缘部署
-  DesignThinking, // Figma      · 设计系统
-  DataScreen,     // Grafana    · 可观测性
+  Cloud,          // Nextcloud · 私有云
+  Book,           // Obsidian · 第二大脑
+  Robot,          // Dify · AI 工作流
+  Server,         // Cloudflare · 边缘部署
+  Palette,        // Figma · 设计系统
+  ChartLine,      // Grafana · 可观测性
 } from '@icon-park/vue-next'
 
 import siteLinks from '@/assets/siteLinks.json'
 
 // ─────────────────────────────────────────────────────────────
-// 布局常量（修改这里即可全局调整，不用到处找魔法数字）
-// ─────────────────────────────────────────────────────────────
-const PAGE_COLS = 3  // 列数
-const PAGE_ROWS = 2  // 行数
-const PAGE_SIZE = PAGE_COLS * PAGE_ROWS  // 单页容量 = 6
+// 布局常量
+const PAGE_COLS = 3  
+const PAGE_ROWS = 2  
+const PAGE_SIZE = PAGE_COLS * PAGE_ROWS  
 
 // ─────────────────────────────────────────────────────────────
-// 图标映射表：JSON 中的 icon 字符串 → 实际组件引用
-// 新增图标：在此处 import 后加一行即可，无需改 template
-// ─────────────────────────────────────────────────────────────
+// 图标映射表：必须与 import 保持绝对一致
 const iconMap = {
-  CloudStorage,
-  DiamondThree,
+  Cloud,
+  Book,
   Robot,
-  GlobeNetworkSecurity,
-  DesignThinking,
-  DataScreen,
+  Server,
+  Palette,
+  ChartLine,
 }
 
 // ─────────────────────────────────────────────────────────────
 // Swiper 配置
-// ─────────────────────────────────────────────────────────────
 const swiperModules = [Pagination, Mousewheel]
-
 const paginationConfig = {
   el: '.swiper-pagination',
   clickable: true,
@@ -99,9 +93,6 @@ const paginationConfig = {
 
 // ─────────────────────────────────────────────────────────────
 // 数据计算
-// ─────────────────────────────────────────────────────────────
-
-/** 将 siteLinks 按 PAGE_SIZE 分组，天然支持将来扩展到 N 页 */
 const pagedLinks = computed(() => {
   const pages = []
   for (let i = 0; i < siteLinks.length; i += PAGE_SIZE) {
@@ -110,50 +101,25 @@ const pagedLinks = computed(() => {
   return pages
 })
 
-/**
- * 核心修复①：分页器显示逻辑
- * 链接数 ≤ 单页容量 → false → Swiper 不初始化分页器模块
- */
 const needsPagination = computed(() => siteLinks.length > PAGE_SIZE)
 
 // ─────────────────────────────────────────────────────────────
 // 链接跳转 · 协议分发器
-// ─────────────────────────────────────────────────────────────
-/**
- * 核心修复②：统一协议路由，彻底绕开 Vue Router 拦截
- *
- * 分发策略：
- *  ┌─ https:// / http:// ──→ window.open（新标签，安全属性）
- *  └─ 自定义 URI Scheme  ──→ window.location.href（交给 OS 处理）
- *     例：obsidian://、notion://、vscode://、raycast://
- *
- * 注意：所有外部跳转均不经过 router.push，从根源避免 SPA 拦截
- */
 const jumpLink = (item) => {
   const url = item.url
-
   if (!url) {
-    console.warn(`[Links.vue] 导航项 "${item.name}" 缺少 url 字段，请检查 siteLinks.json`)
+    console.warn(`[Links.vue] 导航项 "${item.name}" 缺少 url 字段`)
     return
   }
-
   const isWebUrl = url.startsWith('https://') || url.startsWith('http://')
-
   if (isWebUrl) {
-    // noopener noreferrer：防止新页面访问 window.opener，XSS 安全最佳实践
     window.open(url, '_blank', 'noopener,noreferrer')
   } else {
-    /**
-     * 自定义 URI Scheme（obsidian://、vscode:// 等）
-     * 用 location.href 而非 window.open：
-     *   1. 部分浏览器会阻止 open() 唤起本地 App
-     *   2. location.href 让浏览器原生处理协议，更可靠
-     *   3. 若协议未注册，浏览器静默忽略，不会导致页面跳转
-     */
     window.location.href = url
   }
 }
 </script>
+
 
 <style lang="scss" scoped>
 .links {
