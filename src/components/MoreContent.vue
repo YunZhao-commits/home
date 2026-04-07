@@ -6,15 +6,15 @@
     <div class="tech-stack">
       <div class="tech-item">
         <span class="label">CURRENT NODE</span>
-        <span class="value">Shijiazhuang, CN</span>
+        <span class="value">Decentralized Edge</span>
       </div>
       <div class="tech-item">
         <span class="label">ACTIVE TASK</span>
-        <span class="value">PTE Academic Prep</span>
+        <span class="value">Infrastructure Setup</span>
       </div>
       <div class="tech-item">
         <span class="label">NEXT PHASE</span>
-        <span class="value">Global Mobility Target</span>
+        <span class="value">Exploring Web3</span>
       </div>
     </div>
 
@@ -83,7 +83,6 @@
         opacity: 0.5;
       }
       .value {
-        /* 剔除绿色，改为极其高级的微光珍珠灰白 */
         color: #e2e8f0; 
         text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
         opacity: 0.95;
