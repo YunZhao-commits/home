@@ -21,27 +21,47 @@ export default ({ mode }) =>
         resolvers: [ElementPlusResolver()],
       }),
       VitePWA({
-        registerType: "autoUpdate",
-        workbox: {
-          skipWaiting: true,
-          clientsClaim: true,
-          runtimeCaching: [
-            {
-              urlPattern: /(.*?)\.(js|css|woff2|woff|ttf)/, // js / css 静态资源缓存
-              handler: "CacheFirst",
-              options: {
-                cacheName: "js-css-cache",
-              },
-            },
-            {
-              urlPattern: /(.*?)\.(png|jpe?g|svg|gif|bmp|psd|tiff|tga|eps)/, // 图片缓存
-              handler: "CacheFirst",
-              options: {
-                cacheName: "image-cache",
-              },
-            },
-          ],
+  registerType: "autoUpdate",
+  workbox: {
+    skipWaiting: true,
+    clientsClaim: true,
+
+    // ── 新增 1：将 siteLinks.json 从预缓存清单中排除 ──
+    // 避免被 precacheAndRoute 锁死版本，交给下方运行时规则接管
+    globIgnores: ["**/siteLinks.json"],
+
+    runtimeCaching: [
+      // ── 新增 2：siteLinks.json 专用 NetworkFirst 规则 ──
+      // 每次优先走网络，3 秒超时后才降级用缓存，确保数据实时性
+      {
+        urlPattern: /\/siteLinks\.json$/,
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "data-realtime",
+          networkTimeoutSeconds: 3,
+          cacheableResponse: {
+            statuses: [200],
+          },
         },
+      },
+      // ── 以下为原有规则，完全不动 ──
+      {
+        urlPattern: /(.*?)\.(js|css|woff2|woff|ttf)/,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "js-css-cache",
+        },
+      },
+      {
+        urlPattern: /(.*?)\.(png|jpe?g|svg|gif|bmp|psd|tiff|tga|eps)/,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "image-cache",
+        },
+      },
+    ],
+  },
+  // manifest 块完全不动...
         manifest: {
           name: loadEnv(mode, process.cwd()).VITE_SITE_NAME,
           short_name: loadEnv(mode, process.cwd()).VITE_SITE_NAME,
