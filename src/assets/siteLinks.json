@@ -1,6 +1,6 @@
 [
   {
-    "icon": "Cloud",
+    "icon": "Database",
     "name": "私有云 (Nextcloud)",
     "url": "https://your.nextcloud.domain"
   },
@@ -15,17 +15,17 @@
     "url": "https://your.dify.domain"
   },
   {
-    "icon": "Server",
+    "icon": "Earth",
     "name": "边缘网络 (Cloudflare)",
     "url": "https://dash.cloudflare.com"
   },
   {
-    "icon": "Palette",
+    "icon": "Edit",
     "name": "设计系统 (Figma)",
     "url": "https://figma.com"
   },
   {
-    "icon": "ChartLine",
+    "icon": "ChartPie",
     "name": "服务监控 (Grafana)",
     "url": "https://your.grafana.domain"
   }
