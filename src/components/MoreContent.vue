@@ -5,27 +5,27 @@
     
     <div class="tech-stack">
       <div class="tech-item">
-        <span class="label">SECURITY</span>
-        <span class="value">Zero Trust Enabled</span>
+        <span class="label">CURRENT NODE</span>
+        <span class="value">Shijiazhuang, CN</span>
       </div>
       <div class="tech-item">
-        <span class="label">NETWORK</span>
-        <span class="value">Cloudflare Global Edge</span>
+        <span class="label">ACTIVE TASK</span>
+        <span class="value">PTE Academic Prep</span>
       </div>
       <div class="tech-item">
-        <span class="label">FRAMEWORK</span>
-        <span class="value">Vue 3 & Vite CI/CD</span>
+        <span class="label">NEXT PHASE</span>
+        <span class="value">Global Mobility Target</span>
       </div>
     </div>
 
     <div class="author-sign">
-      -- ALL SYSTEMS ONLINE --
+      -- SYSTEMS ONLINE --
     </div>
   </div>
 </template>
 
 <script setup>
-// 纯静态高级展示面板，无需复杂逻辑
+// 纯静态高级展示面板
 </script>
 
 <style lang="scss" scoped>
@@ -61,7 +61,7 @@
     padding-left: 12px;
   }
   
-  /* 技术栈雷达面板样式 */
+  /* 状态矩阵面板样式 */
   .tech-stack {
     width: 100%;
     display: flex;
@@ -83,8 +83,10 @@
         opacity: 0.5;
       }
       .value {
-        color: #00ff88; /* 极客绿，呼应底部的安全状态 */
-        opacity: 0.9;
+        /* 剔除绿色，改为极其高级的微光珍珠灰白 */
+        color: #e2e8f0; 
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        opacity: 0.95;
         font-weight: bold;
       }
     }
@@ -96,7 +98,7 @@
     align-self: center;
     font-family: "JetBrains Mono", monospace;
     font-size: 0.8rem;
-    opacity: 0.3;
+    opacity: 0.4;
     letter-spacing: 0.1em;
     padding-top: 20px;
   }
