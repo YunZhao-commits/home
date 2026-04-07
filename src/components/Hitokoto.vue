@@ -78,32 +78,68 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .hitokoto {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  animation: fade 0.5s;
+  
+  /* 高级亚克力毛玻璃质感 */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  position: relative;
+
+  /* 鼠标悬停时的发光交互效果 */
+  &:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    cursor: pointer;
+  }
+
+  .open-quotes {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .text {
     width: 100%;
     height: 100%;
-    padding: 20px;
-    animation: fade 0.5s;
-    
-    // 👇 核心视觉重构区域：高级亚克力毛玻璃质感 👇
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 14px;
-    transition: all 0.3s ease;
-    
-    // 鼠标悬停时的发光交互效果（吸引点击）
-    &:hover {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
-      transform: translateY(-2px);
-      cursor: pointer;
-    }
-    // 👆 核心视觉重构结束 👆
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: break-all;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: bold;
+    letter-spacing: 0.05em;
+  }
 
-    .open-quotes {
-      // ... 保持原有不变
+  .close-quotes {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
     width: 100%;
     position: absolute;
     top: 0;
