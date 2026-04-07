@@ -40,11 +40,11 @@
 </template>
 
 <script setup>
-// 这里的图标代号全部替换为了最底层的绝对安全命名
+// 这里的图标代号全部替换为了最底层的绝对安全命名，Rain 换成了 Umbrella！
 import {
   Sun,
   Cloudy,
-  Rain,
+  Umbrella,
   Snowflake,
   Lightning,
   LoadingFour,
@@ -65,19 +65,19 @@ const WMO = {
   3:  { label: "OVERCAST",        icon: Cloudy,    fill: "#8FA3B1" },
   45: { label: "FOG",             icon: Cloudy,    fill: "#9BA8AD" },
   48: { label: "ICING FOG",       icon: Cloudy,    fill: "#9BA8AD" },
-  51: { label: "LIGHT DRIZZLE",   icon: Rain,      fill: "#7EC8E3" },
-  53: { label: "DRIZZLE",         icon: Rain,      fill: "#7EC8E3" },
-  55: { label: "HEAVY DRIZZLE",   icon: Rain,      fill: "#5BAFD6" },
-  61: { label: "LIGHT RAIN",      icon: Rain,      fill: "#7EC8E3" },
-  63: { label: "RAIN",            icon: Rain,      fill: "#5BAFD6" },
-  65: { label: "HEAVY RAIN",      icon: Rain,      fill: "#3A96C9" },
+  51: { label: "LIGHT DRIZZLE",   icon: Umbrella,  fill: "#7EC8E3" },
+  53: { label: "DRIZZLE",         icon: Umbrella,  fill: "#7EC8E3" },
+  55: { label: "HEAVY DRIZZLE",   icon: Umbrella,  fill: "#5BAFD6" },
+  61: { label: "LIGHT RAIN",      icon: Umbrella,  fill: "#7EC8E3" },
+  63: { label: "RAIN",            icon: Umbrella,  fill: "#5BAFD6" },
+  65: { label: "HEAVY RAIN",      icon: Umbrella,  fill: "#3A96C9" },
   71: { label: "LIGHT SNOW",      icon: Snowflake, fill: "#DCF0FF" },
   73: { label: "SNOW",            icon: Snowflake, fill: "#DCF0FF" },
   75: { label: "HEAVY SNOW",      icon: Snowflake, fill: "#C8E6FF" },
   77: { label: "SNOW GRAINS",     icon: Snowflake, fill: "#C8E6FF" },
-  80: { label: "SHOWERS",         icon: Rain,      fill: "#7EC8E3" },
-  81: { label: "SHOWERS",         icon: Rain,      fill: "#5BAFD6" },
-  82: { label: "HEAVY SHOWERS",   icon: Rain,      fill: "#3A96C9" },
+  80: { label: "SHOWERS",         icon: Umbrella,  fill: "#7EC8E3" },
+  81: { label: "SHOWERS",         icon: Umbrella,  fill: "#5BAFD6" },
+  82: { label: "HEAVY SHOWERS",   icon: Umbrella,  fill: "#3A96C9" },
   85: { label: "SNOW SHOWERS",    icon: Snowflake, fill: "#DCF0FF" },
   86: { label: "HEAVY SNOW SHW",  icon: Snowflake, fill: "#C8E6FF" },
   95: { label: "THUNDERSTORM",    icon: Lightning, fill: "#B48EF7" },
