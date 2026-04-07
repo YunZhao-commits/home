@@ -1,41 +1,64 @@
 <template>
-  <div class="hitokoto cards" @click="console.log('欢迎进入 Yunchu Studio 核心档案库')">
-    <div class="open-quotes">
-      <Quote fill="rgba(255, 255, 255, 0.8)" size="26" />
-    </div>
-    
-    <span class="text">
-      {{ hitokotoData.text || "EXPLORING THE DIGITAL UNKNOWN…" }}
-    </span>
-    
-    <div class="close-quotes">
-      <Quote fill="rgba(255, 255, 255, 0.8)" size="26" />
-    </div>
+  <div
+    class="hitokoto cards"
+    v-show="!store.musicOpenState"
+    @mouseenter="openMusicShow = true"
+    @mouseleave="openMusicShow = false"
+    @click.stop
+  >
+    <Transition name="el-fade-in-linear">
+      <div
+        class="open-music"
+        v-show="openMusicShow && store.musicIsOk"
+        @click="store.musicOpenState = true"
+      >
+        <music-menu theme="filled" size="18" fill="#efefef" />
+        <span>打开音乐播放器</span>
+      </div>
+    </Transition>
+    <Transition name="el-fade-in-linear" mode="out-in">
+      <div :key="hitokotoData.text" class="content" @click="updateHitokoto">
+        <span class="text">{{ hitokotoData.text }}</span>
+        <span class="from">-「&nbsp;{{ hitokotoData.from }}&nbsp;」</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { Quote } from "@icon-park/vue-next";
-import { onMounted, reactive } from "vue";
+import { MusicMenu, Error } from "@icon-park/vue-next";
+import { getHitokoto } from "@/api";
+import { mainStore } from "@/store";
+import debounce from "@/utils/debounce.js";
+import { ref, reactive, onMounted, h } from "vue";
 
-// 响应式数据：保留动态随机金句的核心灵魂
+const store = mainStore();
+const openMusicShow = ref(false);
+
 const hitokotoData = reactive({
-  text: "",
+  text: "这里应该显示一句话",
+  from: "無名",
 });
 
-// 核心修改：使用原项目的API获取动态极客金句，绝对不是网抑云
-const getHitokoto = async () => {
+const getHitokotoData = async () => {
   try {
-    const response = await fetch("https://v1.hitokoto.cn/?c=i&c=k&c=b");
-    const data = await response.json();
-    hitokotoData.text = data.hitokoto;
-  } catch {
-    hitokotoData.text = " khám phá sự không rõ ràng.";
+    const result = await getHitokoto();
+    hitokotoData.text = result.hitokoto;
+    hitokotoData.from = result.from;
+  } catch (error) {
+    hitokotoData.text = "网络信号丢失，请重试";
+    hitokotoData.from = "System";
   }
 };
 
+const updateHitokoto = () => {
+  debounce(() => {
+    getHitokotoData();
+  }, 500);
+};
+
 onMounted(() => {
-  getHitokoto();
+  getHitokotoData();
 });
 </script>
 
@@ -45,62 +68,49 @@ onMounted(() => {
   height: 100%;
   padding: 20px;
   animation: fade 0.5s;
-  
-  /* 高级毛玻璃微光质感 — 彻底告别模糊丑马赛克 */
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 14px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-
-  /* 鼠标悬停时的发光交互效果（吸引点击） */
-  &:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    cursor: pointer;
-  }
-
-  .open-quotes {
+  .open-music {
     width: 100%;
     position: absolute;
-    top: 15px;
-    left: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    opacity: 0.4;
-  }
-
-  .text {
-    width: 100%;
-    height: 100%;
+    top: 0;
+    left: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: bold;
-    letter-spacing: 0.05em;
-    line-height: 1.8;
-    padding: 0 10px;
+    background: #00000026;
+    padding: 4px 0;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    .i-icon {
+      width: 18px;
+      height: 18px;
+      display: block;
+      margin-right: 8px;
+    }
+    span {
+      font-size: 0.95rem;
+    }
   }
-
-  .close-quotes {
-    width: 100%;
-    position: absolute;
-    bottom: 15px;
-    left: -15px;
+  .content {
+    height: 100%;
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    opacity: 0.4;
+    flex-direction: column;
+    justify-content: space-evenly;
+    cursor: pointer;
+    .text {
+      font-size: 1.1rem;
+      word-break: break-all;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+    .from {
+      margin-top: 10px;
+      font-weight: bold;
+      align-self: flex-end;
+      font-size: 1.1rem;
+    }
   }
 }
 </style>
