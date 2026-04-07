@@ -4,7 +4,9 @@
       <Quote fill="rgba(255, 255, 255, 0.8)" size="26" />
     </div>
     
-    <span class="text">「 探索未知，保持敬畏。<br>点击此处进入 Yunchu Studio 核心档案库... 」</span>
+    <span class="text">
+      {{ hitokotoData.text || "EXPLORING THE DIGITAL UNKNOWN…" }}
+    </span>
     
     <div class="close-quotes">
       <Quote fill="rgba(255, 255, 255, 0.8)" size="26" />
@@ -13,8 +15,28 @@
 </template>
 
 <script setup>
-// 极简引入：只引入引号图标，彻底切断原版复杂且容易报错的网络请求
 import { Quote } from "@icon-park/vue-next";
+import { onMounted, reactive } from "vue";
+
+// 响应式数据：保留动态随机金句的核心灵魂
+const hitokotoData = reactive({
+  text: "",
+});
+
+// 核心修改：使用原项目的API获取动态极客金句，绝对不是网抑云
+const getHitokoto = async () => {
+  try {
+    const response = await fetch("https://v1.hitokoto.cn/?c=i&c=k&c=b");
+    const data = await response.json();
+    hitokotoData.text = data.hitokoto;
+  } catch {
+    hitokotoData.text = " khám phá sự không rõ ràng.";
+  }
+};
+
+onMounted(() => {
+  getHitokoto();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -24,7 +46,7 @@ import { Quote } from "@icon-park/vue-next";
   padding: 20px;
   animation: fade 0.5s;
   
-  /* 高级亚克力毛玻璃质感 */
+  /* 高级毛玻璃微光质感 — 彻底告别模糊丑马赛克 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
