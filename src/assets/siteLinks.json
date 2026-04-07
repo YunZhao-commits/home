@@ -1,8 +1,8 @@
 [
   {
-    "icon": "Mail",
-    "name": "Gmail",
-    "link": "https://mail.google.com/"
+    "icon": "LaptopCode",
+    "name": "GitHub",
+    "link": "https://github.com/"
   },
   {
     "icon": "Cloud",
@@ -10,23 +10,23 @@
     "link": "https://dash.cloudflare.com/"
   },
   {
-    "icon": "GithubOne",
-    "name": "GitHub",
-    "link": "https://github.com/"
-  },
-  {
-    "icon": "Search",
+    "icon": "Compass",
     "name": "Perplexity",
     "link": "https://www.perplexity.ai/"
   },
   {
-    "icon": "Bitcoin",
+    "icon": "Fire",
     "name": "DeBank",
     "link": "https://debank.com/"
   },
   {
-    "icon": "Terminal",
+    "icon": "Book",
     "name": "CyberChef",
     "link": "https://gchq.github.io/CyberChef/"
+  },
+  {
+    "icon": "CompactDisc",
+    "name": "Gmail",
+    "link": "https://mail.google.com/"
   }
 ]
