@@ -1,37 +1,42 @@
 [
   {
-    "icon": "Blog",
-    "name": "博客",
-    "link": "https://blog.imsyy.top/"
+    "icon": "Envelope",
+    "name": "Gmail 中枢",
+    "link": "https://mail.google.com/"
   },
   {
     "icon": "Cloud",
-    "name": "网盘",
-    "link": "https://pan.imsyy.top/"
-  },
-  {
-    "icon": "CompactDisc",
-    "name": "音乐",
-    "link": "https://music.imsyy.top/"
-  },
-  {
-    "icon": "Compass",
-    "name": "起始页",
-    "link": "https://nav.imsyy.top/"
-  },
-  {
-    "icon": "Book",
-    "name": "网址集",
-    "link": "https://web.imsyy.top/"
-  },
-  {
-    "icon": "Fire",
-    "name": "今日热榜",
-    "link": "https://hot.imsyy.top/"
+    "name": "Cloudflare",
+    "link": "https://dash.cloudflare.com/"
   },
   {
     "icon": "LaptopCode",
-    "name": "站点监测",
-    "link": "https://status.imsyy.top/"
+    "name": "GitHub 空间",
+    "link": "https://github.com/"
+  },
+  {
+    "icon": "Compass",
+    "name": "Perplexity (AI 搜索)",
+    "link": "https://www.perplexity.ai/"
+  },
+  {
+    "icon": "Wallet",
+    "name": "DeBank (Web3 追踪)",
+    "link": "https://debank.com/"
+  },
+  {
+    "icon": "Wrench",
+    "name": "CyberChef (数字军刀)",
+    "link": "https://gchq.github.io/CyberChef/"
+  },
+  {
+    "icon": "Fire",
+    "name": "V2EX (极客社区)",
+    "link": "https://www.v2ex.com/"
+  },
+  {
+    "icon": "Book",
+    "name": "开源平替库",
+    "link": "https://alternativeto.net/"
   }
 ]
