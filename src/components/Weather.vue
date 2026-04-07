@@ -1,19 +1,16 @@
 <template>
   <div class="weather">
 
-    <!-- ① 定位中 -->
     <template v-if="status === 'loading'">
       <LoadingFour theme="outline" size="14" fill="rgba(255,255,255,0.6)" class="spin" />
       <span class="label">ACQUIRING SIGNAL…</span>
     </template>
 
-    <!-- ② 链路断裂 -->
     <template v-else-if="status === 'error'">
       <Caution theme="filled" size="14" fill="#ff6b6b" />
       <span class="label err">DATA LINK FAILED</span>
     </template>
 
-    <!-- ③ 数据就绪 -->
     <template v-else>
       <component
         :is="wmoInfo.icon"
@@ -23,7 +20,7 @@
         class="wx-icon"
       />
       <span class="city">
-        <Local
+        <LocalTwo
           v-if="isDefault"
           theme="filled"
           size="10"
@@ -43,15 +40,16 @@
 </template>
 
 <script setup>
+// 这里的图标代号全部替换为了最底层的绝对安全命名
 import {
   Sun,
   Cloudy,
   Rain,
-  Snow,        // 若报错请改为: Snowflake
-  Thunder,     // 若报错请改为: LightningThree
+  Snowflake,
+  Lightning,
   LoadingFour,
   Caution,
-  Local,       // 若报错请改为: LocalTwo
+  LocalTwo,
 } from "@icon-park/vue-next";
 
 // ─── 默认回退坐标（北京）──────────────────────────────────────────────
@@ -61,30 +59,30 @@ const DEFAULT_CITY = "BEIJING";
 
 // ─── WMO 4677 天气代码映射 ────────────────────────────────────────────
 const WMO = {
-  0:  { label: "CLEAR SKY",       icon: Sun,     fill: "#FFD166" },
-  1:  { label: "MAINLY CLEAR",    icon: Sun,     fill: "#FFD166" },
-  2:  { label: "PARTLY CLOUDY",   icon: Cloudy,  fill: "#A8BFCF" },
-  3:  { label: "OVERCAST",        icon: Cloudy,   fill: "#8FA3B1" },
-  45: { label: "FOG",             icon: Cloudy,   fill: "#9BA8AD" },
-  48: { label: "ICING FOG",       icon: Cloudy,   fill: "#9BA8AD" },
-  51: { label: "LIGHT DRIZZLE",   icon: Rain,    fill: "#7EC8E3" },
-  53: { label: "DRIZZLE",         icon: Rain,    fill: "#7EC8E3" },
-  55: { label: "HEAVY DRIZZLE",   icon: Rain,    fill: "#5BAFD6" },
-  61: { label: "LIGHT RAIN",      icon: Rain,    fill: "#7EC8E3" },
-  63: { label: "RAIN",            icon: Rain,    fill: "#5BAFD6" },
-  65: { label: "HEAVY RAIN",      icon: Rain,    fill: "#3A96C9" },
-  71: { label: "LIGHT SNOW",      icon: Snow,    fill: "#DCF0FF" },
-  73: { label: "SNOW",            icon: Snow,    fill: "#DCF0FF" },
-  75: { label: "HEAVY SNOW",      icon: Snow,    fill: "#C8E6FF" },
-  77: { label: "SNOW GRAINS",     icon: Snow,    fill: "#C8E6FF" },
-  80: { label: "SHOWERS",         icon: Rain,    fill: "#7EC8E3" },
-  81: { label: "SHOWERS",         icon: Rain,    fill: "#5BAFD6" },
-  82: { label: "HEAVY SHOWERS",   icon: Rain,    fill: "#3A96C9" },
-  85: { label: "SNOW SHOWERS",    icon: Snow,    fill: "#DCF0FF" },
-  86: { label: "HEAVY SNOW SHW",  icon: Snow,    fill: "#C8E6FF" },
-  95: { label: "THUNDERSTORM",    icon: Thunder, fill: "#B48EF7" },
-  96: { label: "T-STORM / HAIL",  icon: Thunder, fill: "#9B72E8" },
-  99: { label: "T-STORM / HAIL",  icon: Thunder, fill: "#9B72E8" },
+  0:  { label: "CLEAR SKY",       icon: Sun,       fill: "#FFD166" },
+  1:  { label: "MAINLY CLEAR",    icon: Sun,       fill: "#FFD166" },
+  2:  { label: "PARTLY CLOUDY",   icon: Cloudy,    fill: "#A8BFCF" },
+  3:  { label: "OVERCAST",        icon: Cloudy,    fill: "#8FA3B1" },
+  45: { label: "FOG",             icon: Cloudy,    fill: "#9BA8AD" },
+  48: { label: "ICING FOG",       icon: Cloudy,    fill: "#9BA8AD" },
+  51: { label: "LIGHT DRIZZLE",   icon: Rain,      fill: "#7EC8E3" },
+  53: { label: "DRIZZLE",         icon: Rain,      fill: "#7EC8E3" },
+  55: { label: "HEAVY DRIZZLE",   icon: Rain,      fill: "#5BAFD6" },
+  61: { label: "LIGHT RAIN",      icon: Rain,      fill: "#7EC8E3" },
+  63: { label: "RAIN",            icon: Rain,      fill: "#5BAFD6" },
+  65: { label: "HEAVY RAIN",      icon: Rain,      fill: "#3A96C9" },
+  71: { label: "LIGHT SNOW",      icon: Snowflake, fill: "#DCF0FF" },
+  73: { label: "SNOW",            icon: Snowflake, fill: "#DCF0FF" },
+  75: { label: "HEAVY SNOW",      icon: Snowflake, fill: "#C8E6FF" },
+  77: { label: "SNOW GRAINS",     icon: Snowflake, fill: "#C8E6FF" },
+  80: { label: "SHOWERS",         icon: Rain,      fill: "#7EC8E3" },
+  81: { label: "SHOWERS",         icon: Rain,      fill: "#5BAFD6" },
+  82: { label: "HEAVY SHOWERS",   icon: Rain,      fill: "#3A96C9" },
+  85: { label: "SNOW SHOWERS",    icon: Snowflake, fill: "#DCF0FF" },
+  86: { label: "HEAVY SNOW SHW",  icon: Snowflake, fill: "#C8E6FF" },
+  95: { label: "THUNDERSTORM",    icon: Lightning, fill: "#B48EF7" },
+  96: { label: "T-STORM / HAIL",  icon: Lightning, fill: "#9B72E8" },
+  99: { label: "T-STORM / HAIL",  icon: Lightning, fill: "#9B72E8" },
 };
 
 const WIND_DIRS = [
@@ -93,7 +91,7 @@ const WIND_DIRS = [
 ];
 
 // ─── 响应式状态 ───────────────────────────────────────────────────────
-const status    = ref("loading");   // 'loading' | 'ready' | 'error'
+const status    = ref("loading");   
 const isDefault = ref(false);
 const city      = ref("");
 const temp      = ref(null);
@@ -125,7 +123,6 @@ const fetchWeather = async (lat, lon) => {
   return data.current;
 };
 
-// Nominatim 反向地理编码 — 免 Key，CORS 无限制，个人站单次请求合规
 const fetchCity = async (lat, lon) => {
   const params = new URLSearchParams({ format: "json", lat, lon, zoom: 10 });
   const res  = await fetch(
@@ -186,7 +183,7 @@ const init = () => {
         loadDefault();
       }
     },
-    () => loadDefault(),          // 用户拒绝授权 → 优雅降级
+    () => loadDefault(),          
     { timeout: 8000, maximumAge: 300_000 },
   );
 };
@@ -244,7 +241,6 @@ onMounted(init);
     color: rgba(120, 200, 255, 0.5);
   }
 
-  // 旋转加载动画
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
@@ -253,7 +249,6 @@ onMounted(init);
     display: inline-flex;
   }
 
-  // 响应式：720px 以下隐藏次要信息
   @media (max-width: 720px) {
     .sm-hidden { display: none; }
   }
