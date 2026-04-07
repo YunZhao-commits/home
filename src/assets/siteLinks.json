@@ -1,32 +1,32 @@
 [
   {
-    "icon": "Planet",
-    "name": "云端知识库",
-    "link": "https://www.notion.so/"
+    "icon": "CloudStorage",
+    "name": "私有云 (Nextcloud)",
+    "link": "https://your.nextcloud.domain"
   },
   {
-    "icon": "Camera",
-    "name": "设计与摄影",
-    "link": "https://dribbble.com/"
+    "icon": "DiamondThree",
+    "name": "第二大脑 (Obsidian)",
+    "link": "obsidian://open"
   },
   {
-    "icon": "Compass",
-    "name": "AI 探索枢纽",
-    "link": "https://www.perplexity.ai/"
+    "icon": "Robot",
+    "name": "AI 编排 (Dify)",
+    "link": "https://your.dify.domain"
   },
   {
-    "icon": "Cloud",
-    "name": "工作室资源云",
-    "link": "https://pan.baidu.com/"
+    "icon": "GlobeNetworkSecurity",
+    "name": "边缘部署 (Serverless)",
+    "link": "https://dash.cloudflare.com"
   },
   {
-    "icon": "Fire",
-    "name": "前沿资讯流",
-    "link": "https://www.v2ex.com/"
+    "icon": "DesignThinking",
+    "name": "设计系统 (Figma)",
+    "link": "https://figma.com"
   },
   {
-    "icon": "Mail",
-    "name": "联系 Yunchu",
-    "link": "yuwenyunzhao@gmail.com"
+    "icon": "DataScreen",
+    "name": "服务监控 (Grafana)",
+    "link": "https://your.grafana.domain"
   }
 ]
