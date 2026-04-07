@@ -40,7 +40,6 @@
 </template>
 
 <script setup>
-// 这里的图标代号全部替换为了最底层的绝对安全命名，Rain 换成了 Umbrella！
 import {
   Sun,
   Cloudy,
@@ -51,6 +50,7 @@ import {
   Caution,
   LocalTwo,
 } from "@icon-park/vue-next";
+import { ref, computed, onMounted } from "vue";
 
 // ─── 默认回退坐标（北京）──────────────────────────────────────────────
 const DEFAULT_LAT  = 39.9042;
@@ -109,7 +109,19 @@ const windLabel = computed(() => {
   return `${dir} ${Math.round(windSpeed.value)} KM/H`;
 });
 
-// ─── API 调用 ─────────────────────────────────────────────────────────
+// ─── 核心修改：静默 IP 定位 API ───────────────────────────────────────
+const fetchIPLocation = async () => {
+  // 使用 GeoJS 接口，无需 Key，免跨域，100% 静默无弹窗
+  const res = await fetch("https://get.geojs.io/v1/ip/geo.json");
+  if (!res.ok) throw new Error("IP Geolocation failed");
+  const data = await res.json();
+  return {
+    lat: data.latitude,
+    lon: data.longitude,
+    cityName: data.city || "UNKNOWN",
+  };
+};
+
 const fetchWeather = async (lat, lon) => {
   const params = new URLSearchParams({
     latitude:  lat,
@@ -121,24 +133,6 @@ const fetchWeather = async (lat, lon) => {
   if (!res.ok) throw new Error(`open-meteo ${res.status}`);
   const data = await res.json();
   return data.current;
-};
-
-const fetchCity = async (lat, lon) => {
-  const params = new URLSearchParams({ format: "json", lat, lon, zoom: 10 });
-  const res  = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?${params}`,
-    { headers: { "Accept-Language": "en-US,en" } },
-  );
-  if (!res.ok) return DEFAULT_CITY;
-  const data = await res.json();
-  const addr = data.address ?? {};
-  return (
-    addr.city   ||
-    addr.town   ||
-    addr.county ||
-    addr.state  ||
-    DEFAULT_CITY
-  ).toUpperCase();
 };
 
 // ─── 数据写入 ─────────────────────────────────────────────────────────
@@ -163,29 +157,21 @@ const loadDefault = async () => {
   }
 };
 
-// ─── 主入口 ───────────────────────────────────────────────────────────
-const init = () => {
-  if (!navigator.geolocation) {
+// ─── 主入口 (纯净网络请求，告别 navigator.geolocation) ────────────────
+const init = async () => {
+  try {
+    // 1. 静默获取 IP 对应坐标与城市
+    const loc = await fetchIPLocation();
+    city.value = loc.cityName.toUpperCase();
+    
+    // 2. 携带坐标请求天气
+    const cur = await fetchWeather(loc.lat, loc.lon);
+    applyWeather(cur);
+  } catch (err) {
+    console.warn("Weather chain failed, falling back to default:", err);
+    // 任何一环断裂（如挂了特殊代理），优雅降级到默认城市
     loadDefault();
-    return;
   }
-
-  navigator.geolocation.getCurrentPosition(
-    async ({ coords: { latitude: lat, longitude: lon } }) => {
-      try {
-        const [cur, cityName] = await Promise.all([
-          fetchWeather(lat, lon),
-          fetchCity(lat, lon),
-        ]);
-        city.value = cityName;
-        applyWeather(cur);
-      } catch {
-        loadDefault();
-      }
-    },
-    () => loadDefault(),          
-    { timeout: 8000, maximumAge: 300_000 },
-  );
 };
 
 onMounted(init);
