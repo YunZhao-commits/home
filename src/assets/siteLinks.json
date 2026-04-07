@@ -1,7 +1,7 @@
 [
   {
-    "icon": "Envelope",
-    "name": "Gmail 中枢",
+    "icon": "Mail",
+    "name": "Gmail",
     "link": "https://mail.google.com/"
   },
   {
@@ -10,33 +10,23 @@
     "link": "https://dash.cloudflare.com/"
   },
   {
-    "icon": "LaptopCode",
-    "name": "GitHub 空间",
+    "icon": "GithubOne",
+    "name": "GitHub",
     "link": "https://github.com/"
   },
   {
-    "icon": "Compass",
-    "name": "Perplexity (AI 搜索)",
+    "icon": "Search",
+    "name": "Perplexity",
     "link": "https://www.perplexity.ai/"
   },
   {
-    "icon": "Wallet",
-    "name": "DeBank (Web3 追踪)",
+    "icon": "Bitcoin",
+    "name": "DeBank",
     "link": "https://debank.com/"
   },
   {
-    "icon": "Wrench",
-    "name": "CyberChef (数字军刀)",
+    "icon": "Terminal",
+    "name": "CyberChef",
     "link": "https://gchq.github.io/CyberChef/"
-  },
-  {
-    "icon": "Fire",
-    "name": "V2EX (极客社区)",
-    "link": "https://www.v2ex.com/"
-  },
-  {
-    "icon": "Book",
-    "name": "开源平替库",
-    "link": "https://alternativeto.net/"
   }
 ]
