@@ -46,7 +46,6 @@
 import {
   Sun,
   Cloudy,
-  Cloud,
   Rain,
   Snow,        // 若报错请改为: Snowflake
   Thunder,     // 若报错请改为: LightningThree
@@ -65,9 +64,9 @@ const WMO = {
   0:  { label: "CLEAR SKY",       icon: Sun,     fill: "#FFD166" },
   1:  { label: "MAINLY CLEAR",    icon: Sun,     fill: "#FFD166" },
   2:  { label: "PARTLY CLOUDY",   icon: Cloudy,  fill: "#A8BFCF" },
-  3:  { label: "OVERCAST",        icon: Cloud,   fill: "#8FA3B1" },
-  45: { label: "FOG",             icon: Cloud,   fill: "#9BA8AD" },
-  48: { label: "ICING FOG",       icon: Cloud,   fill: "#9BA8AD" },
+  3:  { label: "OVERCAST",        icon: Cloudy,   fill: "#8FA3B1" },
+  45: { label: "FOG",             icon: Cloudy,   fill: "#9BA8AD" },
+  48: { label: "ICING FOG",       icon: Cloudy,   fill: "#9BA8AD" },
   51: { label: "LIGHT DRIZZLE",   icon: Rain,    fill: "#7EC8E3" },
   53: { label: "DRIZZLE",         icon: Rain,    fill: "#7EC8E3" },
   55: { label: "HEAVY DRIZZLE",   icon: Rain,    fill: "#5BAFD6" },
