@@ -1,16 +1,16 @@
 [
   {
-    "icon": "Database",
+    "icon": "Folder",
     "name": "私有云 (Nextcloud)",
     "url": "https://your.nextcloud.domain"
   },
   {
-    "icon": "Book",
+    "icon": "Notebook",
     "name": "第二大脑 (Obsidian)",
     "url": "obsidian://open"
   },
   {
-    "icon": "Robot",
+    "icon": "Cpu",
     "name": "AI 编排 (Dify)",
     "url": "https://your.dify.domain"
   },
@@ -20,12 +20,12 @@
     "url": "https://dash.cloudflare.com"
   },
   {
-    "icon": "Edit",
+    "icon": "Picture",
     "name": "设计系统 (Figma)",
     "url": "https://figma.com"
   },
   {
-    "icon": "ChartPie",
+    "icon": "ChartLine",
     "name": "服务监控 (Grafana)",
     "url": "https://your.grafana.domain"
   }
