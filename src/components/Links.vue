@@ -52,15 +52,15 @@ import { computed } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Mousewheel } from 'swiper/modules'
 
-// 核心修复：彻底剔除 Claude 捏造的图标，换成 100% 存在的安全底层图标
+// 💥 终极修复：使用 100% 存在的骨灰级基础图标，彻底排除幻觉 💥
 import {
   LinkTwo,        // 标题图标
-  Cloud,          // Nextcloud · 私有云
-  Book,           // Obsidian · 第二大脑
-  Robot,          // Dify · AI 工作流
-  Server,         // Cloudflare · 边缘部署
-  Palette,        // Figma · 设计系统
-  ChartLine,      // Grafana · 可观测性
+  Database,       // 数据库图标 -> 对应私有云
+  Book,           // 书本图标 -> 对应第二大脑
+  Robot,          // 机器人图标 -> 对应 AI
+  Earth,          // 地球图标 -> 对应边缘网络
+  Edit,           // 编辑笔图标 -> 对应设计系统
+  ChartPie,       // 饼图图标 -> 对应服务监控
 } from '@icon-park/vue-next'
 
 import siteLinks from '@/assets/siteLinks.json'
@@ -74,16 +74,16 @@ const PAGE_SIZE = PAGE_COLS * PAGE_ROWS
 // ─────────────────────────────────────────────────────────────
 // 图标映射表：必须与 import 保持绝对一致
 const iconMap = {
-  Cloud,
+  Database,
   Book,
   Robot,
-  Server,
-  Palette,
-  ChartLine,
+  Earth,
+  Edit,
+  ChartPie,
 }
 
 // ─────────────────────────────────────────────────────────────
-// Swiper 配置
+// 下面的 Swiper 配置和跳转逻辑 (jumpLink) 保持原样不用动...
 const swiperModules = [Pagination, Mousewheel]
 const paginationConfig = {
   el: '.swiper-pagination',
