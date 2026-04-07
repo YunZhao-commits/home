@@ -78,11 +78,32 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .hitokoto {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  animation: fade 0.5s;
-  .open-music {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    animation: fade 0.5s;
+    
+    // 👇 核心视觉重构区域：高级亚克力毛玻璃质感 👇
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 14px;
+    transition: all 0.3s ease;
+    
+    // 鼠标悬停时的发光交互效果（吸引点击）
+    &:hover {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+      cursor: pointer;
+    }
+    // 👆 核心视觉重构结束 👆
+
+    .open-quotes {
+      // ... 保持原有不变
     width: 100%;
     position: absolute;
     top: 0;
