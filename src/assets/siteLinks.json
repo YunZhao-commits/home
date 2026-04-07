@@ -1,32 +1,32 @@
 [
   {
-    "icon": "CloudStorage",
+    "icon": "Cloud",
     "name": "私有云 (Nextcloud)",
-    "link": "https://your.nextcloud.domain"
+    "url": "https://your.nextcloud.domain"
   },
   {
-    "icon": "DiamondThree",
+    "icon": "Book",
     "name": "第二大脑 (Obsidian)",
-    "link": "obsidian://open"
+    "url": "obsidian://open"
   },
   {
     "icon": "Robot",
     "name": "AI 编排 (Dify)",
-    "link": "https://your.dify.domain"
+    "url": "https://your.dify.domain"
   },
   {
-    "icon": "GlobeNetworkSecurity",
-    "name": "边缘部署 (Serverless)",
-    "link": "https://dash.cloudflare.com"
+    "icon": "Server",
+    "name": "边缘网络 (Cloudflare)",
+    "url": "https://dash.cloudflare.com"
   },
   {
-    "icon": "DesignThinking",
+    "icon": "Palette",
     "name": "设计系统 (Figma)",
-    "link": "https://figma.com"
+    "url": "https://figma.com"
   },
   {
-    "icon": "DataScreen",
+    "icon": "ChartLine",
     "name": "服务监控 (Grafana)",
-    "link": "https://your.grafana.domain"
+    "url": "https://your.grafana.domain"
   }
 ]
