@@ -242,22 +242,63 @@ body {
   width: 100%;
   height: 100%;
   z-index: 0;
-  pointer-events: none; /* 防止挡住点击 */
+  pointer-events: none;
 }
 
-/* 🎵 播放器容器优化 🎵 */
+/* 🎵 播放器容器及深度毛玻璃覆写 🎵 */
 .player-wrapper {
   position: fixed;
   bottom: 20px;
   left: 20px;
   z-index: 999;
-  border-radius: 10px;
+  width: 300px; /* 稍微收敛一下宽度，显得更精致 */
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+  
+  /* 强制渗透修改 APlayer 的内置亮色样式，打造暗黑毛玻璃质感 */
+  :deep(.aplayer) {
+    margin: 0;
+    background: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    font-family: inherit;
+
+    .aplayer-info {
+      border-bottom: none !important;
+      .aplayer-music {
+        .aplayer-title { color: #fff; font-weight: bold; }
+        .aplayer-author { color: rgba(255,255,255,0.7); }
+      }
+      .aplayer-controller {
+        .aplayer-time { color: rgba(255,255,255,0.7); }
+        .aplayer-time .aplayer-icon path { fill: rgba(255,255,255,0.9); }
+        /* 进度条轨道变暗，主进度条变白 */
+        .aplayer-bar-wrap .aplayer-bar {
+          background: rgba(255,255,255,0.2) !important;
+          .aplayer-loaded { background: rgba(255,255,255,0.3) !important; }
+          .aplayer-played { background: #fff !important; .aplayer-thumb { background: #fff !important; } }
+        }
+      }
+    }
+    .aplayer-pic { background-color: transparent !important; }
+    .aplayer-list {
+      border: none !important;
+      ol li {
+        border-top: 1px solid rgba(255,255,255,0.05) !important;
+        color: rgba(255,255,255,0.8);
+        &:hover { background: rgba(255,255,255,0.1) !important; }
+        &.aplayer-list-light { background: rgba(255,255,255,0.15) !important; color: #fff; }
+        .aplayer-list-author { color: rgba(255,255,255,0.5); }
+      }
+    }
+  }
 }
 
-/* 以下为一字不落的原版布局样式，加入了高级毛玻璃效果 */
+/* 移除多余的玻璃背景，恢复通透布局 */
 #main {
   position: absolute;
   top: 0;
@@ -275,11 +316,7 @@ body {
     height: 100vh;
     margin: 0 auto;
     padding: 0 0.5vw;
-    
-    /* 💎 新增：高级毛玻璃质感 💎 */
-    &.glass-container {
-      background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
-    }
+    /* 💥 已经移除了那个该死的 .glass-container 背景 💥 */
 
     .all {
       width: 100%;
@@ -301,10 +338,9 @@ body {
       z-index: 2;
       animation: fade 0.5s;
     }
-    @media (max-width: 1200px) {
-      padding: 0 2vw;
-    }
+    @media (max-width: 1200px) { padding: 0 2vw; }
   }
+  
   .menu {
     position: absolute;
     display: flex;
@@ -325,75 +361,40 @@ body {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    &:active {
-      transform: scale(0.95);
-    }
-    .i-icon {
-      transform: translateY(2px);
-    }
-    @media (min-width: 721px) {
-      display: none;
-    }
+    &:active { transform: scale(0.95); }
+    .i-icon { transform: translateY(2px); }
+    @media (min-width: 721px) { display: none; }
   }
+
   @media (max-height: 720px) {
     overflow-y: auto;
     overflow-x: hidden;
     .container {
       height: 721px;
-      .more {
-        height: 721px;
-        width: calc(100% + 6px);
-      }
+      .more { height: 721px; width: calc(100% + 6px); }
       @media (min-width: 391px) {
-        // w 1201px ~ max
-        padding-left: 0.7vw;
-        padding-right: 0.25vw;
-        @media (max-width: 1200px) { // w 1101px ~ 1280px
-          padding-left: 2.3vw;
-          padding-right: 1.75vw;
-        }
-        @media (max-width: 1100px) { // w 993px ~ 1100px
-          padding-left: 2vw;
-          padding-right: calc(2vw - 6px);
-        }
-        @media (max-width: 992px) { // w 901px ~ 992px
-          padding-left: 2.3vw;
-          padding-right: 1.7vw;
-        }
-        @media (max-width: 900px) { // w 391px ~ 900px
-          padding-left: 2vw;
-          padding-right: calc(2vw - 6px);
-        }
+        padding-left: 0.7vw; padding-right: 0.25vw;
+        @media (max-width: 1200px) { padding-left: 2.3vw; padding-right: 1.75vw; }
+        @media (max-width: 1100px) { padding-left: 2vw; padding-right: calc(2vw - 6px); }
+        @media (max-width: 992px) { padding-left: 2.3vw; padding-right: 1.7vw; }
+        @media (max-width: 900px) { padding-left: 2vw; padding-right: calc(2vw - 6px); }
       }
     }
     .menu {
-      top: 605.64px; // 721px * 0.84
-      left: 170.5px; // 391 * 0.5 - 25px
-      @media (min-width: 391px) {
-        left: calc(50% - 25px);
-      }
+      top: 605.64px; left: 170.5px; 
+      @media (min-width: 391px) { left: calc(50% - 25px); }
     }
     .f-ter {
-      top: 675px; // 721px - 46px
-      @media (min-width: 391px) {
-        padding-left: 6px;
-      }
+      top: 675px; 
+      @media (min-width: 391px) { padding-left: 6px; }
     }
   }
   @media (max-width: 390px) {
     overflow-x: auto;
-    .container {
-      width: 391px;
-    }
-    .menu {
-      left: 167.5px; // 391px * 0.5 - 28px
-    }
-    .f-ter {
-      width: 391px;
-    }
-    @media (min-height: 721px) {
-      overflow-y: hidden;
-    }
+    .container { width: 391px; }
+    .menu { left: 167.5px; }
+    .f-ter { width: 391px; }
+    @media (min-height: 721px) { overflow-y: hidden; }
   }
 }
 </style>
