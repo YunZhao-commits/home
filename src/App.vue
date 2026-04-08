@@ -1,6 +1,5 @@
 <template>
   <div class="cyber-cursor" :style="{ left: cursorX + 'px', top: cursorY + 'px' }" :class="{ active: isHovering }"></div>
-
   <Loading />
   <Background @loadComplete="loadComplete" />
   <Transition name="fade" mode="out-in">
@@ -15,12 +14,7 @@
           <MoreSet />
         </section>
       </div>
-      <Icon
-        class="menu"
-        size="24"
-        v-show="!store.backgroundShow"
-        @click="store.mobileOpenState = !store.mobileOpenState"
-      >
+      <Icon class="menu" size="24" v-show="!store.backgroundShow" @click="store.mobileOpenState = !store.mobileOpenState">
         <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
       </Icon>
       <Transition name="fade" mode="out-in">
@@ -42,23 +36,16 @@ import Background from "@/components/Background.vue";
 import Footer from "@/components/Footer.vue";
 import Box from "@/views/Box/index.vue";
 import MoreSet from "@/views/MoreSet/index.vue";
-import cursorInit from "@/utils/cursor.js";
 import config from "@/../package.json";
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue"; // 显式引入以防报错
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 
 const store = mainStore();
-
-// 赛博光标坐标与状态
 const cursorX = ref(-100);
 const cursorY = ref(-100);
 const isHovering = ref(false);
 
-// 页面宽度
-const getWidth = () => {
-  store.setInnerWidth(window.innerWidth);
-};
+const getWidth = () => { store.setInnerWidth(window.innerWidth); };
 
-// 加载完成事件
 const loadComplete = () => {
   nextTick(() => {
     helloInit();
@@ -66,27 +53,17 @@ const loadComplete = () => {
   });
 };
 
-// 监听宽度变化
-watch(
-  () => store.innerWidth,
-  (value) => {
-    if (value < 721) {
-      store.boxOpenState = false;
-      store.setOpenState = false;
-    }
-  },
-);
+watch(() => store.innerWidth, (value) => {
+  if (value < 721) {
+    store.boxOpenState = false;
+    store.setOpenState = false;
+  }
+});
 
 onMounted(() => {
-  // 原版鼠标已注释，采用赛博光标
-  // cursorInit(); 
-
-  // 💥 赛博光标追踪逻辑 💥
   window.addEventListener("mousemove", (e) => {
     cursorX.value = e.clientX;
     cursorY.value = e.clientY;
-    
-    // 雷达探测：识别可点击元素以触发吸附效果
     const target = e.target;
     if (target.closest("a") || target.closest("button") || target.closest(".item") || target.closest(".cards")) {
       isHovering.value = true;
@@ -95,29 +72,17 @@ onMounted(() => {
     }
   });
 
-  // 鼠标中键事件
   window.addEventListener("mousedown", (event) => {
     if (event.button == 1) {
       store.backgroundShow = !store.backgroundShow;
-      ElMessage({
-        message: `已${store.backgroundShow ? "开启" : "退出"}壁纸展示状态`,
-        grouping: true,
-      });
+      if (typeof ElMessage !== 'undefined') {
+        ElMessage({ message: `已${store.backgroundShow ? "开启" : "退出"}壁纸展示状态`, grouping: true });
+      }
     }
   });
 
   getWidth();
   window.addEventListener("resize", getWidth);
-
-  const title1 = "Yunchu Studio";
-  const title2 = `
- _____ __  __  _______     ____     __
-|_   _|  \\/  |/ ____\\ \\   / /\\ \\   / /
-  | | | \\  / | (___  \\ \\_/ /  \\ \\_/ /
-  | | | |\\/| |\\___ \\  \\   /    \\   /
- _| |_| |  | |____) |  | |      | |
-|_____|_|  |_|_____/   |_|      |_|`;
-  const content = `\n\n版本: ${config.version}\n状态: SECURE & ENCRYPTED`;
 });
 
 onBeforeUnmount(() => {
@@ -125,20 +90,20 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-/* 💥 强制隐藏系统原版光标 💥 */
-:global(body) {
-  cursor: none !important; 
+<style>
+body {
+  cursor: none !important;
 }
+</style>
 
-/* 💥 赛博光标样式 💥 */
+<style lang="scss" scoped>
 .cyber-cursor {
   position: fixed;
   width: 20px;
   height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  pointer-events: none; /* 让鼠标点击穿透 */
+  pointer-events: none;
   transform: translate(-50%, -50%);
   transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
   z-index: 99999;
@@ -153,7 +118,6 @@ onBeforeUnmount(() => {
   }
 }
 
-/* 以下为原版布局样式 */
 #main {
   position: absolute;
   top: 0;
