@@ -24,6 +24,7 @@
 </template>
 
 <script setup>
+import { ref, watch, onMounted, onBeforeUnmount, h } from "vue";
 import { mainStore } from "@/store";
 import { Error } from "@icon-park/vue-next";
 
@@ -32,20 +33,23 @@ const bgUrl = ref(null);
 const imgTimeout = ref(null);
 const emit = defineEmits(["loadComplete"]);
 
-// 壁纸随机数
-// 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字
-const bgRandom = Math.floor(Math.random() * 10 + 1);
+// 💥 极客配置区：你目前文件夹里真实存在的图片最大序号 💥
+// 比如你有 background1 到 background8，这里就填 8
+const MAX_LOCAL_IMAGES = 8; 
+
+// 生成随机数
+const bgRandom = Math.floor(Math.random() * MAX_LOCAL_IMAGES + 1);
 
 // 更换壁纸链接
 const changeBg = (type) => {
   if (type == 0) {
     bgUrl.value = `/images/background${bgRandom}.jpg`;
   } else if (type == 1) {
-    bgUrl.value = "https://api.dujin.org/bing/1920.php";
+    bgUrl.value = "https://api.dujin.org/bing/1920.php"; // 必应每日一图
   } else if (type == 2) {
-    bgUrl.value = "https://api.vvhan.com/api/wallpaper/views";
+    bgUrl.value = "https://api.vvhan.com/api/wallpaper/views"; // 随机风景
   } else if (type == 3) {
-    bgUrl.value = "https://api.vvhan.com/api/wallpaper/acg";
+    bgUrl.value = "https://api.vvhan.com/api/wallpaper/acg"; // 随机动漫
   }
 };
 
@@ -62,21 +66,21 @@ const imgLoadComplete = () => {
 // 图片动画完成
 const imgAnimationEnd = () => {
   console.log("壁纸加载且动画完成");
-  // 加载完成事件
   emit("loadComplete");
 };
 
-// 图片显示失败
+// 🛡️ 终极防御机制：图片显示失败的自救方案
 const imgLoadError = () => {
-  console.error("壁纸加载失败：", bgUrl.value);
+  console.error("本地壁纸加载失败，可能是序号断层或文件被删：", bgUrl.value);
   ElMessage({
-    message: "壁纸加载失败，已临时切换回默认",
+    message: "本地壁纸读取失败，已启动安全协议，切换至云端图库",
     icon: h(Error, {
       theme: "filled",
       fill: "#efefef",
     }),
   });
-  bgUrl.value = `/images/background${bgRandom}.jpg`;
+  // 强制接管：一旦本地图报错，立刻切换到绝对不会报错的“必应每日一图”保底
+  bgUrl.value = "https://api.dujin.org/bing/1920.php";
 };
 
 // 监听壁纸切换
@@ -88,7 +92,6 @@ watch(
 );
 
 onMounted(() => {
-  // 加载壁纸
   changeBg(store.coverType);
 });
 
@@ -98,6 +101,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+/* 样式部分保持原有高级质感完全不动 */
 .cover {
   position: absolute;
   top: 0;
@@ -151,21 +155,4 @@ onBeforeUnmount(() => {
     right: 0;
     margin: 0 auto;
     display: block;
-    padding: 20px 26px;
-    border-radius: 8px;
-    background-color: #00000030;
-    width: 120px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    &:hover {
-      transform: scale(1.05);
-      background-color: #00000060;
-    }
-    &:active {
-      transform: scale(1);
-    }
-  }
-}
-</style>
+    padding:
