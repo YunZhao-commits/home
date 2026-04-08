@@ -1,13 +1,11 @@
 <template>
   <div v-if="siteLinks.length" class="links">
 
-    <!-- ── 标题栏 ── -->
     <div class="line">
       <LinkTwo theme="outline" size="20" :stroke-width="3" />
       <span class="title">网站导航</span>
     </div>
 
-    <!-- ── Swiper 轮播 ── -->
     <Swiper
       :modules="swiperModules"
       :slides-per-view="1"
@@ -16,10 +14,6 @@
       :mousewheel="true"
     >
       <SwiperSlide v-for="(page, pageIndex) in pagedLinks" :key="pageIndex">
-        <!--
-          抛弃 el-row/el-col + 魔法 margin-bottom hack
-          改用原生 CSS Grid，间距由 gap 统一管理
-        -->
         <div class="link-grid">
           <div
             v-for="item in page"
@@ -38,61 +32,32 @@
         </div>
       </SwiperSlide>
 
-      <!--
-        核心修复①：v-if 彻底不渲染 DOM
-        而非 v-show 隐藏，Swiper 内部也不会初始化分页器模块
-      -->
       <div v-if="needsPagination" class="swiper-pagination" />
     </Swiper>
 
   </div>
 </template>
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, nextTick } from 'vue' // 💥 引入钩子 💥
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Mousewheel } from 'swiper/modules'
+import VanillaTilt from 'vanilla-tilt' // 💥 引入物理引擎 💥
 
-// 💥 终极安全声明：使用 100% 存在的基础底层图标 💥
 import {
-  LinkTwo,        // 标题图标
-  Folder,         // 文件夹 -> 对应私有云
-  Notebook,       // 笔记本 -> 对应第二大脑
-  Cpu,            // 芯片 -> 对应 AI
-  Earth,          // 地球 -> 对应边缘网络
-  Picture,        // 图片 -> 对应设计系统
-  ChartLine,      // 折线图 -> 对应服务监控
+  LinkTwo, Folder, Notebook, Cpu, Earth, Picture, ChartLine
 } from '@icon-park/vue-next'
 
 import siteLinks from '@/assets/siteLinks.json'
 
-// ─────────────────────────────────────────────────────────────
-// 布局常量
 const PAGE_COLS = 3  
 const PAGE_ROWS = 2  
 const PAGE_SIZE = PAGE_COLS * PAGE_ROWS  
 
-// ─────────────────────────────────────────────────────────────
-// 图标映射表：必须与 import 保持绝对一致
-const iconMap = {
-  Folder,
-  Notebook,
-  Cpu,
-  Earth,
-  Picture,
-  ChartLine,
-}
+const iconMap = { Folder, Notebook, Cpu, Earth, Picture, ChartLine }
 
-// ─────────────────────────────────────────────────────────────
-// 下面的 Swiper 配置和 jumpLink 跳转逻辑保持原样不用动...
 const swiperModules = [Pagination, Mousewheel]
-const paginationConfig = {
-  el: '.swiper-pagination',
-  clickable: true,
-  bulletElement: 'div',
-}
+const paginationConfig = { el: '.swiper-pagination', clickable: true, bulletElement: 'div' }
 
-// ─────────────────────────────────────────────────────────────
-// 数据计算
 const pagedLinks = computed(() => {
   const pages = []
   for (let i = 0; i < siteLinks.length; i += PAGE_SIZE) {
@@ -103,14 +68,9 @@ const pagedLinks = computed(() => {
 
 const needsPagination = computed(() => siteLinks.length > PAGE_SIZE)
 
-// ─────────────────────────────────────────────────────────────
-// 链接跳转 · 协议分发器
 const jumpLink = (item) => {
   const url = item.url
-  if (!url) {
-    console.warn(`[Links.vue] 导航项 "${item.name}" 缺少 url 字段`)
-    return
-  }
+  if (!url) return
   const isWebUrl = url.startsWith('https://') || url.startsWith('http://')
   if (isWebUrl) {
     window.open(url, '_blank', 'noopener,noreferrer')
@@ -118,17 +78,28 @@ const jumpLink = (item) => {
     window.location.href = url
   }
 }
-</script>
 
+// 💥 引擎点火：页面渲染后绑定 3D 效果 💥
+onMounted(() => {
+  nextTick(() => {
+    VanillaTilt.init(document.querySelectorAll('.item.cards'), {
+      max: 15,          // 最大倾斜角度
+      speed: 400,       // 动画回弹速度
+      glare: true,      // 开启玻璃反光效果
+      "max-glare": 0.25, // 反光强度
+      scale: 1.02,      // 交给引擎来接管卡片放大效果
+    })
+  })
+})
+</script>
 
 <style lang="scss" scoped>
 .links {
-  // ── 标题栏 ──────────────────────────────────────────────
   .line {
     margin: 2rem 0.25rem 1rem;
     display: flex;
     align-items: center;
-    gap: 8px;           // 替换原来的 margin-left: 8px
+    gap: 8px;           
     animation: fade 0.5s;
 
     .title {
@@ -137,7 +108,6 @@ const jumpLink = (item) => {
     }
   }
 
-  // ── Swiper 容器 ─────────────────────────────────────────
   .swiper {
     left: -10px;
     width: calc(100% + 20px);
@@ -146,7 +116,6 @@ const jumpLink = (item) => {
 
     .swiper-slide { height: 100%; }
 
-    // 分页指示器样式保持原有风格
     .swiper-pagination {
       margin-top: 12px;
       display: flex;
@@ -168,10 +137,9 @@ const jumpLink = (item) => {
     }
   }
 
-  // ── 核心改动：CSS Grid 替代 el-row/el-col ────────────────
   .link-grid {
     display: grid;
-    grid-template-columns: repeat(v-bind(PAGE_COLS), 1fr);  // 响应常量
+    grid-template-columns: repeat(v-bind(PAGE_COLS), 1fr);  
     grid-template-rows: repeat(v-bind(PAGE_ROWS), 1fr);
     gap: 20px;
     height: 220px;
@@ -179,7 +147,6 @@ const jumpLink = (item) => {
     @media (max-width: 720px) { height: 180px; }
   }
 
-  // ── 卡片单元 ────────────────────────────────────────────
   .item {
     display: flex;
     align-items: center;
@@ -188,26 +155,30 @@ const jumpLink = (item) => {
     padding: 0 10px;
     cursor: pointer;
     animation: fade 0.5s;
-    // ↑ 删掉了 index < 3 的 margin-bottom hack，grid gap 已处理
+    
+    /* 💥 为保证 3D 效果不越界溢出，修复基础样式 💥 */
+    transform-style: preserve-3d;
+    border-radius: 12px;
 
     &:hover {
-      transform: scale(1.02);
+      /* 原本的 transform: scale(1.02) 已经删除，防止与 3D 引擎打架 */
       background: rgb(0 0 0 / 40%);
       transition: 0.3s;
     }
-    &:active { transform: scale(1); }
+    
+    &:active { transform: scale(1) !important; }
 
     .name {
       font-size: 1.1rem;
       margin-left: 8px;
+      /* 选填：如果你希望文字有一种立体的上浮感，可以打开下面这行注释 */
+      /* transform: translateZ(20px); */
     }
 
-    // 宽屏窄区间：只显示图标
     @media (min-width: 720px) and (max-width: 820px) {
       .name { display: none; }
     }
 
-    // 小屏：垂直排列
     @media (max-width: 460px) {
       flex-direction: column;
       .name {
