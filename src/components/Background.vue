@@ -33,12 +33,13 @@ const bgUrl = ref(null);
 const imgTimeout = ref(null);
 const emit = defineEmits(["loadComplete"]);
 
-// 💥 极客配置区：你目前文件夹里真实存在的图片最大序号 💥
-// 比如你有 background1 到 background8，这里就填 8
-const MAX_LOCAL_IMAGES = 8; 
+// 💥 极客“偷懒”配置区：把你现在有的图片数字全写进这个中括号里，用逗号隔开！💥
+// 根据你的截图，目前存活的壁纸是下面这 7 张：
+const availableImages = [2, 3, 4, 5, 7, 8, 9]; 
 
-// 生成随机数
-const bgRandom = Math.floor(Math.random() * MAX_LOCAL_IMAGES + 1);
+// 系统会直接从上面这个真实存在的列表里随机抽签，绝对不会抽到空号！
+const randomIndex = Math.floor(Math.random() * availableImages.length);
+const bgRandom = availableImages[randomIndex];
 
 // 更换壁纸链接
 const changeBg = (type) => {
@@ -53,6 +54,7 @@ const changeBg = (type) => {
   }
 };
 
+// --- 下面的代码保持原样不变 ---
 // 图片加载完成
 const imgLoadComplete = () => {
   imgTimeout.value = setTimeout(
@@ -63,13 +65,12 @@ const imgLoadComplete = () => {
   );
 };
 
-// 图片动画完成
 const imgAnimationEnd = () => {
   console.log("壁纸加载且动画完成");
   emit("loadComplete");
 };
 
-// 🛡️ 终极防御机制：图片显示失败的自救方案
+// 终极防御机制：依然保留，万一哪天你删了图片忘了改代码，自动切云端
 const imgLoadError = () => {
   console.error("本地壁纸加载失败，可能是序号断层或文件被删：", bgUrl.value);
   ElMessage({
@@ -79,11 +80,9 @@ const imgLoadError = () => {
       fill: "#efefef",
     }),
   });
-  // 强制接管：一旦本地图报错，立刻切换到绝对不会报错的“必应每日一图”保底
   bgUrl.value = "https://api.dujin.org/bing/1920.php";
 };
 
-// 监听壁纸切换
 watch(
   () => store.coverType,
   (value) => {
