@@ -3,6 +3,10 @@
 
   <canvas id="particle-canvas" class="particle-bg"></canvas>
 
+  <CommandPalette />
+
+  <Loading />
+
   <Loading />
   <Background @loadComplete="loadComplete" />
   
@@ -49,6 +53,9 @@ import Box from "@/views/Box/index.vue";
 import MoreSet from "@/views/MoreSet/index.vue";
 import config from "@/../package.json";
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+// 💥 新增：导入控制台引擎 💥
+import CommandPalette from "@/components/CommandPalette.vue";
+  
 
 const store = mainStore();
 
