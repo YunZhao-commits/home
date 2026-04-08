@@ -1,9 +1,8 @@
-[
-  {
-    "icon": "Folder",
-    "name": "隐私云端 (Proton Drive)",
-    "url": "https://drive.proton.me"
-  },
+{
+  "icon": "Message",
+  "name": "全球广播 (Terminal)",
+  "url": "/#/broadcast" 
+},
   {
     "icon": "Notebook",
     "name": "第二大脑 (Obsidian)",
