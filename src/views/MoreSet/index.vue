@@ -30,25 +30,25 @@
           <div class="upnote monitor-content">
             <div class="status-item">
               <span class="label">SECURE LINK</span>
-              <span class="value green">ESTABLISHED (AES-256)</span>
-            </div>
-            <div class="status-item">
-              <span class="label">LOCATION</span>
-              <span class="value">Shijiazhuang, CN</span>
+              <span class="value green">ESTABLISHED</span>
             </div>
             <div class="status-item">
               <span class="label">UPTIME</span>
               <span class="value">99.99%</span>
             </div>
+            
             <div class="divider"></div>
-            <div class="load-bar">
-              <div class="bar-label"><span>CPU CORE</span><span>12%</span></div>
-              <div class="bar-track"><div class="bar-fill" style="width: 12%"></div></div>
+            
+            <div class="github-matrix">
+              <div class="matrix-header">
+                <span class="label">CODE CONTRIBUTIONS</span>
+                <span class="user-id">@YunZhao-commits</span>
+              </div>
+              <div class="matrix-chart">
+                <img src="https://ghchart.rshah.org/4ade80/YunZhao-commits" alt="Github Chart" />
+              </div>
             </div>
-            <div class="load-bar">
-              <div class="bar-label"><span>MEM USAGE</span><span>1.2 GB / 8 GB</span></div>
-              <div class="bar-track"><div class="bar-fill" style="width: 25%; background: #60a5fa;"></div></div>
-            </div>
+
           </div>
         </el-card>
       </el-col>
@@ -84,7 +84,7 @@ const closeShow = ref(false);
   transform: translate(-50%, -50%);
   width: 80%;
   height: 80%;
-  background: rgba(18, 18, 25, 0.85); /* 极其深邃的暗色 */
+  background: rgba(18, 18, 25, 0.85); 
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -162,18 +162,31 @@ const closeShow = ref(false);
             .value.green { color: #4ade80; text-shadow: 0 0 5px rgba(74,222,128,0.4); }
           }
 
-          .divider { height: 1px; background: rgba(255,255,255,0.1); margin: 20px 0; }
+          .divider { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0; }
 
-          .load-bar {
-            margin-bottom: 15px;
-            .bar-label {
+          /* 🟩 GitHub 绿墙样式 🟩 */
+          .github-matrix {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+
+            .matrix-header {
               display: flex; justify-content: space-between;
-              font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 6px;
+              font-size: 0.75rem; margin-bottom: 10px;
+              .label { color: rgba(255,255,255,0.5); }
+              .user-id { color: #4ade80; font-weight: bold; }
             }
-            .bar-track {
-              width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-              border-radius: 3px; overflow: hidden;
-              .bar-fill { height: 100%; background: #4ade80; border-radius: 3px; }
+
+            .matrix-chart {
+              width: 100%;
+              overflow: hidden;
+              img {
+                width: 100%;
+                /* 增加轻微的发光滤镜，强化赛博朋克质感 */
+                filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.3)) hue-rotate(0deg);
+                opacity: 0.9;
+              }
             }
           }
         }
@@ -202,26 +215,13 @@ const closeShow = ref(false);
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* 🔪 核心大招：利用 CSS 穿透，强行改造右侧组件并隐藏多余配置 🔪 */
-:deep(.el-card) {
-  background: transparent !important;
-  border: none !important;
-  color: #fff !important;
-}
+/* 🔪 屏蔽多余配置 🔪 */
+:deep(.el-card) { background: transparent !important; border: none !important; color: #fff !important; }
 :deep(.el-collapse) { border: none !important; }
 :deep(.el-collapse-item__header) {
-  background: rgba(255,255,255,0.05) !important;
-  color: #fff !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  padding: 0 15px;
+  background: rgba(255,255,255,0.05) !important; color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px; margin-bottom: 10px; padding: 0 15px;
 }
-:deep(.el-collapse-item__wrap) {
-  background: transparent !important; border: none !important;
-}
-/* 💥 强行隐藏壁纸以外的所有折叠面板（废弃的播放器等）💥 */
-:deep(.el-collapse-item:nth-child(n+2)) {
-  display: none !important;
-}
+:deep(.el-collapse-item__wrap) { background: transparent !important; border: none !important; }
+:deep(.el-collapse-item:nth-child(n+2)) { display: none !important; }
 </style>
