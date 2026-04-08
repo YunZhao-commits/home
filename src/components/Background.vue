@@ -155,4 +155,21 @@ onBeforeUnmount(() => {
     right: 0;
     margin: 0 auto;
     display: block;
-    padding:
+    padding: 20px 26px;
+    border-radius: 8px;
+    background-color: #00000030;
+    width: 120px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    &:hover {
+      transform: scale(1.05);
+      background-color: #00000060;
+    }
+    &:active {
+      transform: scale(1);
+    }
+  }
+}
+</style>
