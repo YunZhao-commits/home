@@ -1,9 +1,8 @@
 <template>
-  <!-- 加载 -->
+  <div class="cyber-cursor" :style="{ left: cursorX + 'px', top: cursorY + 'px' }" :class="{ active: isHovering }"></div>
+
   <Loading />
-  <!-- 壁纸 -->
   <Background @loadComplete="loadComplete" />
-  <!-- 主界面 -->
   <Transition name="fade" mode="out-in">
     <main id="main" v-if="store.imgLoadStatus">
       <div class="container" v-show="!store.backgroundShow">
@@ -16,7 +15,6 @@
           <MoreSet />
         </section>
       </div>
-      <!-- 移动端菜单按钮 -->
       <Icon
         class="menu"
         size="24"
@@ -25,7 +23,6 @@
       >
         <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
       </Icon>
-      <!-- 页脚 -->
       <Transition name="fade" mode="out-in">
         <Footer class="f-ter" v-show="!store.backgroundShow && !store.setOpenState" />
       </Transition>
@@ -47,8 +44,14 @@ import Box from "@/views/Box/index.vue";
 import MoreSet from "@/views/MoreSet/index.vue";
 import cursorInit from "@/utils/cursor.js";
 import config from "@/../package.json";
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue"; // 显式引入以防报错
 
 const store = mainStore();
+
+// 赛博光标坐标与状态
+const cursorX = ref(-100);
+const cursorY = ref(-100);
+const isHovering = ref(false);
 
 // 页面宽度
 const getWidth = () => {
@@ -58,9 +61,7 @@ const getWidth = () => {
 // 加载完成事件
 const loadComplete = () => {
   nextTick(() => {
-    // 欢迎提示
     helloInit();
-    // 默哀模式
     checkDays();
   });
 };
@@ -77,9 +78,22 @@ watch(
 );
 
 onMounted(() => {
-  // 自定义鼠标
-  cursorInit();
+  // 原版鼠标已注释，采用赛博光标
+  // cursorInit(); 
 
+  // 💥 赛博光标追踪逻辑 💥
+  window.addEventListener("mousemove", (e) => {
+    cursorX.value = e.clientX;
+    cursorY.value = e.clientY;
+    
+    // 雷达探测：识别可点击元素以触发吸附效果
+    const target = e.target;
+    if (target.closest("a") || target.closest("button") || target.closest(".item") || target.closest(".cards")) {
+      isHovering.value = true;
+    } else {
+      isHovering.value = false;
+    }
+  });
 
   // 鼠标中键事件
   window.addEventListener("mousedown", (event) => {
@@ -92,15 +106,10 @@ onMounted(() => {
     }
   });
 
-  // 监听当前页面宽度
   getWidth();
   window.addEventListener("resize", getWidth);
 
-  // 控制台输出
-  const styleTitle1 = "font-size: 20px;font-weight: 600;color: rgb(244,167,89);";
-  const styleTitle2 = "font-size:12px;color: rgb(244,167,89);";
-  const styleContent = "color: rgb(30,152,255);";
-  const title1 = "無名の主页";
+  const title1 = "Yunchu Studio";
   const title2 = `
  _____ __  __  _______     ____     __
 |_   _|  \\/  |/ ____\\ \\   / /\\ \\   / /
@@ -108,8 +117,7 @@ onMounted(() => {
   | | | |\\/| |\\___ \\  \\   /    \\   /
  _| |_| |  | |____) |  | |      | |
 |_____|_|  |_|_____/   |_|      |_|`;
-  const content = `\n\n版本: ${config.version}\n主页: ${config.home}\nGithub: ${config.github}`;
-  ;
+  const content = `\n\n版本: ${config.version}\n状态: SECURE & ENCRYPTED`;
 });
 
 onBeforeUnmount(() => {
@@ -118,6 +126,34 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
+/* 💥 强制隐藏系统原版光标 💥 */
+:global(body) {
+  cursor: none !important; 
+}
+
+/* 💥 赛博光标样式 💥 */
+.cyber-cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none; /* 让鼠标点击穿透 */
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  z-index: 99999;
+  box-shadow: 0 0 10px rgba(255,255,255,0.2);
+
+  &.active {
+    width: 45px;
+    height: 45px;
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    border-color: transparent;
+  }
+}
+
+/* 以下为原版布局样式 */
 #main {
   position: absolute;
   top: 0;
@@ -191,36 +227,35 @@ onBeforeUnmount(() => {
         width: calc(100% + 6px);
       }
       @media (min-width: 391px) {
-        // w 1201px ~ max
         padding-left: 0.7vw;
         padding-right: 0.25vw;
-        @media (max-width: 1200px) { // w 1101px ~ 1280px
+        @media (max-width: 1200px) { 
           padding-left: 2.3vw;
           padding-right: 1.75vw;
         }
-        @media (max-width: 1100px) { // w 993px ~ 1100px
+        @media (max-width: 1100px) { 
           padding-left: 2vw;
           padding-right: calc(2vw - 6px);
         }
-        @media (max-width: 992px) { // w 901px ~ 992px
+        @media (max-width: 992px) { 
           padding-left: 2.3vw;
           padding-right: 1.7vw;
         }
-        @media (max-width: 900px) { // w 391px ~ 900px
+        @media (max-width: 900px) { 
           padding-left: 2vw;
           padding-right: calc(2vw - 6px);
         }
       }
     }
     .menu {
-      top: 605.64px; // 721px * 0.84
-      left: 170.5px; // 391 * 0.5 - 25px
+      top: 605.64px; 
+      left: 170.5px; 
       @media (min-width: 391px) {
         left: calc(50% - 25px);
       }
     }
     .f-ter {
-      top: 675px; // 721px - 46px
+      top: 675px; 
       @media (min-width: 391px) {
         padding-left: 6px;
       }
@@ -232,7 +267,7 @@ onBeforeUnmount(() => {
       width: 391px;
     }
     .menu {
-      left: 167.5px; // 391px * 0.5 - 28px
+      left: 167.5px; 
     }
     .f-ter {
       width: 391px;
