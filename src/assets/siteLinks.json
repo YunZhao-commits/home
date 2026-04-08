@@ -1,8 +1,8 @@
 [
   {
     "icon": "Folder",
-    "name": "私有云 (Nextcloud)",
-    "url": "https://your.nextcloud.domain"
+    "name": "隐私云端 (Proton Drive)",
+    "url": "https://drive.proton.me"
   },
   {
     "icon": "Notebook",
@@ -11,8 +11,8 @@
   },
   {
     "icon": "Cpu",
-    "name": "AI 编排 (Dify)",
-    "url": "https://your.dify.domain"
+    "name": "AI 编排 (Dify Cloud)",
+    "url": "https://cloud.dify.ai"
   },
   {
     "icon": "Earth",
@@ -22,11 +22,11 @@
   {
     "icon": "Picture",
     "name": "设计系统 (Figma)",
-    "url": "https://figma.com"
+    "url": "https://www.figma.com"
   },
   {
     "icon": "ChartLine",
-    "name": "服务监控 (Grafana)",
-    "url": "https://your.grafana.domain"
+    "name": "AI 聚合终端 (Gemini)",
+    "url": "https://gemini.google.com"
   }
 ]
