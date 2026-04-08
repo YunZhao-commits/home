@@ -139,9 +139,9 @@ onMounted(() => {
 
   .link-grid {
     display: grid;
-    grid-template-columns: repeat(v-bind(PAGE_COLS), 1fr);  
+    grid-template-columns: repeat(v-bind(PAGE_COLS), minmax(0, 1fr)); /* 💥 关键修复：让网格自动收缩，不挤压内容 */
     grid-template-rows: repeat(v-bind(PAGE_ROWS), 1fr);
-    gap: 20px;
+    gap: 15px; /* 稍微减小间距，给文字腾出空间 */
     height: 220px;
 
     @media (max-width: 720px) { height: 180px; }
@@ -152,16 +152,13 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     flex-direction: row;
-    padding: 0 10px;
+    padding: 0 5px; /* 减少内边距 */
     cursor: pointer;
     animation: fade 0.5s;
-    
-    /* 💥 为保证 3D 效果不越界溢出，修复基础样式 💥 */
     transform-style: preserve-3d;
     border-radius: 12px;
 
     &:hover {
-      /* 原本的 transform: scale(1.02) 已经删除，防止与 3D 引擎打架 */
       background: rgb(0 0 0 / 40%);
       transition: 0.3s;
     }
@@ -169,10 +166,9 @@ onMounted(() => {
     &:active { transform: scale(1) !important; }
 
     .name {
-      font-size: 1.1rem;
-      margin-left: 8px;
-      /* 选填：如果你希望文字有一种立体的上浮感，可以打开下面这行注释 */
-      /* transform: translateZ(20px); */
+      font-size: 0.95rem; /* 💥 关键修复：字号略微缩小，保证无论屏幕多窄都能完整显示 */
+      margin-left: 6px;
+      white-space: nowrap; /* 保证不换行 */
     }
 
     @media (min-width: 720px) and (max-width: 820px) {
@@ -182,7 +178,7 @@ onMounted(() => {
     @media (max-width: 460px) {
       flex-direction: column;
       .name {
-        font-size: 1rem;
+        font-size: 0.85rem;
         margin-left: 0;
         margin-top: 8px;
       }
