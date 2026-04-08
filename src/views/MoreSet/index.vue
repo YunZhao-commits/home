@@ -223,5 +223,4 @@ const closeShow = ref(false);
   border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px; margin-bottom: 10px; padding: 0 15px;
 }
 :deep(.el-collapse-item__wrap) { background: transparent !important; border: none !important; }
-:deep(.el-collapse-item:nth-child(n+2)) { display: none !important; }
 </style>
