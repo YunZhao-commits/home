@@ -11,7 +11,7 @@
     <div class="description" @click="store.boxOpenState = !store.boxOpenState">
       <div class="content">
         <Quote class="quote-icon left" fill="rgba(255, 255, 255, 0.6)" size="22" />
-        <span class="desc-text">{{ description }}</span>
+        <span class="desc-text" ref="typedElement"></span>
         <Quote class="quote-icon right" fill="rgba(255, 255, 255, 0.6)" size="22" />
       </div>
     </div>
@@ -19,14 +19,36 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { Quote } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
+import Typed from "typed.js"; // 💥 引入打字机引擎 💥
 
-// 引入全局状态，用于控制时光胶囊的翻转
 const store = mainStore();
+const typedElement = ref(null);
+let typedInstance = null;
 
-// 你的专属 Slogan
-const description = "A Private Digital Infrastructure";
+onMounted(() => {
+  // 💥 引擎点火 💥
+  typedInstance = new Typed(typedElement.value, {
+    strings: [
+      "A Private Digital Infrastructure",
+      "Decentralized Edge Node",
+      "System Secure & Encrypted",
+      "Explore The Cyber Space"
+    ],
+    typeSpeed: 60,     // 打字速度
+    backSpeed: 30,     // 回退速度
+    backDelay: 2500,   // 停留时间
+    loop: true,        // 无限循环
+    showCursor: true,  // 显示光标
+    cursorChar: "_"    // 极客下划线
+  });
+});
+
+onBeforeUnmount(() => {
+  if (typedInstance) typedInstance.destroy(); // 卸载清理内存
+});
 </script>
 
 <style lang="scss" scoped>
@@ -71,11 +93,10 @@ const description = "A Private Digital Infrastructure";
     }
   }
   
-  /* 终极重构：左下角宽幅高级玻璃面板 */
   .description {
     margin-top: 2.5rem;
     width: 100%;
-    max-width: 460px; /* 控制最大宽度，保持优雅比例 */
+    max-width: 460px; 
     padding: 16px 20px;
     background: rgba(0, 0, 0, 0.25);
     border-radius: 14px;
@@ -86,7 +107,6 @@ const description = "A Private Digital Infrastructure";
     cursor: pointer;
     transition: all 0.3s ease;
 
-    /* 悬停时的呼吸发光和上浮，暗示这里可以点击 */
     &:hover {
       background: rgba(0, 0, 0, 0.4);
       transform: translateY(-2px);
@@ -103,11 +123,11 @@ const description = "A Private Digital Infrastructure";
         opacity: 0.8;
       }
       .quote-icon.right {
-        transform: scaleX(-1); /* 完美镜像翻转右侧引号 */
+        transform: scaleX(-1); 
       }
       
       .desc-text {
-        flex: 1; /* 让文字撑满中间，把引号推向两边 */
+        flex: 1; 
         text-align: center;
         font-size: 1.15rem;
         color: rgba(255, 255, 255, 0.9);
@@ -119,7 +139,6 @@ const description = "A Private Digital Infrastructure";
   }
 }
 
-/* 移动端适配 */
 @media (max-width: 720px) {
   .message {
     align-items: center;
