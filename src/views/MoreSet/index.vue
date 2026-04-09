@@ -1,227 +1,209 @@
 <template>
-  <div class="set" @mouseenter="closeShow = true" @mouseleave="closeShow = false" @click.stop>
-    <transition name="el-fade-in-linear">
-      <close-one
-        class="close"
-        theme="filled"
-        size="28"
-        fill="#ffffff80"
-        v-show="closeShow"
-        @click="store.setOpenState = false"
-      />
-    </transition>
-    <el-row :gutter="40">
-      <el-col :span="12" class="left">
-        <div class="logo text-hidden">
-          <span class="bg">Yunchu</span>
-          <span class="sm">.Studio</span>
-        </div>
-        <div class="version">
-          <div class="num">EDGE NODE v{{ config.version }}</div>
+  <div class="box-container" @click.stop>
+    <div class="close-btn" @click="store.boxOpenState = false">
+      <close-small theme="outline" size="24" fill="#ffffff80" />
+    </div>
+    
+    <div class="content">
+      <div class="time-capsule">
+        <div class="header">
+          <hourglass-full theme="outline" size="22" fill="#efefef" />
+          <span class="title-text">时光胶囊</span>
         </div>
         
-        <el-card class="update sys-monitor">
-          <template #header>
-            <div class="card-header">
-              <span class="pulse-dot"></span>
-              <span class="title-text">System Status / 节点状态</span>
+        <div class="progress-list">
+          <div class="progress-item" v-for="(item, index) in timeData" :key="index">
+            <div class="info-row">
+              <div class="name">{{ item.name }}已度过 <span>{{ item.passed }}</span> {{ item.unit }}</div>
+              <div class="remaining">剩余 {{ item.remaining }} {{ item.unit }}</div>
             </div>
-          </template>
-          <div class="upnote monitor-content">
-            <div class="status-item">
-              <span class="label">SECURE LINK</span>
-              <span class="value green">ESTABLISHED</span>
+            <div class="progress-bg">
+              <div class="progress-bar" :style="{ width: item.percentage + '%' }"></div>
+              <div class="percentage-text">{{ item.percentage }}%</div>
             </div>
-            <div class="status-item">
-              <span class="label">UPTIME</span>
-              <span class="value">99.99%</span>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="github-matrix">
-              <div class="matrix-header">
-                <span class="label">CODE CONTRIBUTIONS</span>
-                <span class="user-id">@YunZhao-commits</span>
-              </div>
-              <div class="matrix-chart">
-                <img src="https://ghchart.rshah.org/4ade80/YunZhao-commits" alt="Github Chart" />
-              </div>
-            </div>
-
           </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :span="12" class="right">
-        <div class="title">
-          <setting-two theme="filled" size="28" fill="#ffffff80" />
-          <span class="name">系统配置 / CONFIGURATION</span>
         </div>
-        <Set />
-      </el-col>
-    </el-row>
+      </div>
+
+      <div class="site-intro">
+        <div class="logo">
+          <span class="bg">Yunchu</span>
+          <span class="sm">Studio</span>
+        </div>
+        <div class="desc">致力于探索前沿技术与极简设计的个人数字实验室。</div>
+        
+        <div class="sys-info">
+          <div class="info-row">
+            <span class="label">CURRENT NODE</span>
+            <span class="value">Decentralized Edge</span>
+          </div>
+          <div class="info-row">
+            <span class="label">ACTIVE TASK</span>
+            <span class="value">Infrastructure Setup</span>
+          </div>
+          <div class="info-row">
+            <span class="label">NEXT PHASE</span>
+            <span class="value">Exploring Web3</span>
+          </div>
+        </div>
+        
+        <div class="status-text">-- SYSTEMS ONLINE --</div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { CloseOne, SettingTwo } from "@icon-park/vue-next";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { CloseSmall, HourglassFull } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
-import Set from "@/components/Set.vue";
-import config from "@/../package.json";
-import { ref } from "vue";
+import dayjs from "dayjs";
 
 const store = mainStore();
-const closeShow = ref(false);
+const timeData = ref([]);
+let timer = null;
+
+// 核心时间计算引擎 (纯净版，不依赖外部配置，绝不报错白屏)
+const updateTime = () => {
+  const now = dayjs();
+  const today = now.startOf("day");
+  const week = now.startOf("week");
+  const year = now.startOf("year");
+  
+  const currentYear = now.year();
+  const isLeapYear = (currentYear % 4 === 0 && currentYear % 100 !== 0) || currentYear % 400 === 0;
+  const daysInYear = isLeapYear ? 366 : 365;
+
+  timeData.value = [
+    {
+      name: "今日", unit: "小时",
+      passed: now.diff(today, "hour"),
+      remaining: 24 - now.diff(today, "hour"),
+      percentage: ((now.diff(today, "hour") / 24) * 100).toFixed(2),
+    },
+    {
+      name: "本周", unit: "天",
+      passed: now.diff(week, "day") === 0 ? 1 : now.diff(week, "day"),
+      remaining: 7 - (now.diff(week, "day") === 0 ? 1 : now.diff(week, "day")),
+      percentage: (((now.diff(week, "day") === 0 ? 1 : now.diff(week, "day")) / 7) * 100).toFixed(2),
+    },
+    {
+      name: "本月", unit: "天",
+      passed: now.date(),
+      remaining: now.daysInMonth() - now.date(),
+      percentage: ((now.date() / now.daysInMonth()) * 100).toFixed(2),
+    },
+    {
+      name: "本年", unit: "天",
+      passed: now.diff(year, "day"),
+      remaining: daysInYear - now.diff(year, "day"),
+      percentage: ((now.diff(year, "day") / daysInYear) * 100).toFixed(2),
+    },
+  ];
+};
+
+onMounted(() => {
+  updateTime();
+  timer = setInterval(updateTime, 1000 * 60 * 30); // 每半小时自动刷新一次进度
+});
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer);
+});
 </script>
 
 <style lang="scss" scoped>
-/* 💎 全局暗黑拟态毛玻璃背景 💎 */
-.set {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-  height: 80%;
-  background: rgba(18, 18, 25, 0.85); 
+.box-container {
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 20, 25, 0.75);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-  border-radius: 16px;
-  padding: 40px;
-  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 
-  .close {
+  .close-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 15px;
+    right: 15px;
     cursor: pointer;
-    transition: all 0.3s;
-    &:hover { transform: scale(1.2) rotate(90deg); fill: #f87171; }
+    transition: transform 0.3s ease;
+    z-index: 10;
+    &:hover { transform: rotate(90deg) scale(1.1); color: #f87171 !important; }
   }
 
-  .el-row {
-    height: 100%;
-    flex-wrap: nowrap;
+  .content {
+    flex: 1;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    
+    &::-webkit-scrollbar { width: 0px; }
 
-    .left {
-      height: 100%;
-      padding-left: 20px !important;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+    /* ⏳ 时光胶囊样式 */
+    .time-capsule {
+      margin-bottom: 30px;
+      .header {
+        display: flex; align-items: center; margin-bottom: 20px;
+        .title-text { font-size: 18px; color: #fff; margin-left: 8px; font-weight: bold; letter-spacing: 1px; }
+      }
+
+      .progress-list {
+        .progress-item {
+          margin-bottom: 18px;
+          .info-row {
+            display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;
+            .name { color: #fff; span { font-weight: bold; } }
+            .remaining { color: rgba(255,255,255,0.6); }
+          }
+          .progress-bg {
+            width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; position: relative;
+            .progress-bar { height: 100%; background: #fff; border-radius: 6px; transition: width 1s ease-out; }
+            .percentage-text {
+              position: absolute; width: 100%; text-align: center; top: -1px;
+              font-size: 10px; color: #1a1a1a; font-weight: bold; font-family: 'JetBrains Mono', monospace;
+            }
+          }
+        }
+      }
+    }
+
+    /* 🔬 实验室简介样式 */
+    .site-intro {
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      padding-top: 25px;
 
       .logo {
-        font-family: "Pacifico-Regular", sans-serif;
-        margin-bottom: 20px;
-        .bg { font-size: 4rem; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
-        .sm { font-size: 1.5rem; opacity: 0.8; }
+        margin-bottom: 10px;
+        .bg { font-family: "Pacifico-Regular", sans-serif; font-size: 28px; color: #fff; margin-right: 5px; }
+        .sm { font-size: 18px; color: rgba(255, 255, 255, 0.7); }
       }
 
-      .version {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 1.2rem;
-        color: #60a5fa;
-        letter-spacing: 2px;
-        margin-bottom: 20px;
+      .desc {
+        color: rgba(255, 255, 255, 0.7); font-size: 13px; line-height: 1.6;
+        margin-bottom: 20px; border-left: 2px solid rgba(255,255,255,0.3); padding-left: 10px;
       }
 
-      /* 🚀 监控面板样式 🚀 */
-      .sys-monitor {
-        flex: 1;
-        background: rgba(0, 0, 0, 0.4) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 12px;
-        
-        .card-header {
-          display: flex;
-          align-items: center;
-          font-family: 'JetBrains Mono', monospace;
-          color: rgba(255,255,255,0.8);
-          font-weight: bold;
-          
-          .pulse-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: #4ade80; margin-right: 10px;
-            box-shadow: 0 0 10px #4ade80;
-            animation: pulse 2s infinite;
-          }
-        }
-
-        .monitor-content {
-          padding: 10px;
-          font-family: 'JetBrains Mono', monospace;
-          
-          .status-item {
-            display: flex; justify-content: space-between;
-            margin-bottom: 12px; font-size: 0.9rem;
-            .label { color: rgba(255,255,255,0.5); }
-            .value { color: #fff; font-weight: bold; }
-            .value.green { color: #4ade80; text-shadow: 0 0 5px rgba(74,222,128,0.4); }
-          }
-
-          .divider { height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0; }
-
-          /* 🟩 GitHub 绿墙样式 🟩 */
-          .github-matrix {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-
-            .matrix-header {
-              display: flex; justify-content: space-between;
-              font-size: 0.75rem; margin-bottom: 10px;
-              .label { color: rgba(255,255,255,0.5); }
-              .user-id { color: #4ade80; font-weight: bold; }
-            }
-
-            .matrix-chart {
-              width: 100%;
-              overflow: hidden;
-              img {
-                width: 100%;
-                /* 增加轻微的发光滤镜，强化赛博朋克质感 */
-                filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.3)) hue-rotate(0deg);
-                opacity: 0.9;
-              }
-            }
-          }
+      .sys-info {
+        background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;
+        .info-row {
+          display: flex; justify-content: space-between; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+          &:last-child { margin-bottom: 0; }
+          .label { color: rgba(255, 255, 255, 0.5); }
+          .value { color: #fff; font-weight: bold; }
         }
       }
-    }
 
-    .right {
-      height: 100%;
-      padding-right: 20px !important;
-      display: flex;
-      flex-direction: column;
-
-      .title {
-        display: flex; align-items: center; margin-bottom: 24px;
-        font-family: 'JetBrains Mono', monospace; font-size: 1.1rem;
-        letter-spacing: 1px; color: rgba(255,255,255,0.9);
-        .i-icon { margin-right: 10px; }
+      .status-text {
+        text-align: center; margin-top: 20px; font-family: 'JetBrains Mono', monospace;
+        font-size: 12px; color: rgba(255, 255, 255, 0.3); letter-spacing: 2px;
       }
     }
   }
 }
-
-@keyframes pulse {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 15px #4ade80; }
-  100% { transform: scale(0.95); opacity: 0.8; }
-}
-
-/* 🔪 屏蔽多余配置 🔪 */
-:deep(.el-card) { background: transparent !important; border: none !important; color: #fff !important; }
-:deep(.el-collapse) { border: none !important; }
-:deep(.el-collapse-item__header) {
-  background: rgba(255,255,255,0.05) !important; color: #fff !important;
-  border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 8px; margin-bottom: 10px; padding: 0 15px;
-}
-:deep(.el-collapse-item__wrap) { background: transparent !important; border: none !important; }
-:deep(.el-collapse-item:nth-child(n+2)) { display: none !important; }
 </style>
