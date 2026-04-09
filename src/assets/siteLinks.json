@@ -1,8 +1,9 @@
-{
-  "icon": "Message",
-  "name": "全球广播 (Terminal)",
-  "url": "/#/broadcast" 
-},
+[
+  {
+    "icon": "Message",
+    "name": "全球通信 (Terminal)",
+    "url": "/#/broadcast"
+  },
   {
     "icon": "Notebook",
     "name": "第二大脑 (Obsidian)",
