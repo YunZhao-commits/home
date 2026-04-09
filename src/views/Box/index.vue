@@ -1,213 +1,190 @@
 <template>
-  <div class="box-container">
-    <div class="terminal-header">
-      <div class="status-indicator">
-        <span class="blink-dot"></span>
-        LIVE_FEED: GLOBAL_NODE_01
-      </div>
-      <div class="close-btn" @click="store.boxOpenState = false">
-        <CloseSmall theme="outline" size="24" />
-      </div>
+  <div class="box card-blur" @click.stop>
+    <div class="close" @click="store.boxOpenState = false">
+      <close-small theme="outline" size="26" fill="#fff" />
     </div>
-
-    <div class="terminal-body" ref="scrollBody">
-      <div v-if="loading" class="system-msg">正在同步边缘节点数据...</div>
-      <div v-else-if="messages.length === 0" class="system-msg">节点暂无广播信号，等待输入...</div>
-      
-      <div v-for="msg in messages" :key="msg.id" class="feed-item">
-        <span class="timestamp">[{{ formatTime(msg.created_at) }}]</span>
-        <span class="author">@{{ msg.author }}</span>
-        <span class="pointer">>></span>
-        <span class="content">{{ msg.content }}</span>
+    <div class="box-content">
+      <div class="time-capsule">
+        <div class="title">
+          <hourglass-full theme="outline" size="24" fill="#fff" />
+          <span>时光胶囊</span>
+        </div>
+        
+        <div class="progress-list">
+          <div class="progress-item" v-for="(item, index) in timeData" :key="index">
+            <div class="info">
+              <span class="name">{{ item.name }}已度过 <strong>{{ item.passed }}</strong> {{ item.unit }}</span>
+              <span class="remaining">剩余 {{ item.remaining }} {{ item.unit }}</span>
+            </div>
+            <div class="progress-bg">
+              <div class="progress-bar" :style="{ width: item.percentage + '%' }"></div>
+              <div class="percentage-text">{{ item.percentage }}%</div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="terminal-footer">
-      <div class="input-wrapper">
-        <span class="input-prefix">YUNCHU_CMD:</span>
-        <input 
-          v-model="newMsg" 
-          placeholder="输入广播内容并回车..." 
-          @keyup.enter="sendBroadcast"
-          :disabled="sending"
-        />
-        <SendOne 
-          class="send-icon" 
-          :class="{ 'sending': sending }"
-          theme="outline" 
-          size="22" 
-          @click="sendBroadcast"
-        />
+      <div class="site-intro">
+        <div class="logo">
+          <span class="main-text">Yunchu</span> <span class="sub-text">Studio</span>
+        </div>
+        <div class="desc">致力于探索前沿技术与极简设计的个人数字实验室。</div>
+        
+        <div class="sys-info">
+          <div class="info-row">
+            <span class="label">CURRENT NODE</span>
+            <span class="value">Decentralized Edge</span>
+          </div>
+          <div class="info-row">
+            <span class="label">ACTIVE TASK</span>
+            <span class="value">Infrastructure Setup</span>
+          </div>
+          <div class="info-row">
+            <span class="label">NEXT PHASE</span>
+            <span class="value">Exploring Web3</span>
+          </div>
+        </div>
+        
+        <div class="status-text">-- SYSTEMS ONLINE --</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
-import { CloseSmall, SendOne } from "@icon-park/vue-next";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { CloseSmall, HourglassFull } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
-import { supabase } from "@/utils/supabase"; // 💥 引入咱们刚建的云端大脑 💥
 import dayjs from "dayjs";
 
 const store = mainStore();
-const messages = ref([]);
-const newMsg = ref("");
-const loading = ref(true);
-const sending = ref(false);
-const scrollBody = ref(null);
+const timeData = ref([]);
+let timer = null;
 
-// 🛠️ 格式化时间
-const formatTime = (time) => dayjs(time).format("HH:mm:ss");
-
-// 🔄 滚动到底部
-const scrollToBottom = async () => {
-  await nextTick();
-  if (scrollBody.value) {
-    scrollBody.value.scrollTop = scrollBody.value.scrollHeight;
-  }
-};
-
-// 📡 从云端数据库拉取广播
-const fetchMessages = async () => {
-  loading.value = true;
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .select('*')
-    .order('created_at', { ascending: true })
-    .limit(50);
+const updateTime = () => {
+  const now = dayjs();
+  const today = now.startOf("day");
+  const week = now.startOf("week");
+  const month = now.startOf("month");
+  const year = now.startOf("year");
   
-  if (error) console.error("数据链路同步失败:", error);
-  else {
-    messages.value = data;
-    scrollToBottom();
-  }
-  loading.value = false;
-};
+  const currentYear = now.year();
+  const isLeapYear = (currentYear % 4 === 0 && currentYear % 100 !== 0) || currentYear % 400 === 0;
+  const daysInYear = isLeapYear ? 366 : 365;
+  const daysInMonth = now.daysInMonth();
 
-// 🚀 发送广播到全球节点
-const sendBroadcast = async () => {
-  if (!newMsg.value.trim() || sending.value) return;
+  let passedDaysInWeek = now.day() === 0 ? 7 : now.day(); 
   
-  sending.value = true;
-  const payload = {
-    author: "Node_User", // 后期可以改成读取用户的名字
-    content: newMsg.value.trim()
-  };
-
-  const { error } = await supabase
-    .from('broadcasts')
-    .insert([payload]);
-
-  if (error) {
-    ElMessage.error("信号发射失败，检查链路");
-  } else {
-    newMsg.value = "";
-    // 发送成功后立刻刷新列表
-    await fetchMessages();
-  }
-  sending.value = false;
+  timeData.value = [
+    {
+      name: "今日", unit: "小时",
+      passed: now.diff(today, "hour"),
+      remaining: 24 - now.diff(today, "hour"),
+      percentage: ((now.diff(today, "hour") / 24) * 100).toFixed(2),
+    },
+    {
+      name: "本周", unit: "天",
+      passed: passedDaysInWeek,
+      remaining: 7 - passedDaysInWeek,
+      percentage: ((passedDaysInWeek / 7) * 100).toFixed(2),
+    },
+    {
+      name: "本月", unit: "天",
+      passed: now.date(),
+      remaining: daysInMonth - now.date(),
+      percentage: ((now.date() / daysInMonth) * 100).toFixed(2),
+    },
+    {
+      name: "本年", unit: "天",
+      passed: now.diff(year, "day"),
+      remaining: daysInYear - now.diff(year, "day"),
+      percentage: ((now.diff(year, "day") / daysInYear) * 100).toFixed(2),
+    }
+  ];
 };
 
 onMounted(() => {
-  fetchMessages();
+  updateTime();
+  timer = setInterval(updateTime, 60000); 
+});
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer);
 });
 </script>
 
 <style lang="scss" scoped>
-.box-container {
+.box {
   width: 100%;
   height: 100%;
-  background: rgba(10, 10, 15, 0.85);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+  position: relative;
+  padding: 30px;
+  box-sizing: border-box;
 
-  .terminal-header {
-    padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-
-    .status-indicator {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: #4ade80;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .blink-dot {
-        width: 6px; height: 6px; background: #4ade80; border-radius: 50%;
-        animation: blink 1s infinite;
-      }
-    }
-    .close-btn { cursor: pointer; opacity: 0.6; &:hover { opacity: 1; } }
+  .close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.3s;
+    &:hover { opacity: 1; transform: scale(1.2); color: #f87171; }
   }
 
-  .terminal-body {
-    flex: 1;
-    padding: 20px;
+  .box-content {
+    height: 100%;
     overflow-y: auto;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    padding-right: 10px;
     
-    &::-webkit-scrollbar { width: 4px; }
-    &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    &::-webkit-scrollbar { width: 0; }
 
-    .system-msg { color: rgba(255,255,255,0.4); font-size: 13px; text-align: center; margin: 20px 0; }
+    .time-capsule {
+      margin-bottom: 30px;
+      .title {
+        display: flex; align-items: center; gap: 10px; margin-bottom: 25px;
+        font-size: 18px; font-weight: bold; color: #fff; letter-spacing: 1px;
+      }
 
-    .feed-item {
-      margin-bottom: 10px;
-      line-height: 1.5;
-      font-size: 14px;
-      animation: scanline 0.3s ease-out;
-
-      .timestamp { color: rgba(255,255,255,0.3); margin-right: 8px; }
-      .author { color: #60a5fa; margin-right: 8px; font-weight: bold; }
-      .pointer { color: #4ade80; margin-right: 8px; }
-      .content { color: rgba(255,255,255,0.9); word-break: break-all; }
+      .progress-list {
+        display: flex; flex-direction: column; gap: 20px;
+        .progress-item {
+          .info {
+            display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #fff;
+            .name strong { font-weight: bold; color: #60a5fa; }
+            .remaining { color: rgba(255,255,255,0.6); font-size: 12px; }
+          }
+          .progress-bg {
+            width: 100%; height: 14px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; position: relative;
+            .progress-bar { height: 100%; background: #fff; border-radius: 8px; transition: width 0.5s ease; }
+            .percentage-text {
+              position: absolute; width: 100%; text-align: center; top: 0; left: 0;
+              font-size: 10px; color: #111; line-height: 14px; font-weight: bold; font-family: monospace;
+            }
+          }
+        }
+      }
     }
-  }
 
-  .terminal-footer {
-    padding: 15px 20px;
-    background: rgba(0, 0, 0, 0.3);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-
-    .input-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      
-      .input-prefix { color: #4ade80; font-family: monospace; font-size: 13px; font-weight: bold; }
-      
-      input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: #fff;
-        font-family: inherit;
-        font-size: 14px;
-        &::placeholder { color: rgba(255,255,255,0.2); }
+    .site-intro {
+      border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 30px;
+      .logo {
+        margin-bottom: 15px;
+        .main-text { font-size: 28px; font-weight: bold; color: #fff; font-family: "Pacifico-Regular", sans-serif; }
+        .sub-text { font-size: 20px; color: rgba(255,255,255,0.7); font-weight: 300; }
       }
-
-      .send-icon {
-        cursor: pointer; opacity: 0.5; transition: 0.3s;
-        &:hover { opacity: 1; color: #4ade80; transform: scale(1.1); }
-        &.sending { animation: spin 1s infinite linear; }
+      .desc { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 30px; border-left: 2px solid rgba(255,255,255,0.3); padding-left: 10px; line-height: 1.6; }
+      .sys-info {
+        .info-row {
+          display: flex; justify-content: space-between; font-family: monospace; font-size: 12px; margin-bottom: 12px;
+          .label { color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+          .value { color: #fff; font-weight: bold; }
+        }
       }
+      .status-text { margin-top: 35px; text-align: center; font-family: monospace; font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 2px; }
     }
   }
 }
-
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes scanline { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 </style>
