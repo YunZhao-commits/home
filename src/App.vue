@@ -38,8 +38,10 @@
     </main>
   </Transition>
 </template>
+<AiWidget />
 
 <script setup>
+import AiWidget from '@/components/AiWidget.vue';
 import { helloInit, checkDays } from "@/utils/getTime.js";
 import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
