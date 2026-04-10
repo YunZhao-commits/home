@@ -45,15 +45,15 @@
 
 <script setup>
 import { ref, nextTick } from 'vue';
-import { marked } from 'marked'; // 💥 引入解析引擎
+import { marked } from 'marked';
 
 const isOpen = ref(false);
 const inputText = ref('');
 const messages = ref([
   { role: 'assistant', content: '你好！我是云初的赛博分身。我已经读取了他的知识库，有什么我可以帮你的吗？' }
 ]);
-const isLoading = ref(false); // 等待第一帧网络响应的状态
-const isGenerating = ref(false); // 正在流式打字的状态，防止用户连续发送
+const isLoading = ref(false); 
+const isGenerating = ref(false); 
 const chatBody = ref(null);
 
 let sessionId = localStorage.getItem('yunchu_session_id');
@@ -69,7 +69,6 @@ const scrollToBottom = async () => {
   if (chatBody.value) chatBody.value.scrollTop = chatBody.value.scrollHeight;
 };
 
-// 安全渲染 Markdown
 const renderMarkdown = (text) => {
   if (!text) return '';
   return marked.parse(text);
@@ -98,19 +97,12 @@ const sendMessage = async () => {
       return;
     }
 
-    isLoading.value = false; // 取消小圆点，准备打字
+    isLoading.value = false; 
 
-    // 创建一个空的 AI 消息对象准备接收流
     messages.value.push({ role: 'assistant', content: '', context: '' });
     const aiMessageIndex = messages.value.length - 1;
 
-    // 从 Header 提取检索到的上下文
-    const ctxHeader = res.headers.get('X-Used-Context');
-    if (ctxHeader) {
-      messages.value[aiMessageIndex].context = decodeURIComponent(ctxHeader);
-    }
-
-    // 💥 读取并解析 SSE 流
+    // 💥 修复核心：不再读 Header，改为从数据流中截取上下文
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
@@ -121,12 +113,17 @@ const sendMessage = async () => {
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      buffer = lines.pop(); // 保留不完整的最后一行
+      buffer = lines.pop(); 
 
       for (const line of lines) {
         if (line.startsWith('data: ') && line !== 'data: [DONE]') {
           try {
             const data = JSON.parse(line.slice(6));
+            // 收到流中的上下文
+            if (data.context !== undefined) {
+               messages.value[aiMessageIndex].context = data.context;
+            }
+            // 收到流中的回答片段
             if (data.response) {
               messages.value[aiMessageIndex].content += data.response;
               scrollToBottom();
@@ -137,7 +134,7 @@ const sendMessage = async () => {
     }
   } catch (error) {
     isLoading.value = false;
-    messages.value.push({ role: 'assistant', content: '[网络错误] 无法连接到赛博大脑。' });
+    messages.value.push({ role: 'assistant', content: `[网络错误] 无法连接到赛博大脑。详细原因：${error.message}` });
   } finally {
     isLoading.value = false;
     isGenerating.value = false;
@@ -172,7 +169,6 @@ const sendMessage = async () => {
 .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.3s ease; }
 .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(20px) scale(0.95); }
 
-/* 💥 Markdown 富文本样式深度穿透配置 */
 .markdown-body :deep(p) { margin: 0 0 8px 0; }
 .markdown-body :deep(p:last-child) { margin-bottom: 0; }
 .markdown-body :deep(ul), .markdown-body :deep(ol) { margin: 0 0 8px 0; padding-left: 20px; }
