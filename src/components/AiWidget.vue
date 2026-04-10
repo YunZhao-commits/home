@@ -9,12 +9,18 @@
       <div v-if="isOpen" class="chat-panel">
         <div class="chat-header">
           <span class="title">AI 分身终端 (RAG)</span>
-          <span class="status">● ONLINE</span>
+          <span class="status">● STREAMING ACTIVE</span>
         </div>
         
         <div class="chat-body" ref="chatBody">
           <div v-for="(msg, index) in messages" :key="index" :class="['msg-bubble', msg.role]">
-            <div class="msg-text">{{ msg.content }}</div>
+            <div 
+              v-if="msg.role === 'assistant'" 
+              class="msg-text markdown-body" 
+              v-html="renderMarkdown(msg.content)"
+            ></div>
+            <div v-else class="msg-text">{{ msg.content }}</div>
+
             <div v-if="msg.context" class="msg-context">🔍 {{ msg.context.substring(0, 40) }}...</div>
           </div>
           <div v-if="isLoading" class="msg-bubble assistant loading">
@@ -28,9 +34,9 @@
             v-model="inputText" 
             @keypress.enter="sendMessage"
             placeholder="询问关于云初的任何事..." 
-            :disabled="isLoading"
+            :disabled="isGenerating"
           />
-          <button @click="sendMessage" :disabled="isLoading || !inputText.trim()">发送</button>
+          <button @click="sendMessage" :disabled="isGenerating || !inputText.trim()">发送</button>
         </div>
       </div>
     </Transition>
@@ -38,17 +44,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, nextTick } from 'vue';
+import { marked } from 'marked'; // 💥 引入解析引擎
 
 const isOpen = ref(false);
 const inputText = ref('');
 const messages = ref([
   { role: 'assistant', content: '你好！我是云初的赛博分身。我已经读取了他的知识库，有什么我可以帮你的吗？' }
 ]);
-const isLoading = ref(false);
+const isLoading = ref(false); // 等待第一帧网络响应的状态
+const isGenerating = ref(false); // 正在流式打字的状态，防止用户连续发送
 const chatBody = ref(null);
 
-// 获取或生成 Session ID
 let sessionId = localStorage.getItem('yunchu_session_id');
 if (!sessionId) {
   sessionId = crypto.randomUUID();
@@ -62,33 +69,78 @@ const scrollToBottom = async () => {
   if (chatBody.value) chatBody.value.scrollTop = chatBody.value.scrollHeight;
 };
 
+// 安全渲染 Markdown
+const renderMarkdown = (text) => {
+  if (!text) return '';
+  return marked.parse(text);
+};
+
 const sendMessage = async () => {
   const text = inputText.value.trim();
-  if (!text || isLoading.value) return;
+  if (!text || isGenerating.value) return;
 
   messages.value.push({ role: 'user', content: text });
   inputText.value = '';
   isLoading.value = true;
+  isGenerating.value = true;
   scrollToBottom();
 
   try {
-    // ⚡ 这里请求你刚才部署的 Worker API
     const res = await fetch('https://ai.191607.xyz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question: text, sessionId })
     });
     
-    const data = await res.json();
-    if (res.ok) {
-      messages.value.push({ role: 'assistant', content: data.answer, context: data.used_context });
-    } else {
-      messages.value.push({ role: 'assistant', content: `[系统提示] ${data.error}` });
+    if (!res.ok) {
+      const errData = await res.json();
+      messages.value.push({ role: 'assistant', content: `[系统提示] ${errData.error || '服务器异常'}` });
+      return;
+    }
+
+    isLoading.value = false; // 取消小圆点，准备打字
+
+    // 创建一个空的 AI 消息对象准备接收流
+    messages.value.push({ role: 'assistant', content: '', context: '' });
+    const aiMessageIndex = messages.value.length - 1;
+
+    // 从 Header 提取检索到的上下文
+    const ctxHeader = res.headers.get('X-Used-Context');
+    if (ctxHeader) {
+      messages.value[aiMessageIndex].context = decodeURIComponent(ctxHeader);
+    }
+
+    // 💥 读取并解析 SSE 流
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // 保留不完整的最后一行
+
+      for (const line of lines) {
+        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.response) {
+              messages.value[aiMessageIndex].content += data.response;
+              scrollToBottom();
+            }
+          } catch(e) {}
+        }
+      }
     }
   } catch (error) {
+    isLoading.value = false;
     messages.value.push({ role: 'assistant', content: '[网络错误] 无法连接到赛博大脑。' });
   } finally {
     isLoading.value = false;
+    isGenerating.value = false;
     scrollToBottom();
   }
 };
@@ -99,12 +151,12 @@ const sendMessage = async () => {
 .ai-fab { width: 50px; height: 50px; border-radius: 50%; background: rgba(15, 23, 42, 0.8); border: 1px solid #38bdf8; color: #38bdf8; cursor: pointer; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: all 0.3s ease; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
 .ai-fab:hover { transform: scale(1.05); background: #38bdf8; color: #0f172a; }
 .icon { width: 24px; height: 24px; }
-.chat-panel { width: 320px; height: 450px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border: 1px solid #1e293b; border-radius: 12px; margin-bottom: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.chat-panel { width: 340px; height: 500px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border: 1px solid #1e293b; border-radius: 12px; margin-bottom: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .chat-header { padding: 15px; background: rgba(11, 17, 32, 0.9); border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
 .title { color: #e2e8f0; font-weight: bold; font-size: 0.9rem; }
 .status { color: #10b981; font-size: 0.7rem; }
 .chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-.msg-bubble { max-width: 85%; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; white-space: pre-wrap; }
+.msg-bubble { max-width: 85%; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5; }
 .msg-bubble.user { align-self: flex-end; background: #38bdf8; color: #0f172a; border-bottom-right-radius: 2px; }
 .msg-bubble.assistant { align-self: flex-start; background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-bottom-left-radius: 2px; }
 .msg-context { font-size: 0.65rem; color: #64748b; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #334155; }
@@ -119,4 +171,13 @@ const sendMessage = async () => {
 @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
 .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.3s ease; }
 .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(20px) scale(0.95); }
+
+/* 💥 Markdown 富文本样式深度穿透配置 */
+.markdown-body :deep(p) { margin: 0 0 8px 0; }
+.markdown-body :deep(p:last-child) { margin-bottom: 0; }
+.markdown-body :deep(ul), .markdown-body :deep(ol) { margin: 0 0 8px 0; padding-left: 20px; }
+.markdown-body :deep(li) { margin-bottom: 4px; }
+.markdown-body :deep(strong) { color: #38bdf8; font-weight: bold; }
+.markdown-body :deep(pre) { background: #0b1120; padding: 8px; border-radius: 4px; overflow-x: auto; margin: 8px 0; border: 1px solid #334155; }
+.markdown-body :deep(code) { font-family: 'JetBrains Mono', Consolas, monospace; background: #0b1120; padding: 2px 4px; border-radius: 3px; font-size: 0.8rem; }
 </style>
