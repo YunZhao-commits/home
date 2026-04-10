@@ -37,8 +37,10 @@
       </Transition>
     </main>
   </Transition>
+  
+  <AiWidget />
+
 </template>
-<AiWidget />
 
 <script setup>
 import AiWidget from '@/components/AiWidget.vue';
