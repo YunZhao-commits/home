@@ -19,6 +19,9 @@
       
       <span class="pipe" aria-hidden="true">|</span>
       <span class="seg copy">&copy;&nbsp;2026&nbsp;191607.XYZ</span>
+
+      <span class="pipe" aria-hidden="true" v-if="viewCount">|</span>
+      <span class="seg copy" v-if="viewCount">👁️ VIEWS: {{ viewCount }}</span>
     </div>
   </footer>
 </template>
@@ -30,7 +33,10 @@ const ping = ref(null);
 const pingStatus = ref('gray'); // 状态：excellent(绿), good(黄), poor(红)
 let pingInterval = null;
 
-// ⚡ 极客核心：无痕静默测速
+// 新增：访问量状态
+const viewCount = ref(0);
+
+// ⚡ 极客核心 1：无痕静默测速
 const checkPing = async () => {
   try {
     const start = performance.now();
@@ -55,8 +61,22 @@ const checkPing = async () => {
   }
 };
 
+// ⚡ 极客核心 2：获取云端 D1 数据库访问量
+const fetchViewCount = async () => {
+  try {
+    const res = await fetch('/api/views');
+    if (res.ok) {
+      const data = await res.json();
+      viewCount.value = data.count;
+    }
+  } catch (e) {
+    console.error("D1 数据库连接失败", e);
+  }
+};
+
 onMounted(() => {
-  checkPing(); // 进网页立刻扫描一次
+  checkPing(); // 进网页立刻扫描一次延迟
+  fetchViewCount(); // 进网页立刻获取一次访问量
   pingInterval = setInterval(checkPing, 5000); // 之后每 5 秒自动扫描一次，形成跳动的心跳感
 });
 
@@ -149,7 +169,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  // 版权段
+  // 版权与数据展示段
   .copy {
     color: rgba(255, 255, 255, 0.5);
     letter-spacing: 0.08em;
