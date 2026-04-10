@@ -9,7 +9,7 @@
       <div v-if="isOpen" class="chat-panel">
         <div class="chat-header">
           <span class="title">AI 分身终端 (RAG)</span>
-          <span class="status">● STREAMING ACTIVE</span>
+          <span class="status">● ONLINE</span>
         </div>
         
         <div class="chat-body" ref="chatBody">
@@ -94,15 +94,15 @@ const sendMessage = async () => {
     if (!res.ok) {
       const errData = await res.json();
       messages.value.push({ role: 'assistant', content: `[系统提示] ${errData.error || '服务器异常'}` });
+      isGenerating.value = false;
+      isLoading.value = false;
       return;
     }
 
     isLoading.value = false; 
-
     messages.value.push({ role: 'assistant', content: '', context: '' });
     const aiMessageIndex = messages.value.length - 1;
 
-    // 💥 修复核心：不再读 Header，改为从数据流中截取上下文
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
@@ -115,26 +115,59 @@ const sendMessage = async () => {
       const lines = buffer.split('\n');
       buffer = lines.pop(); 
 
+      // 💥 核心魔法：识别 event 类型 (来自 Claude 的教导)
+      let currentEvent = 'message';
+
       for (const line of lines) {
-        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+        if (line.startsWith('event: ')) {
+          currentEvent = line.slice(7).trim();
+          continue;
+        }
+
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+
+          if (data === '[DONE]') {
+            isGenerating.value = false;
+            continue;
+          }
+
+          if (currentEvent === 'meta') {
+            try {
+              const meta = JSON.parse(data);
+              if (meta.context) messages.value[aiMessageIndex].context = meta.context;
+            } catch(e) {}
+            currentEvent = 'message'; // 处理完 meta 重置回 message
+            continue;
+          }
+
+          if (currentEvent === 'error') {
+             try {
+                const errMeta = JSON.parse(data);
+                messages.value[aiMessageIndex].content += `\n[系统错误: ${errMeta.message}]`;
+             } catch(e) {}
+             currentEvent = 'message';
+             continue;
+          }
+
+          // 默认 message 处理 token
           try {
-            const data = JSON.parse(line.slice(6));
-            // 收到流中的上下文
-            if (data.context !== undefined) {
-               messages.value[aiMessageIndex].context = data.context;
-            }
-            // 收到流中的回答片段
-            if (data.response) {
-              messages.value[aiMessageIndex].content += data.response;
+            const parsed = JSON.parse(data);
+            if (parsed.response) {
+              messages.value[aiMessageIndex].content += parsed.response;
               scrollToBottom();
             }
           } catch(e) {}
+        }
+
+        if (line === '') {
+          currentEvent = 'message'; // 空行重置事件
         }
       }
     }
   } catch (error) {
     isLoading.value = false;
-    messages.value.push({ role: 'assistant', content: `[网络错误] 无法连接到赛博大脑。详细原因：${error.message}` });
+    messages.value.push({ role: 'assistant', content: `[网络错误] 无法连接到赛博大脑。` });
   } finally {
     isLoading.value = false;
     isGenerating.value = false;
