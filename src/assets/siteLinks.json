@@ -1,32 +1,17 @@
 [
   {
-    "icon": "Message",
-    "name": "全球通信 (Terminal)",
-    "url": "/#/broadcast"
+    "icon": "Blog",
+    "name": "数字花园",
+    "link": "https://notes.191607.xyz"
   },
   {
-    "icon": "Notebook",
-    "name": "第二大脑 (Obsidian)",
-    "url": "obsidian://open"
+    "icon": "Cloud",
+    "name": "私人云盘",
+    "link": "https://drive.191607.xyz"
   },
   {
-    "icon": "Cpu",
-    "name": "AI 编排 (Dify Cloud)",
-    "url": "https://cloud.dify.ai"
-  },
-  {
-    "icon": "Earth",
-    "name": "边缘网络 (Cloudflare)",
-    "url": "https://dash.cloudflare.com"
-  },
-  {
-    "icon": "Picture",
-    "name": "设计系统 (Figma)",
-    "url": "https://www.figma.com"
-  },
-  {
-    "icon": "ChartLine",
-    "name": "AI 聚合终端 (Gemini)",
-    "url": "https://gemini.google.com"
+    "icon": "CompactDisc",
+    "name": "边缘 AI",
+    "link": "https://ai.191607.xyz"
   }
 ]
