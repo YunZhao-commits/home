@@ -1,5 +1,11 @@
 <template>
-  <div class="cyber-cursor" :style="{ left: cursorX + 'px', top: cursorY + 'px' }" :class="{ active: isHovering }"></div>
+  <!-- Hide cyber-cursor on touch devices via v-if; it's useless and wastes z-index -->
+  <div
+    class="cyber-cursor"
+    :style="{ left: cursorX + 'px', top: cursorY + 'px' }"
+    :class="{ active: isHovering }"
+    v-if="!isTouchDevice"
+  ></div>
 
   <canvas id="particle-canvas" class="particle-bg"></canvas>
 
@@ -39,7 +45,6 @@
   </Transition>
   
   <AiWidget />
-
 </template>
 
 <script setup>
@@ -57,15 +62,15 @@ import Box from "@/views/Box/index.vue";
 import MoreSet from "@/views/MoreSet/index.vue";
 import config from "@/../package.json";
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
-// 💥 新增：导入控制台引擎 💥
 import CommandPalette from "@/components/CommandPalette.vue";
-  
 
 const store = mainStore();
 
 const cursorX = ref(-100);
 const cursorY = ref(-100);
 const isHovering = ref(false);
+// Detect touch devices so we skip the cursor entirely on mobile
+const isTouchDevice = ref(false);
 
 const getWidth = () => { store.setInnerWidth(window.innerWidth); };
 
@@ -145,18 +150,28 @@ const initParticles = () => {
 };
 
 onMounted(() => {
+  // Detect touch capability once on mount
+  isTouchDevice.value = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
   initParticles();
 
-  window.addEventListener("mousemove", (e) => {
-    cursorX.value = e.clientX;
-    cursorY.value = e.clientY;
-    const target = e.target;
-    if (target.closest("a") || target.closest("button") || target.closest(".item") || target.closest(".cards")) {
-      isHovering.value = true;
-    } else {
-      isHovering.value = false;
-    }
-  });
+  if (!isTouchDevice.value) {
+    window.addEventListener("mousemove", (e) => {
+      cursorX.value = e.clientX;
+      cursorY.value = e.clientY;
+      const target = e.target;
+      if (
+        target.closest("a") ||
+        target.closest("button") ||
+        target.closest(".item") ||
+        target.closest(".cards")
+      ) {
+        isHovering.value = true;
+      } else {
+        isHovering.value = false;
+      }
+    });
+  }
 
   window.addEventListener("mousedown", (event) => {
     if (event.button == 1) {
@@ -173,8 +188,9 @@ onBeforeUnmount(() => {
 });
 </script>
 
+<!-- Only hide cursor on non-touch; handled in template via v-if -->
 <style>
-body { cursor: none !important; }
+body:not(.touch-device) { cursor: none !important; }
 </style>
 
 <style lang="scss" scoped>
@@ -184,11 +200,11 @@ body { cursor: none !important; }
   height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  pointer-events: none; 
+  pointer-events: none;
   transform: translate(-50%, -50%);
   transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
   z-index: 99999;
-  box-shadow: 0 0 10px rgba(255,255,255,0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 
   &.active {
     width: 45px;
@@ -206,14 +222,18 @@ body { cursor: none !important; }
   width: 100%;
   height: 100%;
   z-index: 0;
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 #main {
   position: absolute;
   top: 0;
   left: 0;
+  // ✅ FIX 1: Clamp the main wrapper to the viewport width.
+  // This is the single source of truth — nothing inside can cause horizontal overflow.
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   height: 100%;
   transform: scale(1.2);
   transition: transform 0.3s;
@@ -222,10 +242,14 @@ body { cursor: none !important; }
   z-index: 1;
 
   .container {
+    // ✅ FIX 2: Let the container breathe at 100% of its parent.
+    // No fixed pixel widths anywhere in this rule set.
     width: 100%;
+    max-width: 100%;
     height: 100vh;
     margin: 0 auto;
     padding: 0 0.5vw;
+    box-sizing: border-box;
 
     .all {
       width: 100%;
@@ -236,6 +260,7 @@ body { cursor: none !important; }
       justify-content: center;
       align-items: center;
     }
+
     .more {
       position: fixed;
       top: 0;
@@ -247,15 +272,18 @@ body { cursor: none !important; }
       z-index: 2;
       animation: fade 0.5s;
     }
+
     @media (max-width: 1200px) {
       padding: 0 2vw;
     }
   }
+
   .menu {
     position: absolute;
     display: flex;
     justify-content: center;
     align-items: center;
+    // Use calc(50% - 28px) so it always centres regardless of viewport width
     top: 84%;
     left: calc(50% - 28px);
     width: 56px;
@@ -265,7 +293,7 @@ body { cursor: none !important; }
     border-radius: 6px;
     transition: transform 0.3s;
     animation: fade 0.5s;
-    
+
     &.glass-btn {
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -274,47 +302,63 @@ body { cursor: none !important; }
     &:active {
       transform: scale(0.95);
     }
+
     .i-icon {
       transform: translateY(2px);
     }
+
     @media (min-width: 721px) {
       display: none;
     }
   }
+
+  // ── Short-viewport (landscape mobile / small tablets) ───────────────────
   @media (max-height: 720px) {
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: hidden; // ← keep x locked even when y scrolls
+
     .container {
       height: 721px;
+      // ✅ FIX 3: No more fixed pixel widths. Paddings stay relative.
+      padding-left: 0.7vw;
+      padding-right: 0.25vw;
+
       .more {
         height: 721px;
-        width: calc(100% + 6px);
+        // Use 100% — avoids the "+ 6px" band that caused x-scroll
+        width: 100%;
       }
-      @media (min-width: 391px) {
-        padding-left: 0.7vw;
-        padding-right: 0.25vw;
-        @media (max-width: 1200px) { padding-left: 2.3vw; padding-right: 1.75vw; }
-        @media (max-width: 1100px) { padding-left: 2vw; padding-right: calc(2vw - 6px); }
-        @media (max-width: 992px) { padding-left: 2.3vw; padding-right: 1.7vw; }
-        @media (max-width: 900px) { padding-left: 2vw; padding-right: calc(2vw - 6px); }
-      }
+
+      @media (max-width: 1200px) { padding-left: 2.3vw; padding-right: 1.75vw; }
+      @media (max-width: 1100px) { padding-left: 2vw;   padding-right: 2vw;    }
+      @media (max-width: 992px)  { padding-left: 2.3vw; padding-right: 1.7vw;  }
+      @media (max-width: 900px)  { padding-left: 2vw;   padding-right: 2vw;    }
     }
+
     .menu {
-      top: 605.64px; 
-      left: 170.5px; 
-      @media (min-width: 391px) { left: calc(50% - 25px); }
+      top: 605.64px;
+      // Always use the calc() centre — no magic pixel offsets
+      left: calc(50% - 28px);
     }
+
     .f-ter {
-      top: 675px; 
+      top: 675px;
+
       @media (min-width: 391px) { padding-left: 6px; }
     }
   }
+
+  // ✅ FIX 4: The old @media (max-width: 390px) block that forced
+  // `.container { width: 391px }` has been REMOVED entirely.
+  // The fluid 100% / max-width: 100vw approach above handles every
+  // narrow phone (375 px, 360 px, 320 px) without triggering x-scroll.
+  //
+  // If you still need to tweak very narrow phones, do it like this:
   @media (max-width: 390px) {
-    overflow-x: auto;
-    .container { width: 391px; }
-    .menu { left: 167.5px; }
-    .f-ter { width: 391px; }
-    @media (min-height: 721px) { overflow-y: hidden; }
+    // container stays fluid — no pixel width override
+    .menu {
+      // Already centred with calc(); no adjustment needed
+    }
   }
 }
 </style>
