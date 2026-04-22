@@ -1,10 +1,8 @@
 <template>
-  <!-- Hide cyber-cursor on touch devices via v-if; it's useless and wastes z-index -->
   <div
     class="cyber-cursor"
     :style="{ left: cursorX + 'px', top: cursorY + 'px' }"
     :class="{ active: isHovering }"
-    v-if="!isTouchDevice"
   ></div>
 
   <canvas id="particle-canvas" class="particle-bg"></canvas>
@@ -69,8 +67,6 @@ const store = mainStore();
 const cursorX = ref(-100);
 const cursorY = ref(-100);
 const isHovering = ref(false);
-// Detect touch devices so we skip the cursor entirely on mobile
-const isTouchDevice = ref(false);
 
 const getWidth = () => { store.setInnerWidth(window.innerWidth); };
 
@@ -150,28 +146,26 @@ const initParticles = () => {
 };
 
 onMounted(() => {
-  // Detect touch capability once on mount
-  isTouchDevice.value = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-
   initParticles();
 
-  if (!isTouchDevice.value) {
-    window.addEventListener("mousemove", (e) => {
-      cursorX.value = e.clientX;
-      cursorY.value = e.clientY;
-      const target = e.target;
-      if (
-        target.closest("a") ||
-        target.closest("button") ||
-        target.closest(".item") ||
-        target.closest(".cards")
-      ) {
-        isHovering.value = true;
-      } else {
-        isHovering.value = false;
-      }
-    });
-  }
+  // 无条件监听鼠标移动，只要你动鼠标，圈圈就跟着走
+  window.addEventListener("mousemove", (e) => {
+    cursorX.value = e.clientX;
+    cursorY.value = e.clientY;
+    const target = e.target;
+    // 监听各种可点击元素，实现圈圈放大效果
+    if (
+      target.closest("a") ||
+      target.closest("button") ||
+      target.closest(".item") ||
+      target.closest(".cards") ||
+      target.closest(".logo")
+    ) {
+      isHovering.value = true;
+    } else {
+      isHovering.value = false;
+    }
+  });
 
   window.addEventListener("mousedown", (event) => {
     if (event.button == 1) {
@@ -188,9 +182,11 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<!-- Only hide cursor on non-touch; handled in template via v-if -->
 <style>
-body:not(.touch-device) { cursor: none !important; }
+/* 仅在电脑端（屏幕宽度 >= 768px）隐藏系统原生鼠标箭头 */
+@media (min-width: 768px) {
+  body { cursor: none !important; }
+}
 </style>
 
 <style lang="scss" scoped>
@@ -213,6 +209,11 @@ body:not(.touch-device) { cursor: none !important; }
     backdrop-filter: blur(4px);
     border-color: transparent;
   }
+
+  /* 在手机端（屏幕宽度 < 768px）彻底隐藏这个圈圈，防止卡在屏幕上 */
+  @media (max-width: 767px) {
+    display: none !important;
+  }
 }
 
 .particle-bg {
@@ -229,8 +230,6 @@ body:not(.touch-device) { cursor: none !important; }
   position: absolute;
   top: 0;
   left: 0;
-  // ✅ FIX 1: Clamp the main wrapper to the viewport width.
-  // This is the single source of truth — nothing inside can cause horizontal overflow.
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
@@ -242,8 +241,6 @@ body:not(.touch-device) { cursor: none !important; }
   z-index: 1;
 
   .container {
-    // ✅ FIX 2: Let the container breathe at 100% of its parent.
-    // No fixed pixel widths anywhere in this rule set.
     width: 100%;
     max-width: 100%;
     height: 100vh;
@@ -283,7 +280,6 @@ body:not(.touch-device) { cursor: none !important; }
     display: flex;
     justify-content: center;
     align-items: center;
-    // Use calc(50% - 28px) so it always centres regardless of viewport width
     top: 84%;
     left: calc(50% - 28px);
     width: 56px;
@@ -312,20 +308,17 @@ body:not(.touch-device) { cursor: none !important; }
     }
   }
 
-  // ── Short-viewport (landscape mobile / small tablets) ───────────────────
   @media (max-height: 720px) {
     overflow-y: auto;
-    overflow-x: hidden; // ← keep x locked even when y scrolls
+    overflow-x: hidden;
 
     .container {
       height: 721px;
-      // ✅ FIX 3: No more fixed pixel widths. Paddings stay relative.
       padding-left: 0.7vw;
       padding-right: 0.25vw;
 
       .more {
         height: 721px;
-        // Use 100% — avoids the "+ 6px" band that caused x-scroll
         width: 100%;
       }
 
@@ -337,7 +330,6 @@ body:not(.touch-device) { cursor: none !important; }
 
     .menu {
       top: 605.64px;
-      // Always use the calc() centre — no magic pixel offsets
       left: calc(50% - 28px);
     }
 
@@ -345,19 +337,6 @@ body:not(.touch-device) { cursor: none !important; }
       top: 675px;
 
       @media (min-width: 391px) { padding-left: 6px; }
-    }
-  }
-
-  // ✅ FIX 4: The old @media (max-width: 390px) block that forced
-  // `.container { width: 391px }` has been REMOVED entirely.
-  // The fluid 100% / max-width: 100vw approach above handles every
-  // narrow phone (375 px, 360 px, 320 px) without triggering x-scroll.
-  //
-  // If you still need to tweak very narrow phones, do it like this:
-  @media (max-width: 390px) {
-    // container stays fluid — no pixel width override
-    .menu {
-      // Already centred with calc(); no adjustment needed
     }
   }
 }
