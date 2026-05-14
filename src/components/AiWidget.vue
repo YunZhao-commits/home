@@ -49,6 +49,7 @@
 <script setup>
 import { ref, watch, nextTick } from 'vue';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 const isOpen = ref(false);
 const inputText = ref('');
@@ -82,7 +83,7 @@ const scrollToBottom = async () => {
 
 const renderMarkdown = (text) => {
   if (!text) return '';
-  return marked.parse(text);
+  return DOMPurify.sanitize(marked.parse(text));
 };
 
 const sendMessage = async () => {

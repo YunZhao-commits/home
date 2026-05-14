@@ -29,6 +29,7 @@
 import { ref, onMounted } from 'vue';
 import { supabase } from "@/utils/supabase";
 import dayjs from "dayjs";
+import DOMPurify from 'dompurify';
 
 const messages = ref([]);
 const newMsg = ref("");
@@ -71,9 +72,9 @@ version = sys.version.split(' ')[0]
 calc = math.factorial(10)
 f"Python Version: {version} | 10! = {calc}"
         `);
-        wasmOutput.value += `<br/><span style='color:#f87171'>> ${result}</span>`;
+        wasmOutput.value += `<br/><span style='color:#f87171'>> ${DOMPurify.sanitize(result)}</span>`;
       } catch (err) {
-        wasmOutput.value += `<br/><span style='color:red'>Error: ${err}</span>`;
+        wasmOutput.value += `<br/><span style='color:red'>Error: ${DOMPurify.sanitize(String(err))}</span>`;
       }
     };
     document.head.appendChild(script);
