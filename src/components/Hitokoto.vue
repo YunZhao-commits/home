@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { MusicMenu, Error } from "@icon-park/vue-next";
+import { MusicMenu } from "@icon-park/vue-next";
 import { getHitokoto } from "@/api";
 import { mainStore } from "@/store";
 import debounce from "@/utils/debounce.js";
@@ -51,11 +51,9 @@ const getHitokotoData = async () => {
   }
 };
 
-const updateHitokoto = () => {
-  debounce(() => {
-    getHitokotoData();
-  }, 500);
-};
+const updateHitokoto = debounce(() => {
+  getHitokotoData();
+}, 500);
 
 onMounted(() => {
   getHitokotoData();
