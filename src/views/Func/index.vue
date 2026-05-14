@@ -66,6 +66,7 @@ onBeforeUnmount(() => {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+
   &.mobile {
     .el-row {
       .el-col {
@@ -78,10 +79,12 @@ onBeforeUnmount(() => {
       }
     }
   }
+
   .el-row {
     height: 100%;
     width: 100%;
     margin: 0 !important;
+
     .el-col {
       &:nth-of-type(1) {
         padding-left: 0 !important;
@@ -89,6 +92,7 @@ onBeforeUnmount(() => {
       &:nth-of-type(2) {
         padding-right: 0 !important;
       }
+
       @media (max-width: 910px) {
         &:nth-of-type(1) {
           display: none;
@@ -101,11 +105,13 @@ onBeforeUnmount(() => {
         }
       }
     }
+
     .left,
     .right {
       width: 100%;
       height: 100%;
     }
+
     .right {
       padding: 20px;
       display: flex;
@@ -113,38 +119,70 @@ onBeforeUnmount(() => {
       align-items: center;
       justify-content: space-between;
       animation: fade 0.5s;
+
       .time {
         font-size: 1.1rem;
         text-align: center;
+
         .date {
           text-overflow: ellipsis;
           overflow-x: hidden;
           white-space: nowrap;
         }
+
         .text {
           margin-top: 10px;
           font-size: 3.25rem;
           letter-spacing: 2px;
           font-family: "UnidreamLED";
         }
+
         @media (min-width: 1201px) and (max-width: 1280px) {
           font-size: 1rem;
         }
+
         @media (min-width: 911px) and (max-width: 992px) {
           font-size: 1rem;
           .text {
             font-size: 2.75rem;
           }
         }
+
+        // ── MOBILE ONLY (≤ 768px) ───────────────────────────────────────────
+        // At this breakpoint col-2 is already 100% wide (see ≤910px rule above).
+        // The only remaining issue is the date line overflowing its container
+        // and the clock digit size being slightly large for narrow screens.
+        @media (max-width: 768px) {
+          // Slightly tighter date text so the full date fits without clipping
+          font-size: 0.95rem;
+
+          .text {
+            // Scale the LED clock down just enough to stay within the card
+            // on a 375 px phone while remaining the clear focal element.
+            font-size: 2.6rem;
+            // Tighten letter-spacing so the 8-char HH:MM:SS string
+            // doesn't overflow on very narrow devices (< 360 px)
+            letter-spacing: 1px;
+          }
+        }
       }
-      .weather {
-        text-align: center;
-        width: 100%;
-        text-overflow: ellipsis;
-        overflow-x: hidden;
-        white-space: nowrap;
+
+      // ── MOBILE ONLY (≤ 768px) ─────────────────────────────────────────────
+      @media (max-width: 768px) {
+        // Reduce horizontal padding so the card content isn't squeezed
+        // against the glassmorphism border on narrow phones
+        padding: 14px 12px;
       }
     }
+  }
+
+  // ── MOBILE ONLY (≤ 768px) ───────────────────────────────────────────────
+  // The outer .function wrapper has a fixed 165px height.
+  // On mobile the date + clock + weather can exceed this, so we lift the cap
+  // and let the card grow naturally to contain everything without overflow.
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 165px; // preserve the minimum visual weight of the card
   }
 }
 </style>

@@ -37,11 +37,12 @@
 
   </div>
 </template>
+
 <script setup>
-import { computed, onMounted, nextTick } from 'vue' // 💥 引入钩子 💥
+import { computed, onMounted, nextTick } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Pagination, Mousewheel } from 'swiper/modules'
-import VanillaTilt from 'vanilla-tilt' // 💥 引入物理引擎 💥
+import VanillaTilt from 'vanilla-tilt'
 
 import {
   LinkTwo, Folder, Notebook, Cpu, Earth, Picture, ChartLine
@@ -79,15 +80,14 @@ const jumpLink = (item) => {
   }
 }
 
-// 💥 引擎点火：页面渲染后绑定 3D 效果 💥
 onMounted(() => {
   nextTick(() => {
     VanillaTilt.init(document.querySelectorAll('.item.cards'), {
-      max: 15,          // 最大倾斜角度
-      speed: 400,       // 动画回弹速度
-      glare: true,      // 开启玻璃反光效果
-      "max-glare": 0.25, // 反光强度
-      scale: 1.02,      // 交给引擎来接管卡片放大效果
+      max: 15,
+      speed: 400,
+      glare: true,
+      "max-glare": 0.25,
+      scale: 1.02,
     })
   })
 })
@@ -99,7 +99,7 @@ onMounted(() => {
     margin: 2rem 0.25rem 1rem;
     display: flex;
     align-items: center;
-    gap: 8px;           
+    gap: 8px;
     animation: fade 0.5s;
 
     .title {
@@ -139,12 +139,25 @@ onMounted(() => {
 
   .link-grid {
     display: grid;
-    grid-template-columns: repeat(v-bind(PAGE_COLS), minmax(0, 1fr)); /* 💥 关键修复：让网格自动收缩，不挤压内容 */
+    // ── Desktop: 3-col fixed grid (unchanged) ──────────────────────────────
+    grid-template-columns: repeat(v-bind(PAGE_COLS), minmax(0, 1fr));
     grid-template-rows: repeat(v-bind(PAGE_ROWS), 1fr);
-    gap: 15px; /* 稍微减小间距，给文字腾出空间 */
+    gap: 15px;
     height: 220px;
 
-    @media (max-width: 720px) { height: 180px; }
+    // ── MOBILE ONLY (≤ 768px) ─────────────────────────────────────────────
+    // Uses !important to beat the inline CSS variable injected by v-bind().
+    // Does NOT affect any selector outside .link-grid.
+    @media (max-width: 768px) {
+      // 2 equal columns → each card is ≈ 165 px on a 375 px phone
+      grid-template-columns: repeat(2, 1fr) !important;
+      // Remove the fixed row count so extra cards wrap instead of overflowing
+      grid-template-rows: unset !important;
+      // Let the grid expand to fit all cards — no more clipped rows
+      height: auto !important;
+      // Tighter gap on mobile
+      gap: 10px;
+    }
   }
 
   .item {
@@ -152,7 +165,7 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     flex-direction: row;
-    padding: 0 5px; /* 减少内边距 */
+    padding: 0 5px;
     cursor: pointer;
     animation: fade 0.5s;
     transform-style: preserve-3d;
@@ -162,25 +175,38 @@ onMounted(() => {
       background: rgb(0 0 0 / 40%);
       transition: 0.3s;
     }
-    
+
     &:active { transform: scale(1) !important; }
 
     .name {
-      font-size: 0.95rem; /* 💥 关键修复：字号略微缩小，保证无论屏幕多窄都能完整显示 */
+      font-size: 0.95rem;
       margin-left: 6px;
-      white-space: nowrap; /* 保证不换行 */
+      white-space: nowrap;
     }
 
+    // Tablet: icon-only to avoid cramping
     @media (min-width: 720px) and (max-width: 820px) {
       .name { display: none; }
     }
 
-    @media (max-width: 460px) {
+    // ── MOBILE ONLY (≤ 768px) ─────────────────────────────────────────────
+    @media (max-width: 768px) {
+      // Stack icon above label — gives both horizontal room
       flex-direction: column;
+      // Consistent card height keeps the 2-col grid rows aligned
+      min-height: 72px;
+      padding: 10px 4px;
+
       .name {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         margin-left: 0;
-        margin-top: 8px;
+        margin-top: 6px;
+        // Allow wrapping so "全球通信 (Terminal)" breaks to two lines
+        // instead of being clipped by ellipsis inside a 165 px card
+        white-space: normal !important;
+        text-align: center;
+        line-height: 1.3;
+        word-break: break-word;
       }
     }
   }
