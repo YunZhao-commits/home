@@ -44,12 +44,27 @@ export default ({ mode }) =>
           },
         },
       },
-      // ── 以下为原有规则，完全不动 ──
+      // 字体文件 — 长缓存，静态资源带 hash 可放心使用 CacheFirst
       {
-        urlPattern: /(.*?)\.(js|css|woff2|woff|ttf)/,
+        urlPattern: /(.*?)\.(woff2|woff|ttf)/,
         handler: "CacheFirst",
         options: {
-          cacheName: "js-css-cache",
+          cacheName: "font-cache",
+          cacheableResponse: {
+            statuses: [200],
+          },
+          expiration: {
+            maxEntries: 20,
+            maxAgeSeconds: 365 * 24 * 60 * 60, // 一年
+          },
+        },
+      },
+      // JS/CSS 代码文件
+      {
+        urlPattern: /(.*?)\.(js|css)/,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "code-cache",
         },
       },
       {
@@ -61,15 +76,37 @@ export default ({ mode }) =>
       },
     ],
   },
-  // manifest 块完全不动...
         manifest: {
           name: loadEnv(mode, process.cwd()).VITE_SITE_NAME,
           short_name: loadEnv(mode, process.cwd()).VITE_SITE_NAME,
           description: loadEnv(mode, process.cwd()).VITE_SITE_DES,
-          display: "standalone",
+          lang: "zh-CN",
+          dir: "ltr",
+          scope: "/",
           start_url: "/",
+          display: "standalone",
+          display_override: ["window-controls-overlay", "standalone", "minimal-ui"],
+          orientation: "any",
           theme_color: "#424242",
           background_color: "#424242",
+          categories: ["personalization", "utilities"],
+          screenshots: [
+            {
+              src: "/screenshots/main.jpg",
+              sizes: "1280x720",
+              type: "image/jpeg",
+            },
+            {
+              src: "/screenshots/step1.jpg",
+              sizes: "1280x720",
+              type: "image/jpeg",
+            },
+            {
+              src: "/screenshots/step2.jpg",
+              sizes: "1280x720",
+              type: "image/jpeg",
+            },
+          ],
           icons: [
             {
               src: "/images/icon/48.png",
@@ -100,11 +137,13 @@ export default ({ mode }) =>
               src: "/images/icon/192.png",
               sizes: "192x192",
               type: "image/png",
+              purpose: "any maskable",
             },
             {
               src: "/images/icon/512.png",
               sizes: "512x512",
               type: "image/png",
+              purpose: "any maskable",
             },
           ],
         },
