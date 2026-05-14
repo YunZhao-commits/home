@@ -9,9 +9,32 @@ import Components from "unplugin-vue-components/vite";
 import viteCompression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
-export default ({ mode }) =>
-  defineConfig({
+export default ({ mode }) => {
+  const env = loadEnv(mode, process.cwd());
+
+  // HTML 环境变量回退默认值，防止 .env 缺失时 %VITE_XXX% 未被替换导致构建崩溃
+  const htmlEnvFallbacks = {
+    "%VITE_SITE_NAME%": env.VITE_SITE_NAME || "Yunchu Studio",
+    "%VITE_SITE_LOGO%": env.VITE_SITE_LOGO || "/images/avatar.png",
+    "%VITE_SITE_APPLE_LOGO%": env.VITE_SITE_APPLE_LOGO || "/images/avatar.png",
+    "%VITE_SITE_DES%": env.VITE_SITE_DES || "A Private Digital Infrastructure",
+    "%VITE_SITE_KEYWORDS%": env.VITE_SITE_KEYWORDS || "Yunchu, 个人门户",
+    "%VITE_SITE_AUTHOR%": env.VITE_SITE_AUTHOR || "Yunchu Studio",
+  };
+
+  return defineConfig({
     plugins: [
+      // 确保 index.html 中的 %VITE_XXX% 占位符始终有值
+      {
+        name: "html-env-fallback",
+        enforce: "pre",
+        transformIndexHtml(html) {
+          return html.replace(
+            /%VITE_SITE_(?:NAME|LOGO|APPLE_LOGO|DES|KEYWORDS|AUTHOR)%/g,
+            (match) => htmlEnvFallbacks[match],
+          );
+        },
+      },
       vue(),
       AutoImport({
         imports: ["vue"],
@@ -77,9 +100,9 @@ export default ({ mode }) =>
     ],
   },
         manifest: {
-          name: loadEnv(mode, process.cwd()).VITE_SITE_NAME,
-          short_name: loadEnv(mode, process.cwd()).VITE_SITE_NAME,
-          description: loadEnv(mode, process.cwd()).VITE_SITE_DES,
+          name: env.VITE_SITE_NAME,
+          short_name: env.VITE_SITE_NAME,
+          description: env.VITE_SITE_DES,
           lang: "zh-CN",
           dir: "ltr",
           scope: "/",
@@ -191,3 +214,4 @@ export default ({ mode }) =>
       },
     },
   });
+};
