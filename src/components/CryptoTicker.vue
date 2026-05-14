@@ -24,7 +24,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 
 const btcPrice = ref('0,000');
 const btcChange = ref(0);
@@ -33,13 +32,14 @@ const ethChange = ref(0);
 
 const fetchData = async () => {
   try {
-    const res = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true');
-    btcPrice.value = res.data.bitcoin.usd.toLocaleString();
-    btcChange.value = res.data.bitcoin.usd_24h_change;
-    ethPrice.value = res.data.ethereum.usd.toLocaleString();
-    ethChange.value = res.data.ethereum.usd_24h_change;
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true');
+    const data = await res.json();
+    btcPrice.value = data.bitcoin.usd.toLocaleString();
+    btcChange.value = data.bitcoin.usd_24h_change;
+    ethPrice.value = data.ethereum.usd.toLocaleString();
+    ethChange.value = data.ethereum.usd_24h_change;
   } catch (e) {
-    console.error("API Fetch Error");
+    // fetch failed, silently ignore
   }
 };
 

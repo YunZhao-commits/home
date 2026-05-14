@@ -20,6 +20,7 @@ export default ({ mode }) => {
     "%VITE_SITE_DES%": env.VITE_SITE_DES || "A Private Digital Infrastructure",
     "%VITE_SITE_KEYWORDS%": env.VITE_SITE_KEYWORDS || "Yunchu, 个人门户",
     "%VITE_SITE_AUTHOR%": env.VITE_SITE_AUTHOR || "Yunchu Studio",
+    "%VITE_SITE_URL%": env.VITE_SITE_URL || "https://191607.xyz",
   };
 
   return defineConfig({
@@ -30,7 +31,7 @@ export default ({ mode }) => {
         enforce: "pre",
         transformIndexHtml(html) {
           return html.replace(
-            /%VITE_SITE_(?:NAME|LOGO|APPLE_LOGO|DES|KEYWORDS|AUTHOR)%/g,
+            /%VITE_SITE_(?:NAME|LOGO|APPLE_LOGO|DES|KEYWORDS|AUTHOR|URL)%/g,
             (match) => htmlEnvFallbacks[match],
           );
         },
@@ -195,11 +196,9 @@ export default ({ mode }) => {
       },
     },
     build: {
-      minify: "terser",
-      terserOptions: {
-        compress: {
-          pure_funcs: ["console.log"],
-        },
+      minify: "esbuild",
+      esbuild: {
+        drop: ["console", "debugger"],
       },
       rollupOptions: {
         output: {
@@ -208,7 +207,7 @@ export default ({ mode }) => {
             "vendor-swiper": ["swiper"],
             "vendor-marked": ["marked"],
             "vendor-vue": ["vue", "pinia", "pinia-plugin-persistedstate"],
-            "vendor-utils": ["axios", "lodash-es", "dayjs"],
+            "vendor-utils": ["lodash-es", "dayjs"],
           },
         },
       },
