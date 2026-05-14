@@ -14,14 +14,14 @@
     <meta name="author" content="%VITE_SITE_AUTHOR%" />
     <meta property="og:title" content="%VITE_SITE_NAME%" />
     <meta property="og:description" content="%VITE_SITE_DES%" />
-    <meta property="og:image" content="%VITE_SITE_LOGO%" />
+    <meta property="og:image" content="%VITE_SITE_URL%/screenshots/main.jpg" />
     <meta property="og:url" content="%VITE_SITE_URL%" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="%VITE_SITE_NAME%" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="%VITE_SITE_NAME%" />
     <meta name="twitter:description" content="%VITE_SITE_DES%" />
-    <meta name="twitter:image" content="%VITE_SITE_LOGO%" />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/screenshots/main.jpg" />
     <link rel="canonical" href="%VITE_SITE_URL%" />
     <meta name="theme-color" content="#424242" />
     <title>%VITE_SITE_NAME%</title>
@@ -36,10 +36,12 @@
 
   <body>
     <!-- 主体内容 -->
-    <div id="app"></div>
+    <div id="app">
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;color:rgba(255,255,255,0.6);font-family:sans-serif;font-size:14px">Loading...</div>
+    </div>
     <!-- noscript -->
     <noscript>
-      <div style="text-align: center">请开启 JavaScript</div>
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif;font-size:16px;text-align:center;background:#333">请开启 JavaScript 以访问本站<br><small style="color:rgba(255,255,255,0.4)">Please enable JavaScript</small></div>
     </noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
