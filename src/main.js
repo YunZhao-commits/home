@@ -6,6 +6,7 @@ import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 // swiper
 import "swiper/css";
+import { ElMessage } from "element-plus";
 
 const app = createApp(App);
 const pinia = createPinia();
