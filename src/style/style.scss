@@ -27,7 +27,6 @@ a,
 p {
   margin: 0;
   padding: 0;
-  user-select: none;
   text-decoration: none;
   color: #fff;
   box-sizing: border-box;
@@ -35,6 +34,17 @@ p {
   &:hover {
     transition: 0.3s;
   }
+}
+
+// 仅对 UI 交互元素禁用文本选择，保留正文可选中
+.cards,
+button,
+.menu,
+.ai-fab,
+.chat-footer button,
+.el-message,
+.glass-btn {
+  user-select: none;
 }
 
 // 链接悬停效果

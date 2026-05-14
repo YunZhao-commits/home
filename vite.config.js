@@ -178,5 +178,16 @@ export default ({ mode }) =>
           pure_funcs: ["console.log"],
         },
       },
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            "vendor-element-plus": ["element-plus"],
+            "vendor-swiper": ["swiper"],
+            "vendor-marked": ["marked"],
+            "vendor-vue": ["vue", "pinia", "pinia-plugin-persistedstate"],
+            "vendor-utils": ["axios", "lodash-es", "dayjs"],
+          },
+        },
+      },
     },
   });
