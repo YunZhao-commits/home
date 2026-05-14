@@ -1,5 +1,9 @@
 <template>
-  <div class="cyber-cursor" :style="{ left: cursorX + 'px', top: cursorY + 'px' }" :class="{ active: isHovering }"></div>
+  <div
+    class="cyber-cursor"
+    :style="{ left: cursorX + 'px', top: cursorY + 'px' }"
+    :class="{ active: isHovering }"
+  ></div>
 
   <canvas id="particle-canvas" class="particle-bg"></canvas>
 
@@ -39,7 +43,6 @@
   </Transition>
   
   <AiWidget />
-
 </template>
 
 <script setup>
@@ -57,9 +60,7 @@ import Box from "@/views/Box/index.vue";
 import MoreSet from "@/views/MoreSet/index.vue";
 import config from "@/../package.json";
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
-// 💥 新增：导入控制台引擎 💥
 import CommandPalette from "@/components/CommandPalette.vue";
-  
 
 const store = mainStore();
 
@@ -147,11 +148,19 @@ const initParticles = () => {
 onMounted(() => {
   initParticles();
 
+  // 无条件监听鼠标移动，只要你动鼠标，圈圈就跟着走
   window.addEventListener("mousemove", (e) => {
     cursorX.value = e.clientX;
     cursorY.value = e.clientY;
     const target = e.target;
-    if (target.closest("a") || target.closest("button") || target.closest(".item") || target.closest(".cards")) {
+    // 监听各种可点击元素，实现圈圈放大效果
+    if (
+      target.closest("a") ||
+      target.closest("button") ||
+      target.closest(".item") ||
+      target.closest(".cards") ||
+      target.closest(".logo")
+    ) {
       isHovering.value = true;
     } else {
       isHovering.value = false;
@@ -174,7 +183,10 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-body { cursor: none !important; }
+/* 仅在电脑端（屏幕宽度 >= 768px）隐藏系统原生鼠标箭头 */
+@media (min-width: 768px) {
+  body { cursor: none !important; }
+}
 </style>
 
 <style lang="scss" scoped>
@@ -184,11 +196,11 @@ body { cursor: none !important; }
   height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  pointer-events: none; 
+  pointer-events: none;
   transform: translate(-50%, -50%);
   transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
   z-index: 99999;
-  box-shadow: 0 0 10px rgba(255,255,255,0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 
   &.active {
     width: 45px;
@@ -196,6 +208,11 @@ body { cursor: none !important; }
     background-color: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(4px);
     border-color: transparent;
+  }
+
+  /* 在手机端（屏幕宽度 < 768px）彻底隐藏这个圈圈，防止卡在屏幕上 */
+  @media (max-width: 767px) {
+    display: none !important;
   }
 }
 
@@ -206,7 +223,7 @@ body { cursor: none !important; }
   width: 100%;
   height: 100%;
   z-index: 0;
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 #main {
@@ -214,6 +231,8 @@ body { cursor: none !important; }
   top: 0;
   left: 0;
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   height: 100%;
   transform: scale(1.2);
   transition: transform 0.3s;
@@ -223,9 +242,11 @@ body { cursor: none !important; }
 
   .container {
     width: 100%;
+    max-width: 100%;
     height: 100vh;
     margin: 0 auto;
     padding: 0 0.5vw;
+    box-sizing: border-box;
 
     .all {
       width: 100%;
@@ -236,6 +257,7 @@ body { cursor: none !important; }
       justify-content: center;
       align-items: center;
     }
+
     .more {
       position: fixed;
       top: 0;
@@ -247,10 +269,12 @@ body { cursor: none !important; }
       z-index: 2;
       animation: fade 0.5s;
     }
+
     @media (max-width: 1200px) {
       padding: 0 2vw;
     }
   }
+
   .menu {
     position: absolute;
     display: flex;
@@ -265,7 +289,7 @@ body { cursor: none !important; }
     border-radius: 6px;
     transition: transform 0.3s;
     animation: fade 0.5s;
-    
+
     &.glass-btn {
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -274,47 +298,46 @@ body { cursor: none !important; }
     &:active {
       transform: scale(0.95);
     }
+
     .i-icon {
       transform: translateY(2px);
     }
+
     @media (min-width: 721px) {
       display: none;
     }
   }
+
   @media (max-height: 720px) {
     overflow-y: auto;
     overflow-x: hidden;
+
     .container {
       height: 721px;
+      padding-left: 0.7vw;
+      padding-right: 0.25vw;
+
       .more {
         height: 721px;
-        width: calc(100% + 6px);
+        width: 100%;
       }
-      @media (min-width: 391px) {
-        padding-left: 0.7vw;
-        padding-right: 0.25vw;
-        @media (max-width: 1200px) { padding-left: 2.3vw; padding-right: 1.75vw; }
-        @media (max-width: 1100px) { padding-left: 2vw; padding-right: calc(2vw - 6px); }
-        @media (max-width: 992px) { padding-left: 2.3vw; padding-right: 1.7vw; }
-        @media (max-width: 900px) { padding-left: 2vw; padding-right: calc(2vw - 6px); }
-      }
+
+      @media (max-width: 1200px) { padding-left: 2.3vw; padding-right: 1.75vw; }
+      @media (max-width: 1100px) { padding-left: 2vw;   padding-right: 2vw;    }
+      @media (max-width: 992px)  { padding-left: 2.3vw; padding-right: 1.7vw;  }
+      @media (max-width: 900px)  { padding-left: 2vw;   padding-right: 2vw;    }
     }
+
     .menu {
-      top: 605.64px; 
-      left: 170.5px; 
-      @media (min-width: 391px) { left: calc(50% - 25px); }
+      top: 605.64px;
+      left: calc(50% - 28px);
     }
+
     .f-ter {
-      top: 675px; 
+      top: 675px;
+
       @media (min-width: 391px) { padding-left: 6px; }
     }
-  }
-  @media (max-width: 390px) {
-    overflow-x: auto;
-    .container { width: 391px; }
-    .menu { left: 167.5px; }
-    .f-ter { width: 391px; }
-    @media (min-height: 721px) { overflow-y: hidden; }
   }
 }
 </style>

@@ -1,0 +1,128 @@
+/*
+ * ============================================================
+ *  MOBILE NAVIGATION CARD GRID — DROP-IN SCSS OVERRIDES
+ *  Place this block at the BOTTOM of style.scss (or import it
+ *  as @use './mobile-cards' inside style.scss).
+ *
+ *  These selectors target the class names used by the stock
+ *  imsyy/home Links.vue and Func/index.vue components.
+ *  Adjust the selectors if your fork renames them.
+ * ============================================================
+ */
+
+@media (max-width: 720px) {
+
+  /* ── 1. Website-navigation link list ─────────────────────────────────────
+   *
+   *  The stock component wraps each category in .links-box and lays out
+   *  individual site links (.links-item / .item) in a flex row.
+   *  On narrow screens those items squish instead of wrapping.
+   *
+   *  Fix: switch to CSS Grid with auto-fill columns that are at least
+   *  140 px wide, so you get 2 columns on a 320–375 px phone and the
+   *  layout is completely automatic on wider phones/tablets.
+   */
+
+  /* Category wrapper — allow vertical scroll if content is tall */
+  .links-box,
+  .link-group {
+    overflow: visible !important; // don't clip the cards
+  }
+
+  /* Grid for the clickable link cards */
+  .links-row,
+  .link-list,
+  .links-box .list {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 10px 8px !important;
+    /* Remove any fixed height that prevents the grid from expanding */
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Individual site card — reset any flex-shrink / min-width that fights the grid */
+  .links-item,
+  .link-item,
+  .item {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex-shrink: 0 !important;
+    /* Give each card a readable minimum height */
+    min-height: 56px;
+    box-sizing: border-box;
+  }
+
+  /* ── 2. Function / Shortcut cards (Func section) ─────────────────────────
+   *
+   *  Same treatment for the quick-launch function buttons that appear
+   *  above the nav links in the mobile right panel.
+   */
+
+  .func-list,
+  .func-box,
+  .func-items {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+    gap: 8px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  .func-item {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+
+  /* ── 3. Right-panel container ─────────────────────────────────────────────
+   *
+   *  When .right is visible on mobile (mobileOpenState === true) it must
+   *  be scrollable so all cards are reachable. The fixed-height viewport
+   *  clip is removed here.
+   */
+
+  .right {
+    // Allow the panel to scroll vertically on mobile
+    overflow-y: auto !important;
+    // Push content below the fixed logo (≈ 2.25rem font + some padding)
+    padding-top: 5rem !important;
+    // Fill the full viewport height so cards aren't clipped
+    height: 100dvh !important;
+    height: 100vh !important; // fallback for older Safari
+    box-sizing: border-box;
+    // Prevent cards from leaking outside on x-axis
+    overflow-x: hidden !important;
+  }
+
+  /* ── 4. Social-link icon row ──────────────────────────────────────────────
+   *
+   *  The social icons in Left.vue can also overflow on very narrow screens.
+   *  Wrap them instead of clipping.
+   */
+
+  .social-links,
+  .social-link-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+}
+
+/* ── Narrow phone refinement (≤ 390 px) ─────────────────────────────────────
+ *  On the very smallest phones (iPhone SE), drop to a single column so
+ *  card text is always readable without truncation.
+ */
+@media (max-width: 390px) {
+  .links-row,
+  .link-list,
+  .links-box .list {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+  }
+
+  .func-list,
+  .func-box,
+  .func-items {
+    grid-template-columns: repeat(2, 1fr) !important; // 2 fixed columns
+  }
+}
