@@ -41,6 +41,7 @@ const wasmOutput = ref("");
 const formatTime = (time) => dayjs(time).format('HH:mm');
 
 const fetchMessages = async () => {
+  if (!supabase) return;
   const { data } = await supabase.from('broadcasts').select('*').order('created_at', { ascending: false }).limit(10);
   if (data) messages.value = data;
 };
@@ -82,6 +83,7 @@ f"Python Version: {version} | 10! = {calc}"
   }
 
   // 正常广播逻辑
+  if (!supabase) return;
   const { error } = await supabase.from('broadcasts').insert([{ author: "Node_User", content: cmd }]);
   if (!error) { newMsg.value = ""; fetchMessages(); }
 };
