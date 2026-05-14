@@ -11,7 +11,6 @@
 
   <Loading />
 
-  <Loading />
   <Background @loadComplete="loadComplete" />
   
   <Transition name="fade" mode="out-in">
@@ -58,7 +57,6 @@ import Background from "@/components/Background.vue";
 import Footer from "@/components/Footer.vue";
 import Box from "@/views/Box/index.vue";
 import MoreSet from "@/views/MoreSet/index.vue";
-import config from "@/../package.json";
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import CommandPalette from "@/components/CommandPalette.vue";
 
