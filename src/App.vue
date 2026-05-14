@@ -144,8 +144,6 @@ const initParticles = () => {
 };
 
 onMounted(() => {
-  // 仅在 Vue 应用成功挂载后隐藏系统光标，JS 故障时光标保持可见
-  document.body.classList.add("js-ready");
   initParticles();
 
   // 无条件监听鼠标移动，只要你动鼠标，圈圈就跟着走
@@ -185,7 +183,7 @@ onBeforeUnmount(() => {
 <style>
 /* 仅在电脑端（屏幕宽度 >= 768px）隐藏系统原生鼠标箭头 */
 @media (min-width: 768px) {
-  body.js-ready { cursor: none !important; }
+  /* cursor handled inline by main.js after mount */
 }
 </style>
 
