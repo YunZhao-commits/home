@@ -15,10 +15,12 @@ pinia.use(piniaPluginPersistedstate);
 app.use(pinia);
 app.mount("#app");
 
-// 仅在 Vue 成功挂载后隐藏系统光标；JS 故障时光标保持可见
-const cursorStyle = document.createElement("style");
-cursorStyle.textContent = "body { cursor: none !important; }";
-document.head.appendChild(cursorStyle);
+// 仅在桌面端隐藏系统光标；移动端保留原生触摸体验
+if (window.innerWidth >= 768) {
+  const cursorStyle = document.createElement("style");
+  cursorStyle.textContent = "body { cursor: none !important; }";
+  document.head.appendChild(cursorStyle);
+}
 
 // PWA
 navigator.serviceWorker.addEventListener("controllerchange", () => {

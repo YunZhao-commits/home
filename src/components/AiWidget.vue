@@ -218,6 +218,7 @@ const sendMessage = async () => {
 
 .chat-panel {
   width: 340px;
+  max-width: calc(100vw - 40px);
   height: 500px;
   background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(15px);

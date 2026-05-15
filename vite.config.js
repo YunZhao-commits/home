@@ -202,6 +202,14 @@ export default ({ mode }) => {
           pure_funcs: ["console.log"],
         },
       },
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            // 所有 node_modules 合并为一个 vendor chunk，避免跨 chunk TDZ
+            if (id.includes("node_modules")) return "vendor";
+          },
+        },
+      },
     },
   });
 };
