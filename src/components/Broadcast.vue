@@ -9,10 +9,10 @@
     </div>
 
     <div class="input-area">
-      <input 
-        v-model="newMsg" 
-        placeholder="输入广播 / 或输入 /wasm boot 启动引擎..." 
-        @keyup.enter="sendBroadcast" 
+      <input
+        v-model="newMsg"
+        placeholder="输入广播 / 或输入 /wasm boot 启动引擎..."
+        @keyup.enter="sendBroadcast"
       />
     </div>
     <div class="message-list">
@@ -110,14 +110,14 @@ onMounted(() => { fetchMessages(); });
 <style lang="scss" scoped>
 .broadcast-terminal {
   background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 10px; position: relative;
-  
+
   /* Wasm 引擎界面样式 */
   .wasm-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(10px);
     border-radius: 8px; z-index: 100; display: flex; flex-direction: column;
     padding: 10px; font-family: 'JetBrains Mono', monospace;
-    
+
     .wasm-header {
       display: flex; justify-content: space-between; color: #60a5fa; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #60a5fa50; padding-bottom: 5px;
       .close-wasm { cursor: pointer; color: #f87171; &:hover { text-decoration: underline; } }
@@ -127,18 +127,18 @@ onMounted(() => { fetchMessages(); });
 
   .input-area {
     margin-bottom: 10px;
-    input { 
+    input {
       width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
       color: #4ade80; padding: 8px; border-radius: 4px; outline: none; font-family: monospace;
     }
   }
   .message-list {
     max-height: 150px; overflow-y: auto; font-family: monospace; font-size: 12px;
-    .msg-item { 
-      margin-bottom: 6px; 
-      .time { color: #666; margin-right: 8px; } 
+    .msg-item {
+      margin-bottom: 6px;
+      .time { color: #666; margin-right: 8px; }
       .author { color: #60a5fa; margin-right: 5px; }
-      .cnt { color: #eee; } 
+      .cnt { color: #eee; }
     }
   }
 }
