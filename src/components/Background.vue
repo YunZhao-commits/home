@@ -24,9 +24,8 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, h } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { mainStore } from "@/store";
-import { Error } from "@icon-park/vue-next";
 
 const store = mainStore();
 const bgUrl = ref(null);
@@ -54,9 +53,19 @@ const changeBg = (type) => {
   }
 };
 
-// --- 下面的代码保持原样不变 ---
+// 安全超时：8 秒后无论图片是否加载完成，直接显示内容
+let safetyTimer = null;
+
+const forceShow = () => {
+  if (!store.imgLoadStatus) {
+    store.setImgLoadStatus(true);
+    emit("loadComplete");
+  }
+};
+
 // 图片加载完成
 const imgLoadComplete = () => {
+  clearTimeout(safetyTimer);
   imgTimeout.value = setTimeout(
     () => {
       store.setImgLoadStatus(true);
@@ -66,21 +75,17 @@ const imgLoadComplete = () => {
 };
 
 const imgAnimationEnd = () => {
-  console.log("壁纸加载且动画完成");
   emit("loadComplete");
 };
 
-// 终极防御机制：依然保留，万一哪天你删了图片忘了改代码，自动切云端
+// 图片加载失败 — 回退到本地随机壁纸
 const imgLoadError = () => {
-  console.error("本地壁纸加载失败，可能是序号断层或文件被删：", bgUrl.value);
-  ElMessage({
-    message: "本地壁纸读取失败，已启动安全协议，切换至云端图库",
-    icon: h(Error, {
-      theme: "filled",
-      fill: "#efefef",
-    }),
-  });
-  bgUrl.value = "https://api.dujin.org/bing/1920.php";
+  clearTimeout(safetyTimer);
+  // 依次尝试本地壁纸
+  const fallbackIdx = Math.floor(Math.random() * availableImages.length);
+  bgUrl.value = `/images/background${availableImages[fallbackIdx]}.jpg`;
+  // 重启超时计时器
+  safetyTimer = setTimeout(forceShow, 8000);
 };
 
 watch(
@@ -92,10 +97,13 @@ watch(
 
 onMounted(() => {
   changeBg(store.coverType);
+  // 安全超时：8 秒后强制显示内容
+  safetyTimer = setTimeout(forceShow, 8000);
 });
 
 onBeforeUnmount(() => {
   clearTimeout(imgTimeout.value);
+  clearTimeout(safetyTimer);
 });
 </script>
 

@@ -46,10 +46,10 @@
 
 <script setup>
 import AiWidget from '@/components/AiWidget.vue';
-import { helloInit, checkDays } from "@/utils/getTime.js";
-import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
+import { helloInit, checkDays } from "@/utils/getTime.js";import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
+import Icon from "@/components/Icon.vue";
 import { mainStore } from "@/store";
-import { Icon } from "@vicons/utils";
+
 import Loading from "@/components/Loading.vue";
 import MainLeft from "@/views/Main/Left.vue";
 import MainRight from "@/views/Main/Right.vue";

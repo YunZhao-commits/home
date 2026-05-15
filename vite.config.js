@@ -196,19 +196,10 @@ export default ({ mode }) => {
       },
     },
     build: {
-      minify: "esbuild",
-      esbuild: {
-        drop: ["console", "debugger"],
-      },
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            "vendor-element-plus": ["element-plus"],
-            "vendor-swiper": ["swiper"],
-            "vendor-marked": ["marked"],
-            "vendor-vue": ["vue", "pinia", "pinia-plugin-persistedstate"],
-            "vendor-utils": ["lodash-es", "dayjs"],
-          },
+      minify: "terser",
+      terserOptions: {
+        compress: {
+          pure_funcs: ["console.log"],
         },
       },
     },
