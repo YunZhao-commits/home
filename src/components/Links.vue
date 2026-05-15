@@ -139,24 +139,21 @@ onMounted(() => {
 
   .link-grid {
     display: grid;
-    // ── Desktop: 3-col fixed grid (unchanged) ──────────────────────────────
     grid-template-columns: repeat(v-bind(PAGE_COLS), minmax(0, 1fr));
     grid-template-rows: repeat(v-bind(PAGE_ROWS), 1fr);
     gap: 15px;
     height: 220px;
 
-    // ── MOBILE ONLY (≤ 768px) ─────────────────────────────────────────────
-    // Uses !important to beat the inline CSS variable injected by v-bind().
-    // Does NOT affect any selector outside .link-grid.
     @media (max-width: 768px) {
-      // 2 equal columns → each card is ≈ 165 px on a 375 px phone
       grid-template-columns: repeat(2, 1fr) !important;
-      // Remove the fixed row count so extra cards wrap instead of overflowing
       grid-template-rows: unset !important;
-      // Let the grid expand to fit all cards — no more clipped rows
+      grid-auto-rows: minmax(56px, auto);
       height: auto !important;
-      // Tighter gap on mobile
       gap: 10px;
+    }
+
+    @media (max-width: 390px) {
+      grid-template-columns: 1fr !important;  // 超窄屏单列
     }
   }
 

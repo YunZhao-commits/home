@@ -267,13 +267,16 @@ watch(
     top: calc(50% - 300px);
     left: calc(50% - 320px);
     width: 640px;
+    max-width: calc(100vw - 40px);
     height: 600px;
     background-color: #ffffff66;
     border-radius: 6px;
     z-index: 999;
     @media (max-width: 720px) {
-      left: calc(50% - 45%);
-      width: 90%;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: calc(100% - 20px);
     }
     .close {
       position: absolute;

@@ -274,27 +274,30 @@ onBeforeUnmount(() => {
   }
 
   .menu {
-    position: absolute;
+    position: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
-    top: 84%;
-    left: calc(50% - 28px);
+    bottom: max(20px, env(safe-area-inset-bottom, 20px));
+    left: 50%;
+    transform: translateX(-50%);
     width: 56px;
-    height: 34px;
-    background: rgb(0 0 0 / 20%);
-    backdrop-filter: blur(10px);
-    border-radius: 6px;
+    height: 44px;
+    background: rgb(0 0 0 / 25%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 12px;
     transition: transform 0.3s;
     animation: fade 0.5s;
+    z-index: 100;
 
     &.glass-btn {
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     &:active {
-      transform: scale(0.95);
+      transform: translateX(-50%) scale(0.95);
     }
 
     .i-icon {
@@ -304,6 +307,24 @@ onBeforeUnmount(() => {
     @media (min-width: 721px) {
       display: none;
     }
+  }
+
+  @media (max-width: 720px) {
+    // 移动端强制单列布局，覆盖所有嵌套选择器
+    .container {
+      padding: 0 !important;
+    }
+    .container .all,
+    .all {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      padding: 0 0.5rem !important;
+      gap: 1rem;
+    }
+    // 防止内容溢出产生横向滚动条
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
   }
 
   @media (max-height: 720px) {
@@ -326,16 +347,20 @@ onBeforeUnmount(() => {
       @media (max-width: 900px)  { padding-left: 2vw;   padding-right: 2vw;    }
     }
 
-    .menu {
-      top: 605.64px;
-      left: calc(50% - 28px);
-    }
-
     .f-ter {
       top: 675px;
-
       @media (min-width: 391px) { padding-left: 6px; }
     }
+  }
+
+  @media (max-width: 390px) {
+    overflow-x: auto;
+
+    .container { width: 100%; min-width: 320px; }
+
+    .f-ter { width: 100%; min-width: 320px; }
+
+    @media (min-height: 721px) { overflow-y: hidden; }
   }
 }
 </style>
