@@ -37,12 +37,36 @@
   <body>
     <!-- 主体内容 -->
     <div id="app">
-      <div style="display:flex;align-items:center;justify-content:center;height:100vh;color:rgba(255,255,255,0.6);font-family:sans-serif;font-size:14px">Loading...</div>
+      <div id="app-loading" style="display:flex;align-items:center;justify-content:center;height:100vh;color:rgba(255,255,255,0.6);font-family:sans-serif;font-size:14px">Loading...</div>
+      <div id="app-error" style="display:none;align-items:center;justify-content:center;height:100vh;color:#f87171;font-family:monospace;font-size:13px;padding:20px;white-space:pre-wrap;word-break:break-all"></div>
     </div>
     <!-- noscript -->
     <noscript>
       <div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:sans-serif;font-size:16px;text-align:center;background:#333">请开启 JavaScript 以访问本站<br><small style="color:rgba(255,255,255,0.4)">Please enable JavaScript</small></div>
     </noscript>
+    <script>
+      window.__debugErrors = [];
+      window.addEventListener('error', function(e) {
+        var err = e.message || (e.target && e.target.src ? 'Failed to load: ' + e.target.src : 'Unknown error');
+        window.__debugErrors.push(err);
+        var el = document.getElementById('app-error');
+        var ld = document.getElementById('app-loading');
+        if (el) { el.style.display = 'flex'; el.textContent = 'JS Error: ' + err + '\n\nAll errors:\n' + window.__debugErrors.join('\n'); }
+        if (ld) ld.style.display = 'none';
+      }, true);
+      window.addEventListener('unhandledrejection', function(e) {
+        var err = e.reason ? (e.reason.message || String(e.reason)) : 'Unhandled Promise';
+        window.__debugErrors.push('Promise: ' + err);
+        var el = document.getElementById('app-error');
+        var ld = document.getElementById('app-loading');
+        if (el) { el.style.display = 'flex'; el.textContent = 'Promise Error: ' + err; }
+        if (ld) ld.style.display = 'none';
+      });
+    </script>
+    <script>
+      // 临时禁用 SW 以排查问题
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+    </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
