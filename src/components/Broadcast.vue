@@ -27,7 +27,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { supabase } from "@/utils/supabase";
 import dayjs from "dayjs";
 import DOMPurify from 'dompurify';
 
@@ -38,34 +37,41 @@ const newMsg = ref("");
 const wasmMode = ref(false);
 const wasmOutput = ref("");
 
+const API_BASE = '/api/broadcast';
+
 const formatTime = (time) => dayjs(time).format('HH:mm');
 
 const fetchMessages = async () => {
-  if (!supabase) return;
-  const { data } = await supabase.from('broadcasts').select('*').order('created_at', { ascending: false }).limit(10);
-  if (data) messages.value = data;
+  try {
+    const res = await fetch(API_BASE);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) messages.value = data;
+    }
+  } catch { /* silently ignore fetch errors */ }
 };
 
-// 💥 拦截器：发送广播 or 触发 Wasm 引擎
+// 拦截器：发送广播 or 触发 Wasm 引擎
 const sendBroadcast = async () => {
   const cmd = newMsg.value.trim();
   if (!cmd) return;
 
-  // 🕵️ 彩蛋触发逻辑
+  // 彩蛋触发逻辑
   if (cmd === '/wasm boot') {
     newMsg.value = "";
     wasmMode.value = true;
     wasmOutput.value = "Initializing WebAssembly Environment...<br/>";
-    
-    // 动态拉取 Pyodide Wasm 引擎
+
+    // 动态拉取 Pyodide Wasm 引擎（带 SRI 防篡改）
     const script = document.createElement('script');
     script.src = "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
+    script.integrity = "sha384-b4IZetZNE8bVncsQqlcH4ZZFC58BslGU2LVj47xUtIMOw72axMESbPe8spBylXnd";
+    script.crossOrigin = "anonymous";
     script.onload = async () => {
       wasmOutput.value += "Loading Python 3.11 Core (this may take a few seconds)...<br/>";
       try {
         let pyodide = await window.loadPyodide();
         wasmOutput.value += "<span style='color:#4ade80'>[SYSTEM] Wasm Engine Online. Executing Python Test...</span><br/>";
-        // 在浏览器里直接运行原生 Python 代码！
         let result = await pyodide.runPythonAsync(`
 import sys
 import math
@@ -82,10 +88,20 @@ f"Python Version: {version} | 10! = {calc}"
     return;
   }
 
-  // 正常广播逻辑
-  if (!supabase) return;
-  const { error } = await supabase.from('broadcasts').insert([{ author: "Node_User", content: cmd }]);
-  if (!error) { newMsg.value = ""; fetchMessages(); }
+  // 通过 Worker 代理写入（含服务端限流与校验）
+  try {
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ author: "Node_User", content: cmd }),
+    });
+    if (res.ok) {
+      newMsg.value = "";
+      fetchMessages();
+    } else if (res.status === 429) {
+      alert('发送太快啦，请稍等一会儿。');
+    }
+  } catch { /* silently ignore */ }
 };
 
 onMounted(() => { fetchMessages(); });
