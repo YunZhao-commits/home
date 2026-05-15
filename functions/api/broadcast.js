@@ -17,8 +17,17 @@ const MAX_WRITES_PER_WINDOW = 5;
 const MAX_CONTENT_LENGTH = 200;
 const MAX_AUTHOR_LENGTH = 30;
 
+let lastCleanup = Date.now();
+
 function rateLimit(ip) {
   const now = Date.now();
+  // Lazy cleanup: purge stale entries inline (Cloudflare Workers forbid global setInterval)
+  if (now - lastCleanup > RATE_WINDOW_MS * 2) {
+    lastCleanup = now;
+    for (const [key, entry] of rateMap) {
+      if (now - entry.windowStart > RATE_WINDOW_MS * 2) rateMap.delete(key);
+    }
+  }
   const entry = rateMap.get(ip);
   if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
     rateMap.set(ip, { windowStart: now, count: 1 });
@@ -28,14 +37,6 @@ function rateLimit(ip) {
   entry.count++;
   return true;
 }
-
-// Clean up stale entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, entry] of rateMap) {
-    if (now - entry.windowStart > RATE_WINDOW_MS * 2) rateMap.delete(ip);
-  }
-}, 300_000);
 
 export async function onRequest(context) {
   const { request, env } = context;
