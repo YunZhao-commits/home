@@ -17,12 +17,12 @@
         <div class="link-grid">
           <div
             v-for="item in page"
-            :key="item.id"
+            :key="item.id || item.name"
             class="item cards"
             @click="jumpLink(item)"
           >
             <component
-              :is="iconMap[item.icon]"
+              :is="iconMap[item.icon] || Folder"
               theme="outline"
               size="26"
               :stroke-width="3"
@@ -45,7 +45,7 @@ import { Pagination, Mousewheel } from 'swiper/modules'
 import VanillaTilt from 'vanilla-tilt'
 
 import {
-  LinkTwo, Folder, Notebook, Cpu, Earth, Picture, ChartLine
+  LinkTwo, Folder, Notebook, Cpu, Earth, Picture, ChartLine, Message as MessageIcon
 } from '@icon-park/vue-next'
 
 import siteLinks from '@/assets/siteLinks.json'
@@ -54,7 +54,7 @@ const PAGE_COLS = 3
 const PAGE_ROWS = 2  
 const PAGE_SIZE = PAGE_COLS * PAGE_ROWS  
 
-const iconMap = { Folder, Notebook, Cpu, Earth, Picture, ChartLine }
+const iconMap = { Folder, Notebook, Cpu, Earth, Picture, ChartLine, Message: MessageIcon }
 
 const swiperModules = [Pagination, Mousewheel]
 const paginationConfig = { el: '.swiper-pagination', clickable: true, bulletElement: 'div' }
@@ -106,6 +106,10 @@ onMounted(() => {
       font-size: 1.15rem;
       text-shadow: 0 0 5px #00000050;
     }
+
+    @media (max-width: 768px) {
+      margin: 1.25rem 0.25rem 0.6rem;
+    }
   }
 
   .swiper {
@@ -113,6 +117,12 @@ onMounted(() => {
     width: calc(100% + 20px);
     padding: 5px 10px 0;
     z-index: 0;
+
+    @media (max-width: 768px) {
+      left: 0;
+      width: 100%;
+      padding: 0;
+    }
 
     .swiper-slide { height: 100%; }
 
@@ -145,15 +155,16 @@ onMounted(() => {
     height: 220px;
 
     @media (max-width: 768px) {
-      grid-template-columns: repeat(2, 1fr) !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       grid-template-rows: unset !important;
-      grid-auto-rows: minmax(56px, auto);
+      grid-auto-rows: minmax(48px, auto);
       height: auto !important;
-      gap: 10px;
+      gap: 8px 10px;
     }
 
-    @media (max-width: 390px) {
-      grid-template-columns: 1fr !important;  // 超窄屏单列
+    @media (max-width: 359px) {
+      grid-template-columns: 1fr !important; // 超窄屏（< 360px）自适应单列
+      gap: 8px;
     }
   }
 
@@ -188,22 +199,38 @@ onMounted(() => {
 
     // ── MOBILE ONLY (≤ 768px) ─────────────────────────────────────────────
     @media (max-width: 768px) {
-      // Stack icon above label — gives both horizontal room
-      flex-direction: column;
-      // Consistent card height keeps the 2-col grid rows aligned
-      min-height: 72px;
-      padding: 10px 4px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 48px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      gap: 8px;
+
+      :deep(.i-icon) {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+          width: 20px !important;
+          height: 20px !important;
+        }
+      }
 
       .name {
         font-size: 0.78rem;
+        line-height: 1.25;
         margin-left: 0;
-        margin-top: 6px;
-        // Allow wrapping so "全球通信 (Terminal)" breaks to two lines
-        // instead of being clipped by ellipsis inside a 165 px card
+        margin-top: 0;
         white-space: normal !important;
-        text-align: center;
-        line-height: 1.3;
+        text-align: left;
         word-break: break-word;
+        flex: 1;
+        min-width: 0;
       }
     }
   }

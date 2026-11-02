@@ -149,19 +149,12 @@ onBeforeUnmount(() => {
         }
 
         // ── MOBILE ONLY (≤ 768px) ───────────────────────────────────────────
-        // At this breakpoint col-2 is already 100% wide (see ≤910px rule above).
-        // The only remaining issue is the date line overflowing its container
-        // and the clock digit size being slightly large for narrow screens.
         @media (max-width: 768px) {
-          // Slightly tighter date text so the full date fits without clipping
-          font-size: 0.95rem;
+          font-size: 0.88rem;
 
           .text {
-            // Scale the LED clock down just enough to stay within the card
-            // on a 375 px phone while remaining the clear focal element.
-            font-size: 2.6rem;
-            // Tighten letter-spacing so the 8-char HH:MM:SS string
-            // doesn't overflow on very narrow devices (< 360 px)
+            font-size: 2.2rem;
+            margin-top: 4px;
             letter-spacing: 1px;
           }
         }
@@ -169,20 +162,15 @@ onBeforeUnmount(() => {
 
       // ── MOBILE ONLY (≤ 768px) ─────────────────────────────────────────────
       @media (max-width: 768px) {
-        // Reduce horizontal padding so the card content isn't squeezed
-        // against the glassmorphism border on narrow phones
-        padding: 14px 12px;
+        padding: 10px 14px;
       }
     }
   }
 
   // ── MOBILE ONLY (≤ 768px) ───────────────────────────────────────────────
-  // The outer .function wrapper has a fixed 165px height.
-  // On mobile the date + clock + weather can exceed this, so we lift the cap
-  // and let the card grow naturally to contain everything without overflow.
   @media (max-width: 768px) {
     height: auto;
-    min-height: 165px; // preserve the minimum visual weight of the card
+    min-height: 125px; // 保持紧凑且保留舒适触控/阅读高度
   }
 }
 </style>

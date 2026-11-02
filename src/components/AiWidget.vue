@@ -70,6 +70,8 @@ if (!sessionId) {
 // when the chat modal is open on mobile.
 watch(isOpen, (val) => {
   if (window.innerWidth <= 768) {
+    const mainEl = document.getElementById('main');
+    if (mainEl) mainEl.style.overflowY = val ? 'hidden' : 'auto';
     document.body.style.overflow = val ? 'hidden' : '';
   }
 });
@@ -359,7 +361,7 @@ const sendMessage = async () => {
     justify-content: flex-end;
     align-items: flex-end;
     /* Keep padding away from the home-bar */
-    padding: 0 16px calc(16px + env(safe-area-inset-bottom)) 0;
+    padding: 0 16px max(16px, calc(env(safe-area-inset-bottom, 16px) + 4px)) 0;
   }
 
   .ai-fab {

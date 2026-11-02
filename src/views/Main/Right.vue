@@ -39,13 +39,12 @@ const store = mainStore();
     // Only visible on mobile (< 721 px); hidden on desktop.
     display: none;
 
-    // Positioning: fixed so it floats above the scrollable right panel,
-    // aligned with the top of the viewport at 6 %.
-    position: fixed;
-    top: 6%;
-    left: 0;
-    width: 100%;             // spans full viewport width → perfect centre
+    // Positioning: relative within .right, so it sits naturally above <Func />
+    // and scrolls up with content rather than staying fixed over the cards.
+    position: relative;
+    width: 100%;
     box-sizing: border-box;
+    margin: 0 0 1rem 0;
 
     justify-content: center;
     align-items: baseline;
@@ -56,19 +55,20 @@ const store = mainStore();
     cursor: pointer;
     animation: fade 0.5s;
     transition: transform 0.3s;
+    z-index: 2;
 
     &:active { transform: scale(0.95); }
 
     // "Yunchu" — large, white
     .logo__main {
-      font-size: 2.25rem;
+      font-size: 2.1rem;
       color: #fff;
       letter-spacing: 0.02em;
     }
 
     // "Studio" — slightly smaller, semi-transparent to match the desktop style
     .logo__sub {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: rgba(255, 255, 255, 0.75);
       letter-spacing: 0.04em;
     }
@@ -79,8 +79,8 @@ const store = mainStore();
     }
 
     // Short-viewport adjustment (landscape phones)
-    @media (max-height: 720px) {
-      top: 43.26px; // 721px × 0.06
+    @media (max-height: 500px) and (orientation: landscape) {
+      display: none !important;
     }
   }
 

@@ -24,6 +24,18 @@ const store = mainStore();
   @media (max-width: 720px) {
     margin-right: 0;
     width: 100%;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 0 0 auto;
+    min-height: 0;
+    padding: 0;
+
+    &.hidden {
+      display: none;
+    }
   }
 }
 </style>

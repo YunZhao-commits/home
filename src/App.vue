@@ -46,7 +46,8 @@
 
 <script setup>
 import AiWidget from '@/components/AiWidget.vue';
-import { helloInit, checkDays } from "@/utils/getTime.js";import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
+import { helloInit, checkDays } from "@/utils/getTime.js";
+import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
 import Icon from "@/components/Icon.vue";
 import { mainStore } from "@/store";
 
@@ -278,7 +279,7 @@ onBeforeUnmount(() => {
     display: flex;
     justify-content: center;
     align-items: center;
-    bottom: max(20px, env(safe-area-inset-bottom, 20px));
+    bottom: max(16px, calc(env(safe-area-inset-bottom, 16px) + 4px));
     left: 50%;
     transform: translateX(-50%);
     width: 56px;
@@ -310,24 +311,85 @@ onBeforeUnmount(() => {
   }
 
   @media (max-width: 720px) {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+
     // 移动端强制单列布局，覆盖所有嵌套选择器
     .container {
       padding: 0 !important;
+      width: 100%;
+      height: auto;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
     }
     .container .all,
     .all {
+      flex: 1 0 auto;
+      display: flex;
       flex-direction: column !important;
-      align-items: stretch !important;
-      padding: 0 0.5rem !important;
-      gap: 1rem;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      padding: calc(env(safe-area-inset-top, 16px) + 20px) 16px 16px !important;
+      height: auto;
+      min-height: auto;
+      gap: 1.25rem;
+      box-sizing: border-box;
+      width: 100%;
     }
+    .left {
+      flex: 0 0 auto;
+      height: auto;
+      min-height: 0;
+      transform: none;
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .f-ter {
+      position: relative !important;
+      top: auto !important;
+      bottom: auto !important;
+      left: auto !important;
+      margin-top: auto;
+      margin-bottom: calc(env(safe-area-inset-bottom, 16px) + 68px);
+      width: 100%;
+      height: auto;
+      padding: 8px 16px;
+      box-sizing: border-box;
+    }
+
     // 防止内容溢出产生横向滚动条
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
   }
 
-  @media (max-height: 720px) {
+  @media (max-width: 720px) and (max-height: 500px) {
+    .container .all,
+    .all {
+      padding: calc(env(safe-area-inset-top, 8px) + 12px) 16px 12px !important;
+      gap: 0.75rem;
+    }
+    .f-ter {
+      margin-bottom: calc(env(safe-area-inset-bottom, 12px) + 54px);
+    }
+    .menu {
+      bottom: max(10px, env(safe-area-inset-bottom, 10px));
+    }
+  }
+
+  @media (min-width: 721px) and (max-height: 720px) {
     overflow-y: auto;
     overflow-x: hidden;
 
@@ -354,13 +416,11 @@ onBeforeUnmount(() => {
   }
 
   @media (max-width: 390px) {
-    overflow-x: auto;
+    overflow-x: hidden;
 
-    .container { width: 100%; min-width: 320px; }
+    .container { width: 100%; min-width: 0; }
 
-    .f-ter { width: 100%; min-width: 320px; }
-
-    @media (min-height: 721px) { overflow-y: hidden; }
+    .f-ter { width: 100%; min-width: 0; }
   }
 }
 </style>

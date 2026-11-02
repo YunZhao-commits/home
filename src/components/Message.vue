@@ -10,9 +10,9 @@
     
     <div class="description" @click="store.boxOpenState = !store.boxOpenState">
       <div class="content">
-        <Quote class="quote-icon left" fill="rgba(255, 255, 255, 0.6)" size="22" />
+        <Quote class="quote-icon quote-left" fill="rgba(255, 255, 255, 0.6)" size="22" />
         <span class="desc-text" ref="typedElement"></span>
-        <Quote class="quote-icon right" fill="rgba(255, 255, 255, 0.6)" size="22" />
+        <Quote class="quote-icon quote-right" fill="rgba(255, 255, 255, 0.6)" size="22" />
       </div>
     </div>
   </div>
@@ -70,6 +70,7 @@ onBeforeUnmount(() => {
       object-fit: cover;
       margin-right: 15px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
     }
     
     .name {
@@ -98,6 +99,8 @@ onBeforeUnmount(() => {
     width: 100%;
     max-width: 460px; 
     padding: 16px 20px;
+    height: auto;
+    min-height: 0;
     background: rgba(0, 0, 0, 0.25);
     border-radius: 14px;
     backdrop-filter: blur(10px);
@@ -118,22 +121,34 @@ onBeforeUnmount(() => {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      width: 100%;
+      height: auto;
+      min-height: 0;
 
       .quote-icon {
+        flex-shrink: 0;
+        width: 22px;
+        height: 22px;
         opacity: 0.8;
       }
+      .quote-icon.quote-right,
       .quote-icon.right {
         transform: scaleX(-1); 
       }
       
       .desc-text {
         flex: 1; 
+        min-width: 0;
         text-align: center;
         font-size: 1.15rem;
         color: rgba(255, 255, 255, 0.9);
         font-weight: bold;
         letter-spacing: 0.05em;
         padding: 0 10px;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: normal;
+        line-height: 1.4;
       }
     }
   }
@@ -142,18 +157,89 @@ onBeforeUnmount(() => {
 @media (max-width: 720px) {
   .message {
     align-items: center;
+    width: 100%;
+
     .header {
-      .logo-img { width: 50px; height: 50px; margin-right: 10px; }
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+
+      .logo-img {
+        width: 48px;
+        height: 48px;
+        margin-right: 12px;
+        flex-shrink: 0;
+      }
       .name {
-        .bg { font-size: 2.5rem; }
-        .sm { font-size: 1.2rem; margin-left: 5px; }
+        overflow: visible;
+        white-space: nowrap;
+        .bg {
+          font-size: 2.25rem;
+          line-height: 1.1;
+        }
+        .sm {
+          font-size: 1.15rem;
+          margin-left: 6px;
+          line-height: 1.1;
+        }
+      }
+    }
+
+    .description {
+      margin-top: 1.25rem;
+      padding: 12px 16px;
+      max-width: 100%;
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      box-sizing: border-box;
+
+      .content {
+        height: auto;
+        min-height: 0;
+        gap: 0.5rem;
+
+        .quote-icon {
+          width: 20px;
+          height: 20px;
+          flex-shrink: 0;
+        }
+
+        .desc-text {
+          min-width: 0;
+          font-size: 0.95rem;
+          line-height: 1.35;
+          white-space: normal;
+          overflow-wrap: break-word;
+          word-break: normal;
+          padding: 0 6px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 360px) {
+  .message {
+    .header {
+      .logo-img {
+        width: 42px;
+        height: 42px;
+        margin-right: 8px;
+      }
+      .name {
+        .bg { font-size: 1.9rem; }
+        .sm { font-size: 1rem; margin-left: 4px; }
       }
     }
     .description {
-      margin-top: 20px;
-      padding: 12px 15px;
-      max-width: 100%;
-      .content .desc-text { font-size: 1rem; }
+      padding: 10px 12px;
+      .content {
+        .desc-text {
+          font-size: 0.88rem;
+          padding: 0 4px;
+        }
+      }
     }
   }
 }

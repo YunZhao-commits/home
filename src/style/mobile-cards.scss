@@ -20,10 +20,11 @@
 
   .links-row,
   .link-list,
-  .links-box .list {
+  .links-box .list,
+  .link-grid {
     display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
-    gap: 10px 8px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px 10px !important;
     height: auto !important;
     max-height: none !important;
   }
@@ -34,7 +35,7 @@
     width: 100% !important;
     min-width: 0 !important;
     flex-shrink: 0 !important;
-    min-height: 56px;
+    min-height: 48px !important;
     box-sizing: border-box;
   }
 
@@ -56,17 +57,21 @@
   }
 
   /* ── 3. Right-panel container ──────────────────────────────────────────── */
-  .right {
-    overflow-y: auto !important;
-    padding-top: 5.5rem !important;
-    padding-bottom: 80px !important;     // space above hamburger
-    padding-left: env(safe-area-inset-left, 8px) !important;
-    padding-right: env(safe-area-inset-right, 8px) !important;
-    height: 100dvh !important;
-    height: 100vh !important;
+  .container .all > .right,
+  .all > .right {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: calc(env(safe-area-inset-left, 0px) + 12px) !important;
+    padding-right: calc(env(safe-area-inset-right, 0px) + 12px) !important;
+    height: auto !important;
+    min-height: auto !important;
     box-sizing: border-box;
     overflow-x: hidden !important;
+    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+    max-width: 480px;
+    margin: 0 auto;
   }
 
   /* ── 4. Social-link icon row ───────────────────────────────────────────── */
@@ -89,9 +94,10 @@
   }
 
   /* ── 7. Left panel — compact on mobile ─────────────────────────────────── */
-  .left {
-    padding-left: env(safe-area-inset-left, 8px) !important;
-    padding-right: env(safe-area-inset-right, 8px) !important;
+  .container .all > .left,
+  .all > .left {
+    padding-left: env(safe-area-inset-left, 0px) !important;
+    padding-right: env(safe-area-inset-right, 0px) !important;
   }
 
   /* ── 8. Main container — remove desktop scale animation on mobile ──────── */
@@ -101,32 +107,32 @@
   }
 }
 
-/* ── Narrow phone refinement (≤ 390 px) ──────────────────────────────────── */
-@media (max-width: 390px) {
+/* ── Narrow phone refinement (< 360 px) ──────────────────────────────────── */
+@media (max-width: 359px) {
   .links-row,
   .link-list,
-  .links-box .list {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+  .links-box .list,
+  .link-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
   }
 
   .func-list,
   .func-box,
   .func-items {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  .right {
-    padding-top: 4.5rem !important;
-    padding-bottom: 70px !important;
+    grid-template-columns: 1fr !important;
   }
 }
 
 /* ── Landscape phone ─────────────────────────────────────────────────────── */
 @media (max-height: 500px) and (orientation: landscape) {
-  .right {
-    padding-top: 2rem !important;
+  .container .all > .right,
+  .all > .right {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
-  .right .logo {
+  .container .all > .right .logo,
+  .all > .right .logo {
     display: none !important;
   }
 }
