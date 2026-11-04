@@ -16,9 +16,9 @@
       class="menu glass-btn"
       size="24"
       v-show="!store.backgroundShow"
-      @click="store.setOpenState = !store.setOpenState"
+      @click="store.mobileOpenState = !store.mobileOpenState"
     >
-      <component :is="store.setOpenState ? CloseSmall : HamburgerButton" />
+      <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
     </Icon>
   </div>
 </template>

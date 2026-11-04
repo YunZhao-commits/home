@@ -1,5 +1,5 @@
 <template>
-  <div class="right">
+  <div :class="store.mobileOpenState ? 'right' : 'right hidden'">
 
     <!--
       ✅ FIX: Mobile logo
@@ -36,7 +36,7 @@ const store = mainStore();
 
   // ── Mobile logo ──────────────────────────────────────────────────────────
   .logo {
-    // The identity is already displayed by the left-side brand.
+    // Only visible on mobile (< 721 px); hidden on desktop.
     display: none;
 
     // Positioning: relative within .right, so it sits naturally above <Func />
@@ -74,13 +74,24 @@ const store = mainStore();
     }
 
     // Show only on mobile
-    display: none !important;
+    @media (max-width: 720px) {
+      display: flex;
+    }
+
+    // Short-viewport adjustment (landscape phones)
+    @media (max-height: 500px) and (orientation: landscape) {
+      display: none !important;
+    }
   }
 
   // ── Mobile layout ────────────────────────────────────────────────────────
   @media (max-width: 720px) {
     margin-left: 0;
     width: 100%;
+
+    &.hidden {
+      display: none;
+    }
 
   }
 }

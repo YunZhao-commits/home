@@ -77,15 +77,16 @@
         </div>
 
         <div v-else-if="errorMessage" class="stream-empty stream-error">
-          <div class="empty-icon">⚠️</div>
-          <div class="empty-title">无法载入精选内容</div>
+          <div class="empty-icon" aria-hidden="true"><span></span></div>
+          <div class="empty-title">精选内容暂时无法显示</div>
           <div class="empty-subtitle">{{ errorMessage }}</div>
+          <button class="retry-button" type="button" @click="fetchPosts">重新加载</button>
         </div>
 
         <div v-else-if="posts.length === 0" class="stream-empty">
-          <div class="empty-icon">📂</div>
-          <div class="empty-title">内容正在整理，稍后更新</div>
-          <div class="empty-subtitle">目前暂无已发布的分享项目，请稍后再来看看。</div>
+          <div class="empty-icon" aria-hidden="true"><span></span></div>
+          <div class="empty-title">内容正在整理，稍后再来看看</div>
+          <div class="empty-subtitle">新的精选内容准备好后，会在这里更新。</div>
         </div>
 
         <div v-else class="cards-grid">
@@ -180,7 +181,8 @@ const fetchPosts = async () => {
       keyword: searchQuery.value,
     });
     if (error) {
-      errorMessage.value = error;
+      console.error("[share] Failed to load curated posts", error);
+      errorMessage.value = "请稍后重试，或返回首页继续浏览。";
       posts.value = [];
       featuredPost.value = null;
     } else {
@@ -228,19 +230,23 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .share-page {
+  position: relative;
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
-  padding: 1.5rem 1rem calc(4rem + env(safe-area-inset-bottom, 0px));
+  padding: clamp(1rem, 2.4vw, 2rem) clamp(1rem, 4vw, 4rem) calc(4rem + env(safe-area-inset-bottom, 0px));
   display: flex;
   justify-content: center;
   align-items: flex-start;
   color: #efefef;
+  background: linear-gradient(180deg, rgba(4, 20, 29, 0.38), rgba(4, 20, 29, 0.18) 48%, rgba(4, 20, 29, 0.44));
 
   .share-container {
     width: 100%;
-    max-width: 1080px;
+    max-width: 1180px;
+    min-width: 0;
     margin: 0 auto;
+    box-sizing: border-box;
   }
 
   // 顶部导航
@@ -248,8 +254,11 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0 1.5rem;
+    padding: 0.85rem 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(5, 23, 31, 0.42);
+    backdrop-filter: blur(16px);
 
     .brand {
       display: flex;
@@ -270,8 +279,10 @@ onMounted(() => {
         flex-direction: column;
 
         .main {
-          font-family: "Pacifico-Regular", cursive;
-          font-size: 1.25rem;
+          font-family: inherit;
+          font-size: 1.2rem;
+          font-weight: 700;
+          letter-spacing: 0.01em;
           color: #ffffff;
         }
 
@@ -284,6 +295,7 @@ onMounted(() => {
 
     .nav-links {
       display: flex;
+      align-items: center;
       gap: 1.5rem;
 
       .nav-item {
@@ -304,13 +316,14 @@ onMounted(() => {
 
   // 页面标题
   .banner-section {
-    margin: 2rem 0 1.5rem;
+    max-width: 760px;
+    margin: clamp(2rem, 5vw, 3.5rem) 0 2rem;
 
     .page-title {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      font-size: 1.85rem;
+      font-size: clamp(1.8rem, 3.6vw, 2.6rem);
       font-weight: 600;
       color: #ffffff;
       margin: 0 0 0.5rem 0;
@@ -325,9 +338,9 @@ onMounted(() => {
     }
 
     .page-subtitle {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: rgba(255, 255, 255, 0.7);
+      font-size: clamp(0.95rem, 1.4vw, 1.08rem);
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.82);
       margin: 0;
     }
   }
@@ -489,7 +502,16 @@ onMounted(() => {
   .cards-stream {
     .stream-status,
     .stream-empty {
-      padding: 4rem 1rem;
+      width: min(100%, 680px);
+      min-height: 220px;
+      box-sizing: border-box;
+      margin: clamp(1.5rem, 4vw, 2.75rem) auto 0;
+      padding: 2rem clamp(1rem, 4vw, 2.5rem);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 22px;
+      background: linear-gradient(145deg, rgba(8, 33, 43, 0.78), rgba(6, 21, 32, 0.68));
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(18px);
       text-align: center;
       color: rgba(255, 255, 255, 0.6);
       display: flex;
@@ -501,7 +523,22 @@ onMounted(() => {
         animation: spin 1.5s linear infinite;
       }
       .empty-icon {
-        font-size: 2.5rem;
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(117, 228, 236, 0.35);
+        border-radius: 50%;
+        background: rgba(69, 195, 205, 0.12);
+        color: #a8f3f2;
+
+        span {
+          width: 10px;
+          height: 10px;
+          border: 2px solid currentColor;
+          border-radius: 50%;
+          box-shadow: 0 0 0 6px rgba(117, 228, 236, 0.12), 0 0 22px rgba(117, 228, 236, 0.4);
+        }
       }
       .empty-title {
         font-size: 1.15rem;
@@ -509,7 +546,20 @@ onMounted(() => {
         color: #ffffff;
       }
       .empty-subtitle {
-        font-size: 0.85rem;
+        max-width: 420px;
+        font-size: 0.92rem;
+        line-height: 1.7;
+      }
+
+      .retry-button {
+        min-height: 42px;
+        padding: 0.55rem 1.1rem;
+        border: 1px solid rgba(117, 228, 236, 0.45);
+        border-radius: 999px;
+        background: rgba(117, 228, 236, 0.1);
+        color: #c9ffff;
+        font: inherit;
+        cursor: pointer;
       }
     }
 
@@ -678,7 +728,7 @@ onMounted(() => {
 
   // 移动端排版优化
   @media (max-width: 720px) {
-    padding: 1rem 0.75rem calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem calc(5rem + env(safe-area-inset-bottom, 0px));
 
     .share-header {
       align-items: flex-start;
@@ -725,9 +775,9 @@ onMounted(() => {
     }
 
     .banner-section {
-      margin: 1.25rem 0 1rem;
+      margin: 1.6rem 0 1.2rem;
       .page-title {
-        font-size: 1.5rem;
+        font-size: clamp(1.65rem, 7vw, 2rem);
       }
     }
 
@@ -740,6 +790,14 @@ onMounted(() => {
         margin-left: 0;
         align-self: flex-end;
       }
+    }
+
+    .stream-status,
+    .stream-empty {
+      width: 100%;
+      min-height: 190px;
+      margin-top: 1rem;
+      border-radius: 18px;
     }
 
     .deal-card {
