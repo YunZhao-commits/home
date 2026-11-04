@@ -15,25 +15,11 @@
   
   <Transition name="fade" mode="out-in">
     <main id="main" v-if="store.imgLoadStatus">
-      <div class="container" v-show="!store.backgroundShow">
-        <section class="all" v-show="!store.setOpenState">
-          <MainLeft />
-          <MainRight v-show="!store.boxOpenState" />
-          <Box v-show="store.boxOpenState" />
-        </section>
-        <section class="more" v-show="store.setOpenState" @click="store.setOpenState = false">
-          <MoreSet />
-        </section>
-      </div>
-      
-      <Icon
-        class="menu glass-btn"
-        size="24"
-        v-show="!store.backgroundShow"
-        @click="store.mobileOpenState = !store.mobileOpenState"
-      >
-        <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
-      </Icon>
+      <router-view v-slot="{ Component }">
+        <Transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </router-view>
 
       <Transition name="fade" mode="out-in">
         <Footer class="f-ter" v-show="!store.backgroundShow && !store.setOpenState" />
@@ -47,19 +33,14 @@
 <script setup>
 import AiWidget from '@/components/AiWidget.vue';
 import { helloInit, checkDays } from "@/utils/getTime.js";
-import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
-import Icon from "@/components/Icon.vue";
 import { mainStore } from "@/store";
 
 import Loading from "@/components/Loading.vue";
-import MainLeft from "@/views/Main/Left.vue";
-import MainRight from "@/views/Main/Right.vue";
 import Background from "@/components/Background.vue";
 import Footer from "@/components/Footer.vue";
-import Box from "@/views/Box/index.vue";
-import MoreSet from "@/views/MoreSet/index.vue";
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import CommandPalette from "@/components/CommandPalette.vue";
+import router from "@/router";
 
 const store = mainStore();
 
@@ -71,8 +52,11 @@ const getWidth = () => { store.setInnerWidth(window.innerWidth); };
 
 const loadComplete = () => {
   nextTick(() => {
-    helloInit();
-    checkDays();
+    // 欢迎与纪念日提示只属于主页，不要盖住分享详情或后台操作。
+    if (router.currentRoute.value.name === "Home") {
+      helloInit();
+      checkDays();
+    }
   });
 };
 
@@ -112,7 +96,7 @@ const initParticles = () => {
 
   const draw = () => {
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.beginPath();
     particles.forEach(p => {
       p.x += p.vx;
@@ -147,12 +131,10 @@ const initParticles = () => {
 onMounted(() => {
   initParticles();
 
-  // 无条件监听鼠标移动，只要你动鼠标，圈圈就跟着走
   window.addEventListener("mousemove", (e) => {
     cursorX.value = e.clientX;
     cursorY.value = e.clientY;
     const target = e.target;
-    // 监听各种可点击元素，实现圈圈放大效果
     if (
       target.closest("a") ||
       target.closest("button") ||
@@ -181,19 +163,12 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style>
-/* 仅在电脑端（屏幕宽度 >= 768px）隐藏系统原生鼠标箭头 */
-@media (min-width: 768px) {
-  /* cursor handled inline by main.js after mount */
-}
-</style>
-
 <style lang="scss" scoped>
 .cyber-cursor {
   position: fixed;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 50%;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -209,7 +184,6 @@ onBeforeUnmount(() => {
     border-color: transparent;
   }
 
-  /* 在手机端（屏幕宽度 < 768px）彻底隐藏这个圈圈，防止卡在屏幕上 */
   @media (max-width: 767px) {
     display: none !important;
   }
@@ -239,77 +213,6 @@ onBeforeUnmount(() => {
   animation-delay: 0.5s;
   z-index: 1;
 
-  .container {
-    width: 100%;
-    max-width: 100%;
-    height: 100vh;
-    margin: 0 auto;
-    padding: 0 0.5vw;
-    box-sizing: border-box;
-
-    .all {
-      width: 100%;
-      height: 100%;
-      padding: 0 0.75rem;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .more {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #00000080;
-      backdrop-filter: blur(20px);
-      z-index: 2;
-      animation: fade 0.5s;
-    }
-
-    @media (max-width: 1200px) {
-      padding: 0 2vw;
-    }
-  }
-
-  .menu {
-    position: fixed;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    bottom: max(16px, calc(env(safe-area-inset-bottom, 16px) + 4px));
-    left: 50%;
-    transform: translateX(-50%);
-    width: 56px;
-    height: 44px;
-    background: rgb(0 0 0 / 25%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 12px;
-    transition: transform 0.3s;
-    animation: fade 0.5s;
-    z-index: 100;
-
-    &.glass-btn {
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    &:active {
-      transform: translateX(-50%) scale(0.95);
-    }
-
-    .i-icon {
-      transform: translateY(2px);
-    }
-
-    @media (min-width: 721px) {
-      display: none;
-    }
-  }
-
   @media (max-width: 720px) {
     position: fixed;
     inset: 0;
@@ -321,106 +224,14 @@ onBeforeUnmount(() => {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+  }
 
-    // 移动端强制单列布局，覆盖所有嵌套选择器
-    .container {
-      padding: 0 !important;
-      width: 100%;
-      height: auto;
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
-    }
-    .container .all,
-    .all {
-      flex: 1 0 auto;
-      display: flex;
-      flex-direction: column !important;
-      align-items: center !important;
-      justify-content: flex-start !important;
-      padding: calc(env(safe-area-inset-top, 16px) + 20px) 16px 16px !important;
-      height: auto;
-      min-height: auto;
-      gap: 1.25rem;
-      box-sizing: border-box;
-      width: 100%;
-    }
-    .left {
-      flex: 0 0 auto;
-      height: auto;
-      min-height: 0;
-      transform: none;
-      width: 100%;
-      max-width: 460px;
-    }
-
-    .f-ter {
-      position: relative !important;
-      top: auto !important;
-      bottom: auto !important;
-      left: auto !important;
-      margin-top: auto;
-      margin-bottom: calc(env(safe-area-inset-bottom, 16px) + 68px);
-      width: 100%;
-      height: auto;
-      padding: 8px 16px;
-      box-sizing: border-box;
-    }
-
-    // 防止内容溢出产生横向滚动条
-    overflow-x: hidden;
+  .f-ter {
+    position: fixed;
+    bottom: 0;
+    left: 0;
     width: 100%;
-    max-width: 100vw;
-  }
-
-  @media (max-width: 720px) and (max-height: 500px) {
-    .container .all,
-    .all {
-      padding: calc(env(safe-area-inset-top, 8px) + 12px) 16px 12px !important;
-      gap: 0.75rem;
-    }
-    .f-ter {
-      margin-bottom: calc(env(safe-area-inset-bottom, 12px) + 54px);
-    }
-    .menu {
-      bottom: max(10px, env(safe-area-inset-bottom, 10px));
-    }
-  }
-
-  @media (min-width: 721px) and (max-height: 720px) {
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    .container {
-      height: 721px;
-      padding-left: 0.7vw;
-      padding-right: 0.25vw;
-
-      .more {
-        height: 721px;
-        width: 100%;
-      }
-
-      @media (max-width: 1200px) { padding-left: 2.3vw; padding-right: 1.75vw; }
-      @media (max-width: 1100px) { padding-left: 2vw;   padding-right: 2vw;    }
-      @media (max-width: 992px)  { padding-left: 2.3vw; padding-right: 1.7vw;  }
-      @media (max-width: 900px)  { padding-left: 2vw;   padding-right: 2vw;    }
-    }
-
-    .f-ter {
-      top: 675px;
-      @media (min-width: 391px) { padding-left: 6px; }
-    }
-  }
-
-  @media (max-width: 390px) {
-    overflow-x: hidden;
-
-    .container { width: 100%; min-width: 0; }
-
-    .f-ter { width: 100%; min-width: 0; }
+    z-index: 2;
   }
 }
 </style>
