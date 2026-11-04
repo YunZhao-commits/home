@@ -56,6 +56,9 @@ importers:
       vue:
         specifier: ^3.4.24
         version: 3.5.32
+      vue-router:
+        specifier: 4.6.4
+        version: 4.6.4(vue@3.5.32)
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^4.6.2
@@ -2429,6 +2432,11 @@ packages:
     engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: '>=6.0.0'
+
+  vue-router@4.6.4:
+    resolution: {integrity: sha512-Hz9q5sa33Yhduglwz6g9skT8OBPii+4bFn88w6J+J4MfEo4KRRpmiNG/hHHkdbRFlLBOqxN8y8gf2Fb0MTUgVg==}
+    peerDependencies:
+      vue: ^3.5.0
 
   vue@3.5.32:
     resolution: {integrity: sha512-vM4z4Q9tTafVfMAK7IVzmxg34rSzTFMyIe0UUEijUCkn9+23lj0WRfA83dg7eQZIUlgOSGrkViIaCfqSAUXsMw==}
@@ -5176,6 +5184,11 @@ snapshots:
       semver: 7.7.4
     transitivePeerDependencies:
       - supports-color
+
+  vue-router@4.6.4(vue@3.5.32):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.32
 
   vue@3.5.32:
     dependencies:
