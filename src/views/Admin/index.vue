@@ -1076,6 +1076,9 @@ onMounted(() => {
         .filter-dropdowns {
           display: grid;
           grid-template-columns: 1fr 1fr;
+          min-width: 0;
+
+          select { min-width: 0; width: 100%; }
         }
       }
 
@@ -1101,6 +1104,8 @@ onMounted(() => {
             margin-bottom: 0.4rem;
 
             .m-title {
+              min-width: 0;
+              overflow-wrap: anywhere;
               font-weight: 600;
               font-size: 0.95rem;
               color: #ffffff;
@@ -1115,6 +1120,8 @@ onMounted(() => {
 
           .m-meta {
             display: flex;
+            flex-wrap: wrap;
+            min-width: 0;
             gap: 0.75rem;
             font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.45);
@@ -1123,6 +1130,7 @@ onMounted(() => {
 
           .m-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 0.5rem;
 
             .btn-action {
@@ -1159,6 +1167,13 @@ onMounted(() => {
         }
       }
     }
+  }
+
+  @media (max-width: 380px) {
+    .dashboard-box { padding: 1rem 0.75rem; }
+    .dashboard-box .dash-actions { flex-wrap: wrap; }
+    .dashboard-box .toolbar-section .filter-dropdowns { grid-template-columns: 1fr; }
+    .dashboard-box .mobile-card-list .m-card .m-actions .btn-action { min-width: 84px; }
   }
 }
 </style>

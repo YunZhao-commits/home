@@ -325,6 +325,26 @@ const router = useRouter();
     .sidebar-column {
       position: static;
     }
+
+    .about-header {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.9rem;
+
+      .nav-links {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.1rem;
+      }
+    }
+
+    .info-card { padding: 1rem; }
+  }
+
+  @media (max-width: 380px) {
+    padding-inline: 0.6rem;
+    .about-header .brand-text .main { font-size: 1.05rem; }
+    .info-card .card-desc { overflow-wrap: anywhere; }
   }
 }
 </style>

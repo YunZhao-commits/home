@@ -16,9 +16,9 @@
       class="menu glass-btn"
       size="24"
       v-show="!store.backgroundShow"
-      @click="store.mobileOpenState = !store.mobileOpenState"
+      @click="store.setOpenState = !store.setOpenState"
     >
-      <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
+      <component :is="store.setOpenState ? CloseSmall : HamburgerButton" />
     </Icon>
   </div>
 </template>
@@ -56,6 +56,13 @@ const store = mainStore();
       flex-direction: row;
       justify-content: center;
       align-items: center;
+      gap: clamp(1.25rem, 3vw, 3rem);
+
+      :deep(.left),
+      :deep(.right) {
+        width: calc(50% - clamp(0.625rem, 1.5vw, 1.5rem));
+        margin: 0;
+      }
     }
 
     .more {
@@ -126,12 +133,21 @@ const store = mainStore();
       flex-direction: column !important;
       align-items: center !important;
       justify-content: flex-start !important;
-      padding: calc(env(safe-area-inset-top, 16px) + 20px) 16px 16px !important;
+      padding: calc(env(safe-area-inset-top, 16px) + 20px) 16px calc(88px + env(safe-area-inset-bottom, 0px)) !important;
       height: auto;
       min-height: auto;
       gap: 1.25rem;
       box-sizing: border-box;
       width: 100%;
+      max-width: 520px;
+      margin-inline: auto;
+    }
+
+    :deep(.left),
+    :deep(.right) {
+      width: 100%;
+      max-width: 520px;
+      margin: 0;
     }
   }
 }

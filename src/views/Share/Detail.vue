@@ -301,7 +301,7 @@ onMounted(() => {
 
   .detail-layout {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
     gap: 1.5rem;
     align-items: start;
   }
@@ -649,6 +649,7 @@ onMounted(() => {
 
     .main-card {
       padding: 1.25rem 1rem;
+      min-width: 0;
 
       .article-header .article-title {
         font-size: 1.35rem;
@@ -664,6 +665,29 @@ onMounted(() => {
           font-size: 0.9rem;
           min-height: 44px;
         }
+      }
+    }
+  }
+
+  @media (max-width: 420px) {
+    padding-inline: 0.65rem;
+
+    .detail-topbar {
+      align-items: flex-start;
+      gap: 0.75rem;
+      flex-direction: column;
+
+      .breadcrumbs { font-size: 0.78rem; }
+    }
+
+    .main-card {
+      padding: 1rem 0.85rem;
+
+      .article-header .article-title { font-size: 1.2rem; }
+      .actions-row {
+        flex-direction: column;
+        .btn-primary,
+        .btn-secondary { width: 100%; }
       }
     }
   }

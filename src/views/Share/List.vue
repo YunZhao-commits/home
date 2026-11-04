@@ -95,6 +95,11 @@
             class="deal-card card-blur"
             @click="goDetail(item.id)"
           >
+            <div class="card-art" :class="`art-${item.category || 'default'}`" aria-hidden="true">
+              <span class="art-orbit"></span>
+              <span class="art-symbol">{{ getCategorySymbol(item.category) }}</span>
+              <span class="art-label">{{ getCategoryLabel(item.category) }}</span>
+            </div>
             <div class="card-body">
               <div class="card-header">
                 <h2 class="card-title">{{ item.title }}</h2>
@@ -208,6 +213,8 @@ const getCategoryLabel = (cat) => {
   const map = { tools: "工具", vip: "会员", deals: "优惠" };
   return map[cat] || "精选";
 };
+
+const getCategorySymbol = (cat) => ({ tools: "⌘", vip: "✦", deals: "％" }[cat] || "✧");
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
@@ -736,7 +743,15 @@ onMounted(() => {
     }
 
     .deal-card {
+      display: grid;
+      grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+      gap: 1.25rem;
       padding: 1rem;
+
+      .card-art {
+        min-height: 150px;
+        border-radius: 12px;
+      }
 
       .card-header .card-title {
         font-size: 1.05rem;
@@ -769,6 +784,73 @@ onMounted(() => {
     .filter-toolbar .search-box input {
       font-size: 0.82rem;
     }
+  }
+
+  .deal-card {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 1.25rem;
+
+    .card-art {
+      position: relative;
+      min-height: 148px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border: 1px solid rgba(123, 235, 255, 0.28);
+      background: radial-gradient(circle at 72% 24%, rgba(58, 210, 220, 0.42), transparent 36%), linear-gradient(145deg, rgba(21, 86, 112, 0.95), rgba(4, 28, 47, 0.92));
+      color: #efffff;
+
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        border: 1px solid rgba(198, 248, 255, 0.2);
+        border-radius: 50%;
+      }
+
+      &::before { transform: translate(-35%, 40%) scaleX(1.5); }
+      &::after { transform: translate(40%, 55%) scaleX(1.8); }
+      .art-orbit { position: absolute; inset: 16% 20%; border: 1px solid rgba(190, 247, 255, 0.28); border-radius: 50%; transform: rotate(-28deg); }
+      .art-symbol { position: relative; z-index: 1; font-size: 2.8rem; text-shadow: 0 0 24px rgba(0, 229, 201, 0.7); }
+      .art-label { position: relative; z-index: 1; color: rgba(231, 253, 255, 0.78); font-size: 0.78rem; letter-spacing: 0.18em; }
+
+      &.art-vip { background: radial-gradient(circle at 70% 25%, rgba(186, 140, 255, 0.42), transparent 38%), linear-gradient(145deg, #243c71, #101c39); }
+      &.art-deals { background: radial-gradient(circle at 70% 25%, rgba(255, 180, 108, 0.42), transparent 38%), linear-gradient(145deg, #60412f, #211b2e); }
+    }
+
+    .card-body { min-width: 0; }
+    .card-header { align-items: flex-start; }
+    .card-title { overflow-wrap: anywhere; }
+  }
+
+  @media (max-width: 720px) {
+    .deal-card {
+      grid-template-columns: minmax(76px, 28%) minmax(0, 1fr);
+      align-items: start;
+      gap: 0.75rem;
+      padding: 0.85rem;
+
+      .card-art { min-height: 108px; }
+      .card-art .art-symbol { font-size: 2rem; }
+      .card-art .art-label { font-size: 0.64rem; letter-spacing: 0.08em; }
+      .card-body { min-width: 0; }
+      .card-header { flex-direction: column; gap: 0.35rem; }
+      .card-header .card-title { font-size: 0.98rem; }
+      .card-summary { font-size: 0.82rem; margin-bottom: 0.65rem; }
+      .card-footer { grid-column: 1 / -1; }
+    }
+  }
+
+  @media (max-width: 360px) {
+    .deal-card { grid-template-columns: 1fr; }
+    .deal-card .card-art { min-height: 120px; }
   }
 }
 

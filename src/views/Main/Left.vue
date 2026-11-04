@@ -1,5 +1,5 @@
 <template>
-  <div :class="store.mobileOpenState ? 'left hidden' : 'left'">
+  <div class="left">
     <Message />
     <SocialLinks />
     <div class="enter-share-wrap">
