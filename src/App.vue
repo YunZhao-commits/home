@@ -22,12 +22,15 @@
       </router-view>
 
       <Transition name="fade" mode="out-in">
-        <Footer class="f-ter" v-show="!store.backgroundShow && !store.setOpenState" />
+        <Footer
+          class="f-ter"
+          v-show="!store.backgroundShow && !store.setOpenState && router.currentRoute.value.name !== 'Home'"
+        />
       </Transition>
     </main>
   </Transition>
   
-  <AiWidget />
+  <AiWidget v-if="router.currentRoute.value.name !== 'Home'" />
 </template>
 
 <script setup>

@@ -1,176 +1,133 @@
 <template>
-  <!-- 功能区域 -->
-  <div :class="store.mobileFuncState ? 'function mobile' : 'function'">
-    <el-row :gutter="20">
-      <el-col :span="12">
-        <div class="left">
-          <Hitokoto />
-          <Music v-if="playerHasId" />
-        </div>
-      </el-col>
-      <el-col :span="12">
-        <div class="right cards">
-          <div class="time">
-            <div class="date">
-              <span>{{ currentTime.year }}&nbsp;年&nbsp;</span>
-              <span>{{ currentTime.month }}&nbsp;月&nbsp;</span>
-              <span>{{ currentTime.day }}&nbsp;日&nbsp;</span>
-              <span class="sm-hidden">{{ currentTime.weekday }}</span>
-            </div>
-            <div class="text">
-              <span> {{ currentTime.hour }}:{{ currentTime.minute }}:{{ currentTime.second }}</span>
-            </div>
-          </div>
-          <Weather />
-        </div>
-      </el-col>
-    </el-row>
-  </div>
+  <section class="function-card" aria-label="当地时间与天气">
+    <div class="time">
+      <p class="date">
+        <span>{{ currentTime.year }} 年 </span>
+        <span>{{ currentTime.month }} 月 </span>
+        <span>{{ currentTime.day }} 日 </span>
+        <span>{{ currentTime.weekday }}</span>
+      </p>
+      <p class="clock">{{ currentTime.hour }}:{{ currentTime.minute }}</p>
+    </div>
+    <div class="divider" aria-hidden="true"></div>
+    <Weather />
+  </section>
 </template>
 
 <script setup>
 import { getCurrentTime } from "@/utils/getTime";
-import { mainStore } from "@/store";
-import Music from "@/components/Music.vue";
-import Hitokoto from "@/components/Hitokoto.vue";
 import Weather from "@/components/Weather.vue";
 
-const store = mainStore();
-
-// 当前时间
 const currentTime = ref({});
-const timeInterval = ref(null);
+let timeInterval;
 
-// 播放器 id
-const playerHasId = import.meta.env.VITE_SONG_ID;
-
-// 更新时间
 const updateTimeData = () => {
   currentTime.value = getCurrentTime();
 };
 
 onMounted(() => {
   updateTimeData();
-  timeInterval.value = setInterval(updateTimeData, 1000);
+  timeInterval = setInterval(updateTimeData, 1000);
 });
 
 onBeforeUnmount(() => {
-  clearInterval(timeInterval.value);
+  if (timeInterval) clearInterval(timeInterval);
 });
 </script>
 
 <style lang="scss" scoped>
-.function {
-  height: 165px;
+.function-card {
+  min-height: 238px;
+  padding: 21px 20px 18px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 16px;
+  border: 1px solid rgba(202, 246, 255, 0.56);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(11, 70, 96, 0.72), rgba(14, 57, 81, 0.61));
+  box-shadow: inset 0 0 22px rgba(178, 245, 255, 0.11), 0 8px 28px rgba(0, 22, 38, 0.22);
+  backdrop-filter: blur(17px);
+  -webkit-backdrop-filter: blur(17px);
+  box-sizing: border-box;
+  animation: fade 0.5s ease both;
 
-  &.mobile {
-    .el-row {
-      .el-col {
-        &:nth-of-type(1) {
-          display: contents;
-        }
-        &:nth-of-type(2) {
-          display: none;
-        }
-      }
-    }
-  }
-
-  .el-row {
-    height: 100%;
+  .time {
     width: 100%;
-    margin: 0 !important;
-
-    .el-col {
-      &:nth-of-type(1) {
-        padding-left: 0 !important;
-      }
-      &:nth-of-type(2) {
-        padding-right: 0 !important;
-      }
-
-      @media (max-width: 910px) {
-        &:nth-of-type(1) {
-          display: none;
-        }
-        &:nth-of-type(2) {
-          padding: 0 !important;
-          flex: none;
-          max-width: none;
-          width: 100%;
-        }
-      }
-    }
-
-    .left,
-    .right {
-      width: 100%;
-      height: 100%;
-    }
-
-    .right {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      animation: fade 0.5s;
-
-      .time {
-        font-size: 1.1rem;
-        text-align: center;
-
-        .date {
-          text-overflow: ellipsis;
-          overflow-x: hidden;
-          white-space: nowrap;
-        }
-
-        .text {
-          margin-top: 10px;
-          font-size: 3.25rem;
-          letter-spacing: 2px;
-          font-family: "UnidreamLED";
-        }
-
-        @media (min-width: 1201px) and (max-width: 1280px) {
-          font-size: 1rem;
-        }
-
-        @media (min-width: 911px) and (max-width: 992px) {
-          font-size: 1rem;
-          .text {
-            font-size: 2.75rem;
-          }
-        }
-
-        // ── MOBILE ONLY (≤ 768px) ───────────────────────────────────────────
-        @media (max-width: 768px) {
-          font-size: 0.88rem;
-
-          .text {
-            font-size: 2.2rem;
-            margin-top: 4px;
-            letter-spacing: 1px;
-          }
-        }
-      }
-
-      // ── MOBILE ONLY (≤ 768px) ─────────────────────────────────────────────
-      @media (max-width: 768px) {
-        padding: 10px 14px;
-      }
-    }
+    text-align: center;
+    font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif;
   }
 
-  // ── MOBILE ONLY (≤ 768px) ───────────────────────────────────────────────
-  @media (max-width: 768px) {
-    height: auto;
-    min-height: 125px; // 保持紧凑且保留舒适触控/阅读高度
+  .date {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.97);
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .clock {
+    margin: 9px 0 0;
+    color: #fff;
+    font-size: clamp(48px, 4.1vw, 62px);
+    line-height: 1;
+    letter-spacing: 0.035em;
+    text-shadow: 0 2px 16px rgba(110, 221, 255, 0.18);
+  }
+
+  .divider {
+    width: 84%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(216, 248, 255, 0.6), transparent);
+  }
+
+  :deep(.weather) {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif;
+
+    .wx-icon { width: 27px; height: 27px; }
+    .city { font-size: 13px; letter-spacing: 0.12em; }
+    .temp { font-size: 20px; }
+  }
+}
+
+@media (max-width: 1100px) and (min-width: 721px) {
+  .function-card { min-height: 218px; padding-inline: 14px; }
+  .function-card .date { font-size: 15px; }
+  .function-card .clock { font-size: 48px; }
+  .function-card :deep(.weather .meta) { display: none; }
+}
+
+@media (max-width: 900px) and (min-width: 721px) {
+  .function-card {
+    width: min(100%, 560px);
+    min-height: 190px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .function-card {
+    width: 100%;
+    min-height: 126px;
+    padding: 15px 12px 13px;
+    gap: 10px;
+    border-radius: 19px;
+
+    .date { font-size: clamp(13px, 3.7vw, 16px); }
+    .clock { margin-top: 5px; font-size: clamp(36px, 10vw, 45px); }
+    .divider { width: 70%; }
+
+    :deep(.weather) {
+      gap: 7px;
+      .wx-icon { width: 22px; height: 22px; }
+      .city { font-size: 11px; }
+      .temp { font-size: 16px; }
+      .label { font-size: 9px; }
+    }
   }
 }
 </style>

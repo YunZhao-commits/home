@@ -1,114 +1,88 @@
 <template>
-  <div
-    class="hitokoto cards"
-    v-show="!store.musicOpenState"
-    @mouseenter="openMusicShow = true"
-    @mouseleave="openMusicShow = false"
-    @click.stop
-  >
-    <Transition name="el-fade-in-linear">
-      <div
-        class="open-music"
-        v-show="openMusicShow && store.musicIsOk"
-        @click="store.musicOpenState = true"
-      >
-        <music-menu theme="filled" size="18" fill="#efefef" />
-        <span>打开音乐播放器</span>
-      </div>
-    </Transition>
-    <Transition name="el-fade-in-linear" mode="out-in">
-      <div :key="hitokotoData.text" class="content" @click="updateHitokoto">
-        <span class="text">{{ hitokotoData.text }}</span>
-        <span class="from">-「&nbsp;{{ hitokotoData.from }}&nbsp;」</span>
-      </div>
-    </Transition>
-  </div>
+  <section class="quote-card" aria-label="工作室寄语" @click="store.boxOpenState = true">
+    <Quote class="quote-mark quote-mark-left" theme="filled" size="34" fill="#bceefa" />
+    <p class="quote-text">在山与星之间，记录热爱，分享美好。</p>
+    <p class="quote-author">——&nbsp; Yunchu Studio</p>
+    <Quote class="quote-mark quote-mark-right" theme="filled" size="34" fill="#bceefa" />
+  </section>
 </template>
 
 <script setup>
-import { MusicMenu } from "@icon-park/vue-next";
-import { getHitokoto } from "@/api";
+import { Quote } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
-import debounce from "@/utils/debounce.js";
-import { ref, reactive, onMounted, h } from "vue";
 
 const store = mainStore();
-const openMusicShow = ref(false);
-
-const hitokotoData = reactive({
-  text: "这里应该显示一句话",
-  from: "無名",
-});
-
-const getHitokotoData = async () => {
-  try {
-    const result = await getHitokoto();
-    hitokotoData.text = result.hitokoto;
-    hitokotoData.from = result.from;
-  } catch (error) {
-    hitokotoData.text = "网络信号丢失，请重试";
-    hitokotoData.from = "System";
-  }
-};
-
-const updateHitokoto = debounce(() => {
-  getHitokotoData();
-}, 500);
-
-onMounted(() => {
-  getHitokotoData();
-});
 </script>
 
 <style lang="scss" scoped>
-.hitokoto {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  animation: fade 0.5s;
-  .open-music {
-    width: 100%;
+.quote-card {
+  position: relative;
+  min-height: 153px;
+  padding: 28px 56px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid rgba(202, 246, 255, 0.52);
+  border-radius: 25px;
+  background: linear-gradient(120deg, rgba(10, 68, 91, 0.58), rgba(27, 111, 134, 0.42));
+  box-shadow: inset 0 0 24px rgba(178, 245, 255, 0.11), 0 8px 28px rgba(0, 22, 38, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    border-color: rgba(220, 251, 255, 0.8);
+    background: linear-gradient(120deg, rgba(10, 76, 101, 0.67), rgba(27, 121, 144, 0.5));
+    transform: translateY(-2px);
+  }
+
+  .quote-text {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.98);
+    text-align: center;
+    font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif;
+    font-size: clamp(21px, 2vw, 30px);
+    line-height: 1.6;
+    letter-spacing: 0.12em;
+    text-shadow: 0 1px 8px rgba(0, 30, 48, 0.42);
+  }
+
+  .quote-author {
+    margin: 15px 30px 0 0;
+    color: rgba(255, 255, 255, 0.96);
+    align-self: flex-end;
+    font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+  }
+
+  .quote-mark {
     position: absolute;
-    top: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #00000026;
-    padding: 4px 0;
-    border-radius: 8px 8px 0 0;
-    cursor: pointer;
-    .i-icon {
-      width: 18px;
-      height: 18px;
-      display: block;
-      margin-right: 8px;
-    }
-    span {
-      font-size: 0.95rem;
-    }
+    opacity: 0.92;
+    filter: drop-shadow(0 0 7px rgba(161, 232, 255, 0.24));
   }
-  .content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    cursor: pointer;
-    .text {
-      font-size: 1.1rem;
-      word-break: break-all;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-    }
-    .from {
-      margin-top: 10px;
-      font-weight: bold;
-      align-self: flex-end;
-      font-size: 1.1rem;
-    }
+
+  .quote-mark-left { left: 29px; top: 23px; }
+  .quote-mark-right { right: 31px; bottom: 23px; transform: rotate(180deg); }
+}
+
+@media (max-width: 720px) {
+  .quote-card {
+    min-height: 104px;
+    padding: 17px 35px 15px;
+    border-radius: 20px;
+
+    .quote-text { font-size: clamp(16px, 4.2vw, 20px); letter-spacing: 0.04em; }
+    .quote-author { margin: 8px 3px 0 0; font-size: 13px; }
+    .quote-mark { width: 23px; height: 23px; }
+    .quote-mark-left { left: 13px; top: 14px; }
+    .quote-mark-right { right: 13px; bottom: 12px; }
   }
+}
+
+@media (max-width: 350px) {
+  .quote-card { padding-inline: 29px; }
+  .quote-card .quote-text { font-size: 15px; }
 }
 </style>
