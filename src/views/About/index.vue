@@ -84,7 +84,9 @@
               <span>联系方式</span>
             </div>
             <p class="card-desc">
-              如果你有内容建议、失效反馈或合作想法，欢迎通过站长公开渠道交流。（联系方式遵循站长个人配置，目前处于本地测试状态）。
+              如果你有内容建议、失效反馈或合作想法，欢迎通过
+              <a v-if="contactUrl" :href="contactUrl">Email</a>
+              与站长交流。
             </p>
           </div>
         </div>
@@ -117,8 +119,10 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+import socialLinks from "@/assets/socialLinks.json";
 
 const router = useRouter();
+const contactUrl = socialLinks.find((item) => item.name === "Email")?.url;
 </script>
 
 <style lang="scss" scoped>
