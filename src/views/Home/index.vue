@@ -95,7 +95,7 @@ const router = useRouter();
   .landing {
     width: min(1270px, 100%);
     margin: auto;
-    transform: translateX(clamp(0px, 1.4vw, 25px));
+    transform: translate(clamp(0px, 1.4vw, 25px), -14px);
     animation: fade 0.6s ease both;
   }
 
@@ -255,6 +255,7 @@ const router = useRouter();
   .home-wrapper {
     .home-stage { padding: 32px 5vw; }
     .landing { transform: none; }
+    .function-card { transform: none; }
     .brand-row { width: calc(100% - 284px - 24px); }
     .feature-grid { grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; }
     .enter-share-btn { min-width: 310px; }
@@ -265,6 +266,7 @@ const router = useRouter();
   .home-wrapper {
     .home-stage { align-items: flex-start; }
     .feature-grid { grid-template-columns: 1fr; gap: 18px; }
+    .function-card { transform: none; }
     .brand-row { width: 100%; }
     .share-entry { margin-top: 26px; }
     .share-entry { transform: none; }
@@ -293,6 +295,7 @@ const router = useRouter();
     }
 
     .landing { transform: none; }
+    .function-card { transform: none; }
     .brand-row { width: 100%; margin-bottom: 22px; }
 
     .feature-grid {

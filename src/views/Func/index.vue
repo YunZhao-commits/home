@@ -38,6 +38,7 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .function-card {
   min-height: 238px;
+  transform: translateY(-35px);
   padding: 21px 20px 18px;
   display: flex;
   flex-direction: column;
