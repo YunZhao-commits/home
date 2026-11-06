@@ -34,6 +34,17 @@
 
       <!-- 2. 已登录状态：内容管理面板 -->
       <div v-else class="dashboard-box card-blur">
+        <aside class="admin-sidebar" aria-label="管理导航">
+          <RouterLink class="side-brand" to="/">
+            <img src="/images/avatar.png" alt="" />
+            <span>Yunchu Studio</span>
+          </RouterLink>
+          <button class="side-link active" type="button"><span aria-hidden="true">▦</span> 内容管理</button>
+          <button class="side-link" type="button" @click="openCreateModal"><span aria-hidden="true">＋</span> 新增内容</button>
+          <RouterLink class="side-link public-link" to="/share"><span aria-hidden="true">↗</span> 查看公开站</RouterLink>
+        </aside>
+
+        <div class="dashboard-main">
         <!-- 头部栏 -->
         <header class="dash-header">
           <div class="dash-title">
@@ -41,6 +52,7 @@
               <span class="logo">Yunchu Studio</span>
               <span class="badge">站长后台</span>
             </div>
+            <h1>内容管理</h1>
             <p class="subtitle">管理精选分享内容，支持新增、编辑、草稿保存与软下架，数据实时生效。</p>
           </div>
 
@@ -163,14 +175,14 @@
             </div>
           </div>
         </section>
-      </div>
 
       <!-- 3. 编辑 / 新增抽屉弹窗 -->
       <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
         <div class="modal-window card-blur">
           <div class="modal-header">
+            <span class="editor-handle" aria-hidden="true"></span>
             <h3>{{ isEditMode ? '✏️ 编辑分享内容' : '➕ 新增精选分享' }}</h3>
-            <button class="btn-close" @click="showModal = false">×</button>
+            <button class="btn-close" aria-label="关闭编辑面板" @click="showModal = false">×</button>
           </div>
 
           <form class="modal-body" @submit.prevent="savePost">
@@ -272,13 +284,17 @@
             </div>
 
             <div class="modal-footer">
-              <button type="button" class="btn-cancel" @click="showModal = false">取消</button>
-              <button type="submit" class="btn-submit" :disabled="saving">
+              <button type="submit" class="btn-draft" :disabled="saving" @click="form.status = 'draft'">
+                保存草稿
+              </button>
+              <button type="submit" class="btn-submit" :disabled="saving" @click="form.status = 'published'">
                 <span v-if="saving">保存中...</span>
-                <span v-else>{{ isEditMode ? '更新内容' : '立即创建' }}</span>
+                <span v-else>{{ isEditMode ? '保存并发布' : '发布' }}</span>
               </button>
             </div>
           </form>
+        </div>
+      </div>
         </div>
       </div>
     </div>
@@ -287,6 +303,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { RouterLink } from "vue-router";
 import { Lock, Search } from "@icon-park/vue-next";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
@@ -338,6 +355,13 @@ const handleLogin = async () => {
       isLoggedIn.value = true;
       ElMessage.success("登录成功");
       loadAdminList();
+    } else if (import.meta.env.DEV && /HTTP 404/.test(res.error || "")) {
+      // Vite 本地预览不运行 Pages Functions；仅开发环境使用空数据验证后台布局。
+      token.value = `mock_token_${Date.now()}`;
+      sessionStorage.setItem("admin_token", token.value);
+      isLoggedIn.value = true;
+      ElMessage.info("本地预览模式：后台数据接口不可用，列表为空");
+      postsList.value = [];
     } else {
       ElMessage.error(res.error || "口令验证未通过");
     }
@@ -430,7 +454,13 @@ const savePost = async () => {
   try {
     const res = await adminSavePost(form.value, token.value, isEditMode.value);
     if (res.success || res.id) {
-      ElMessage.success(isEditMode.value ? "内容已更新" : "新内容已发布");
+      ElMessage.success(
+        form.value.status === "draft"
+          ? "草稿已保存"
+          : form.value.status === "published"
+            ? (isEditMode.value ? "内容已更新并发布" : "新内容已发布")
+            : "内容已保存",
+      );
       showModal.value = false;
       loadAdminList();
     } else {
@@ -1175,5 +1205,139 @@ onMounted(() => {
     .dashboard-box .toolbar-section .filter-dropdowns { grid-template-columns: 1fr; }
     .dashboard-box .mobile-card-list .m-card .m-actions .btn-action { min-width: 84px; }
   }
+}
+</style>
+
+<style lang="scss" scoped>
+.admin-page {
+  min-height: 100vh;
+  padding: 28px 24px 70px;
+  color: #f4fcff;
+  background: linear-gradient(180deg, rgba(0, 25, 41, .3), rgba(0, 25, 40, .62)), url("/images/hero-starry-lake.webp") center / cover fixed no-repeat;
+}
+.admin-page .admin-container { width: min(1580px, 100%); max-width: none; margin: 0 auto; }
+.admin-page .dashboard-box {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 0;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid rgba(112, 216, 233, .42) !important;
+  border-radius: 24px !important;
+  background: rgba(2, 31, 45, .78) !important;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .28);
+  backdrop-filter: blur(22px) !important;
+}
+.admin-sidebar { min-height: 0; padding: 24px 14px; border-right: 1px solid rgba(141, 222, 239, .22); background: rgba(3, 39, 55, .58); }
+.side-brand { display: flex; align-items: center; gap: 11px; padding: 4px 8px 24px; color: #fff; font: 600 16px Georgia, "Noto Serif CJK SC", serif; text-decoration: none; }
+.side-brand img { width: 34px; height: 34px; border: 1px solid rgba(187, 239, 249, .64); border-radius: 50%; object-fit: cover; }
+.side-link { width: 100%; min-height: 42px; display: flex; align-items: center; gap: 12px; margin: 4px 0; padding: 0 13px; border: 0; border-radius: 10px; background: transparent; color: rgba(240, 249, 252, .78); text-align: left; text-decoration: none; font: inherit; cursor: pointer; }
+.side-link > span { width: 20px; color: #7fe9ea; font-size: 19px; text-align: center; }
+.side-link:hover, .side-link.active { color: #fff; background: linear-gradient(90deg, rgba(22, 148, 156, .55), rgba(16, 91, 109, .28)); }
+.side-link.active { box-shadow: inset 3px 0 #4be4e5; }
+.side-link.public-link { margin-top: auto; }
+.admin-page .dashboard-main { min-width: 0; padding: 26px 28px 30px; }
+.admin-page .dashboard-box .dash-header { align-items: flex-end; gap: 22px; margin-bottom: 22px; padding-bottom: 18px; border-color: rgba(177, 226, 239, .2); }
+.admin-page .dashboard-box .dash-header .brand-row { display: none; }
+.admin-page .dashboard-box .dash-header h1 { margin: 0 0 6px; color: #fff; font-size: 28px; font-weight: 650; }
+.admin-page .dashboard-box .dash-header .subtitle { color: rgba(228, 245, 250, .68); font-size: 13px; line-height: 1.6; }
+.admin-page .dashboard-box .dash-header .dash-actions { align-items: center; }
+.admin-page .dashboard-box .dash-header .dash-actions .btn-add { min-height: 42px; padding: 0 22px; border-radius: 10px; background: #39dddf; box-shadow: 0 5px 18px rgba(51, 210, 218, .18); }
+.admin-page .dashboard-box .dash-header .dash-actions .btn-logout { min-height: 42px; padding-inline: 16px; border-radius: 10px; }
+.admin-page .dashboard-box .toolbar-section { gap: 12px; margin-bottom: 16px; }
+.admin-page .dashboard-box .toolbar-section .search-input { flex-basis: 360px; }
+.admin-page .dashboard-box .toolbar-section .search-input input,
+.admin-page .dashboard-box .toolbar-section select { min-height: 42px; border: 1px solid rgba(167, 225, 240, .35); border-radius: 10px; background: rgba(2, 36, 51, .7); }
+.admin-page .dashboard-box .desktop-table { border: 1px solid rgba(140, 221, 236, .25); border-radius: 12px; overflow: hidden; }
+.admin-page .dashboard-box .desktop-table th { padding: 13px 12px; color: rgba(224, 242, 248, .72); background: rgba(26, 92, 110, .3); }
+.admin-page .dashboard-box .desktop-table td { padding: 13px 12px; border-color: rgba(157, 220, 234, .15); }
+.admin-page .dashboard-box .desktop-table tbody tr:hover { background: rgba(53, 170, 185, .1); }
+.admin-page .dashboard-box .desktop-table .item-title { color: #fff; }
+.admin-page .dashboard-box .desktop-table .item-summary { color: rgba(225, 241, 246, .62); }
+.admin-page .dashboard-box .desktop-table .row-actions .btn-action { min-height: 32px; border-radius: 7px; }
+.admin-page .dashboard-box .desktop-table .row-actions .btn-action.delete { color: #ffc0b9; border-color: rgba(255, 152, 136, .25); }
+.admin-page .dashboard-box .mobile-card-list { display: none; }
+.admin-page .dashboard-box .loading-state, .admin-page .dashboard-box .empty-state { min-height: 160px; display: grid; place-items: center; border: 1px solid rgba(153, 225, 239, .25); border-radius: 14px; background: rgba(2, 42, 58, .52); color: rgba(237, 249, 252, .78); }
+
+/* 桌面端编辑表单像工作台的一部分，手机端则切成可滚动底部面板。 */
+.admin-page .modal-overlay { position: relative; inset: auto; z-index: 2; display: block; margin-top: 16px; padding: 0; background: transparent; backdrop-filter: none; }
+.admin-page .modal-overlay .modal-window { width: 100%; max-width: none; max-height: none; overflow: visible; padding: 22px 24px; border: 1px solid rgba(132, 224, 238, .36); border-radius: 16px; background: linear-gradient(120deg, rgba(19, 82, 100, .8), rgba(3, 43, 60, .86)); box-shadow: none; }
+.admin-page .modal-overlay .modal-header { position: relative; margin-bottom: 18px; padding-bottom: 12px; }
+.admin-page .modal-overlay .modal-header h3 { font-size: 21px; }
+.admin-page .modal-overlay .editor-handle { display: none; }
+.admin-page .modal-overlay .modal-window .modal-body { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: start; gap: 14px; }
+.admin-page .modal-overlay .modal-window .modal-body > .form-row,
+.admin-page .modal-overlay .modal-window .modal-body > .form-grid-2,
+.admin-page .modal-overlay .modal-window .modal-body > .modal-footer { grid-column: 1 / -1; }
+.admin-page .modal-overlay .modal-window .modal-body .form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.admin-page .modal-overlay .modal-body .form-row label { color: rgba(236, 249, 252, .84); font-size: 13px; }
+.admin-page .modal-overlay .modal-body input[type="text"],
+.admin-page .modal-overlay .modal-body input[type="url"],
+.admin-page .modal-overlay .modal-body textarea,
+.admin-page .modal-overlay .modal-body select { min-height: 42px; border-color: rgba(167, 225, 240, .38); border-radius: 9px; background: rgba(2, 34, 49, .72); }
+.admin-page .modal-overlay .modal-body textarea { min-height: 68px; }
+.admin-page .modal-overlay .modal-footer { grid-column: 1 / -1; justify-content: flex-end; margin-top: 4px; }
+.admin-page .modal-overlay .modal-footer .btn-draft,
+.admin-page .modal-overlay .modal-footer .btn-submit { min-width: 136px; min-height: 42px; padding: 0 20px; border-radius: 10px; font: inherit; cursor: pointer; }
+.admin-page .modal-overlay .modal-footer .btn-draft { border: 1px solid rgba(157, 232, 242, .6); background: rgba(80, 155, 169, .24); color: #f3fcff; }
+.admin-page .modal-overlay .modal-footer .btn-submit { background: #3bdfe0; color: #052f3e; }
+
+@media (max-width: 900px) {
+  .admin-page { padding: 14px 12px 60px; }
+  .admin-page .dashboard-box { grid-template-columns: 172px minmax(0, 1fr); }
+  .admin-page .dashboard-main { padding: 20px 18px; }
+  .admin-page .dashboard-box .desktop-table th, .admin-page .dashboard-box .desktop-table td { padding: 10px 8px; }
+  .admin-page .dashboard-box .desktop-table .row-actions { flex-wrap: wrap; }
+}
+
+@media (max-width: 768px) {
+  .admin-page { padding: 0 0 calc(54px + env(safe-area-inset-bottom, 0px)); }
+  .admin-page .admin-container { width: 100%; }
+  .admin-page .login-box { margin: 11vh 18px 0; width: auto; }
+  /* A backdrop-filter ancestor becomes the containing block for fixed descendants.
+     Disable it here so the editor sheet is fixed to the actual mobile viewport. */
+  .admin-page .dashboard-box { display: block; width: 100%; border: 0 !important; border-radius: 0 !important; background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; overflow: visible; }
+  .admin-page .admin-sidebar { display: none; }
+  .admin-page .dashboard-main { padding: 0 18px 24px; }
+  .admin-page .dashboard-box .dash-header { align-items: stretch; gap: 12px; margin-bottom: 14px; padding: 12px 0 16px; }
+  .admin-page .dashboard-box .dash-header .brand-row { display: flex; align-items: center; margin: 0 0 12px; }
+  .admin-page .dashboard-box .dash-header .brand-row .logo { font-size: 19px; }
+  .admin-page .dashboard-box .dash-header h1 { margin-bottom: 4px; font-size: 24px; }
+  .admin-page .dashboard-box .dash-header .subtitle { max-width: 36em; font-size: 12px; }
+  .admin-page .dashboard-box .dash-header .dash-actions { width: 100%; }
+  .admin-page .dashboard-box .dash-header .dash-actions .btn-add { flex: 1; min-height: 48px; border-radius: 12px; }
+  .admin-page .dashboard-box .toolbar-section { flex-direction: column; align-items: stretch; margin-bottom: 12px; }
+  .admin-page .dashboard-box .toolbar-section .search-input { width: 100%; flex: auto; }
+  .admin-page .dashboard-box .toolbar-section .filter-dropdowns { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .admin-page .dashboard-box .toolbar-section select { width: 100%; min-width: 0; }
+  .admin-page .dashboard-box .desktop-table { display: none; }
+  .admin-page .dashboard-box .mobile-card-list { display: flex; flex-direction: column; gap: 9px; }
+  .admin-page .dashboard-box .mobile-card-list .m-card { border-color: rgba(147, 222, 237, .3); border-radius: 14px; background: rgba(4, 53, 70, .66); }
+  .admin-page .dashboard-box .mobile-card-list .m-card .m-title { font-size: 15px; }
+  .admin-page .dashboard-box .mobile-card-list .m-card .m-summary { color: rgba(229, 244, 248, .68); line-height: 1.5; }
+  .admin-page .dashboard-box .mobile-card-list .m-card .m-meta { color: rgba(220, 241, 246, .62); }
+  .admin-page .dashboard-box .mobile-card-list .m-card .m-actions .btn-action { border-color: rgba(156, 225, 239, .35); background: rgba(11, 78, 96, .45); }
+  .admin-page .modal-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: flex-end; margin: 0; padding: 0; background: rgba(0, 13, 23, .58); backdrop-filter: blur(6px); }
+  .admin-page .modal-overlay .modal-window { width: 100%; max-height: min(86dvh, 820px); overflow-y: auto; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); border: 1px solid rgba(127, 230, 240, .48); border-bottom: 0; border-radius: 24px 24px 0 0; background: linear-gradient(145deg, rgba(10, 71, 86, .98), rgba(2, 35, 51, .99)); box-shadow: 0 -18px 55px rgba(0,0,0,.3); }
+  .admin-page .modal-overlay .editor-handle { position: absolute; top: -4px; left: 50%; width: 58px; height: 5px; display: block; transform: translateX(-50%); border-radius: 5px; background: rgba(226, 246, 250, .65); }
+  .admin-page .modal-overlay .modal-header { position: sticky; top: -18px; z-index: 2; margin: -18px -18px 16px; padding: 22px 18px 13px; background: rgba(5, 55, 71, .97); }
+  .admin-page .modal-overlay .modal-header h3 { font-size: 21px; }
+  .admin-page .modal-overlay .modal-window .modal-body { display: flex; flex-direction: column; align-items: stretch; gap: 13px; }
+  .admin-page .modal-overlay .modal-window .modal-body .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .admin-page .modal-overlay .modal-body input[type="text"],
+  .admin-page .modal-overlay .modal-body input[type="url"],
+  .admin-page .modal-overlay .modal-body textarea,
+  .admin-page .modal-overlay .modal-body select { width: 100%; min-width: 0; box-sizing: border-box; }
+  .admin-page .modal-overlay .modal-window .modal-body .form-row textarea { min-height: 96px; }
+  .admin-page .modal-overlay .modal-footer { position: sticky; bottom: -18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 -18px -18px; padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px)); background: rgba(4, 45, 61, .98); }
+  .admin-page .modal-overlay .modal-footer .btn-draft, .admin-page .modal-overlay .modal-footer .btn-submit { width: 100%; min-width: 0; min-height: 48px; }
+}
+
+@media (max-width: 430px) {
+  .admin-page .dashboard-main { padding-inline: 14px; }
+  .admin-page .dashboard-box .toolbar-section .filter-dropdowns { grid-template-columns: 1fr 1fr; }
+  .admin-page .modal-overlay .modal-window { padding-inline: 14px; }
+  .admin-page .modal-overlay .modal-window .modal-body .form-grid-2 { grid-template-columns: 1fr; }
+  .admin-page .modal-overlay .modal-header, .admin-page .modal-overlay .modal-footer { margin-inline: -14px; padding-inline: 14px; }
 }
 </style>

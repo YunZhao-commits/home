@@ -70,6 +70,7 @@
 
 <script setup>
 import { CheckSmall, CloseSmall, SuccessPicture, Delete } from "@icon-park/vue-next";
+import { ElMessageBox } from "element-plus";
 import { mainStore } from "@/store";
 import { storeToRefs } from "pinia";
 import { ref, h } from "vue";

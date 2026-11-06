@@ -1,22 +1,7 @@
 <template>
   <div class="about-page">
     <div class="about-container">
-      <!-- 顶部导航 -->
-      <header class="about-header">
-        <div class="brand" @click="router.push('/')">
-          <img class="avatar" src="/images/avatar.png" alt="Yunchu" />
-          <div class="brand-text">
-            <span class="main">Yunchu Studio</span>
-            <span class="sub">云初工作室</span>
-          </div>
-        </div>
-
-        <nav class="nav-links">
-          <router-link to="/" class="nav-item">首页</router-link>
-          <router-link to="/share" class="nav-item">精选分享</router-link>
-          <router-link to="/about" class="nav-item active">关于本站</router-link>
-        </nav>
-      </header>
+      <SiteHeader active="about" />
 
       <!-- 头部说明 -->
       <section class="banner-section">
@@ -35,7 +20,7 @@
         <div class="cards-column">
           <div class="info-card card-blur">
             <div class="card-title">
-              <span class="icon">🌱</span>
+              <span class="icon" aria-hidden="true">✧</span>
               <span>我为什么整理这些</span>
             </div>
             <p class="card-desc">
@@ -45,7 +30,7 @@
 
           <div class="info-card card-blur">
             <div class="card-title">
-              <span class="icon">🛡️</span>
+              <span class="icon" aria-hidden="true">◇</span>
               <span>内容如何核实</span>
             </div>
             <p class="card-desc">
@@ -55,7 +40,7 @@
 
           <div class="info-card card-blur">
             <div class="card-title">
-              <span class="icon">🔗</span>
+              <span class="icon" aria-hidden="true">↗</span>
               <span>推广与邀请说明</span>
             </div>
             <p class="card-desc">
@@ -65,7 +50,7 @@
 
           <div class="info-card card-blur">
             <div class="card-title">
-              <span class="icon">📚</span>
+              <span class="icon" aria-hidden="true">▱</span>
               <span>内容状态说明</span>
             </div>
             <div class="card-desc">
@@ -80,12 +65,12 @@
 
           <div class="info-card card-blur">
             <div class="card-title">
-              <span class="icon">✉️</span>
+              <span class="icon" aria-hidden="true">✉</span>
               <span>联系方式</span>
             </div>
             <p class="card-desc">
               如果你有内容建议、失效反馈或合作想法，欢迎通过
-              <a v-if="contactUrl" :href="contactUrl">Email</a>
+              <a v-if="contactUrl" :href="contactUrl">{{ contactEmail }}</a>
               与站长交流。
             </p>
           </div>
@@ -94,21 +79,21 @@
         <!-- 右侧元信息卡片 -->
         <aside class="sidebar-column">
           <div class="meta-card card-blur">
-            <h3 class="meta-title">ⓘ 站点信息</h3>
+            <h3 class="meta-title"><span aria-hidden="true">ⓘ</span> 站点信息</h3>
 
             <div class="meta-item">
-              <div class="label">👤 站点性质</div>
+              <div class="label"><span aria-hidden="true">○</span> 站点性质</div>
               <div class="val">个人维护的精选分享站</div>
             </div>
 
             <div class="meta-item">
-              <div class="label">📚 内容范围</div>
+              <div class="label"><span aria-hidden="true">◇</span> 内容范围</div>
               <div class="val">实用工具、效率方法、精选资源等</div>
             </div>
 
             <div class="meta-item">
-              <div class="label">🕒 运营规范</div>
-              <div class="val">纯人工实测筛选 · 杜绝虚假推广</div>
+              <div class="label"><span aria-hidden="true">◷</span> 内容核对</div>
+              <div class="val">以页面标注与官方信息为准</div>
             </div>
           </div>
         </aside>
@@ -118,11 +103,11 @@
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
 import socialLinks from "@/assets/socialLinks.json";
+import SiteHeader from "@/components/SiteHeader.vue";
 
-const router = useRouter();
 const contactUrl = socialLinks.find((item) => item.name === "Email")?.url;
+const contactEmail = contactUrl?.replace(/^mailto:/i, "") || "";
 </script>
 
 <style lang="scss" scoped>
@@ -350,5 +335,52 @@ const contactUrl = socialLinks.find((item) => item.name === "Email")?.url;
     .about-header .brand-text .main { font-size: 1.05rem; }
     .info-card .card-desc { overflow-wrap: anywhere; }
   }
+}
+</style>
+
+<style lang="scss" scoped>
+.about-page {
+  min-height: 100vh;
+  padding: 0 0 calc(64px + env(safe-area-inset-bottom, 0px));
+  color: #f4fcff;
+  background: linear-gradient(180deg, rgba(1, 30, 47, .28), rgba(0, 29, 45, .52)), url("/images/hero-starry-lake.webp") center / cover fixed no-repeat;
+}
+.about-page .about-container { width: 100%; max-width: 1440px; padding: 0 6%; box-sizing: border-box; }
+.about-page .banner-section { margin: 24px 10px 20px !important; }
+.about-page .banner-section .page-title { font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif; font-size: clamp(38px, 4vw, 54px) !important; letter-spacing: .08em; }
+.about-page .banner-section .page-title .accent-bar { width: 6px !important; height: 1.45em !important; border-radius: 4px !important; box-shadow: 0 0 16px rgba(69, 232, 234, .48); }
+.about-page .banner-section .page-subtitle { max-width: 1000px; color: rgba(240, 251, 255, .88) !important; font-size: clamp(15px, 1.45vw, 18px) !important; line-height: 1.8 !important; }
+.about-page .about-layout { grid-template-columns: minmax(0, 2fr) minmax(260px, .96fr) !important; gap: 26px !important; }
+.about-page .cards-column { gap: 12px !important; }
+.about-page .info-card, .about-page .meta-card { border-color: rgba(159, 231, 245, .42) !important; border-radius: 17px !important; background: linear-gradient(112deg, rgba(45, 123, 136, .46), rgba(4, 52, 68, .62)) !important; box-shadow: inset 0 1px rgba(255,255,255,.07), 0 12px 30px rgba(0,0,0,.12); backdrop-filter: blur(17px) !important; }
+.about-page .info-card { padding: 18px 22px !important; }
+.about-page .info-card .card-title { color: #f5fdff !important; font-family: Georgia, "Noto Serif CJK SC", serif; font-size: 20px !important; }
+.about-page .info-card .card-title .icon { width: 30px; color: #65efec; font-family: Georgia, serif; font-size: 25px !important; font-weight: 400; text-align: center; }
+.about-page .info-card .card-desc { color: rgba(239, 249, 253, .89) !important; font-size: 14px !important; line-height: 1.75 !important; }
+.about-page .info-card .card-desc a { color: #71eeec !important; font-weight: 600; overflow-wrap: anywhere; }
+.about-page .sidebar-column { position: sticky; top: 22px !important; }
+.about-page .sidebar-column .meta-card { padding: 22px !important; }
+.about-page .meta-card .meta-title { padding-bottom: 14px; border-bottom: 1px solid rgba(198, 240, 248, .26); color: #f5fdff !important; font: 600 21px Georgia, "Noto Serif CJK SC", serif !important; }
+.about-page .meta-card .meta-title span, .about-page .meta-card .label span { margin-right: 8px; color: #67e9e9; }
+.about-page .meta-card .meta-item { display: grid; grid-template-columns: 1fr; gap: 5px; margin: 0 !important; padding: 14px 0; border-bottom: 1px solid rgba(198, 240, 248, .2); }
+.about-page .meta-card .meta-item:last-child { border: 0; }
+.about-page .meta-card .label { color: rgba(225, 245, 250, .74) !important; font-size: 13px !important; }
+.about-page .meta-card .val { color: #f4fcff !important; font-size: 15px !important; line-height: 1.5; }
+
+@media (max-width: 780px) {
+  .about-page .about-container { padding: 0 19px; }
+  .about-page .banner-section { margin: 32px 2px 19px !important; }
+  .about-page .banner-section .page-title { font-size: 40px !important; }
+  .about-page .about-layout { grid-template-columns: 1fr !important; gap: 13px !important; }
+  .about-page .info-card { padding: 17px !important; }
+  .about-page .info-card .card-title { font-size: 19px !important; }
+  .about-page .info-card .card-desc { font-size: 14px !important; }
+  .about-page .sidebar-column { position: static; }
+  .about-page .sidebar-column .meta-card { padding: 18px !important; }
+}
+
+@media (max-width: 390px) {
+  .about-page .about-container { padding-inline: 14px; }
+  .about-page .banner-section .page-title { font-size: 35px !important; }
 }
 </style>

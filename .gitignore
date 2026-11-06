@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 .env
+outputs/
+.wrangler/
+node_modules.partial-install/
 
 # Editor directories and files
 .vscode/*

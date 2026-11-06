@@ -17,6 +17,11 @@ const routes = [
     component: () => import("@/views/Share/Detail.vue"),
   },
   {
+    path: "/notes",
+    name: "Notes",
+    component: () => import("@/views/Notes/index.vue"),
+  },
+  {
     path: "/about",
     name: "About",
     component: () => import("@/views/About/index.vue"),

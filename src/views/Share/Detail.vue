@@ -3,16 +3,25 @@
     <div class="detail-container">
       <!-- 顶部返回条与面包屑 -->
       <header class="detail-topbar">
-        <div class="back-link" @click="router.push('/share')">
-          <Left theme="outline" size="18" fill="#00e5c9" />
-          <span>返回列表</span>
+        <div class="topbar-main">
+          <RouterLink class="detail-brand" to="/" aria-label="Yunchu Studio 首页">
+            <img src="/images/avatar.png" alt="" />
+            <span>Yunchu Studio</span>
+          </RouterLink>
+          <button class="back-link" type="button" @click="router.push('/share')">
+            <Left theme="outline" size="18" fill="#00e5c9" />
+            <span>返回列表</span>
+          </button>
+          <span class="share-label">SHARE&nbsp; / &nbsp;精选分享</span>
         </div>
         <div class="breadcrumbs">
-          <span class="crumb-link" @click="router.push('/')">首页</span>
-          <span class="sep">/</span>
-          <span class="crumb-link" @click="router.push('/share')">精选分享</span>
-          <span class="sep">/</span>
-          <span class="crumb-cur">详情</span>
+          <span class="crumb-trail">
+            <span class="crumb-link" @click="router.push('/')">首页</span>
+            <span class="sep">›</span>
+            <span class="crumb-link" @click="router.push('/share')">精选分享</span>
+            <span class="sep">›</span>
+            <span class="crumb-cur">详情</span>
+          </span>
         </div>
       </header>
 
@@ -150,8 +159,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref, computed, watch } from "vue";
+import { useRoute, useRouter, RouterLink } from "vue-router";
 import { Left, ShareTwo, LoadingFour, FileText } from "@icon-park/vue-next";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -164,14 +173,22 @@ const router = useRouter();
 const post = ref(null);
 const loading = ref(true);
 
+let activeRequestId = 0;
 const fetchDetail = async () => {
   const id = route.params.id;
-  if (!id) return;
-  loading.value = true;
-  try {
-    post.value = await getPostDetail(id);
-  } finally {
+  if (!id) {
+    post.value = null;
     loading.value = false;
+    return;
+  }
+  const requestId = ++activeRequestId;
+  loading.value = true;
+  post.value = null;
+  try {
+    const result = await getPostDetail(id);
+    if (requestId === activeRequestId) post.value = result;
+  } finally {
+    if (requestId === activeRequestId) loading.value = false;
   }
 };
 
@@ -209,9 +226,7 @@ const copyShareUrl = async () => {
   }
 };
 
-onMounted(() => {
-  fetchDetail();
-});
+watch(() => route.params.id, fetchDetail, { immediate: true });
 </script>
 
 <style lang="scss" scoped>
@@ -697,5 +712,68 @@ onMounted(() => {
   100% {
     transform: rotate(360deg);
   }
+}
+.detail-page .detail-topbar { display: block; }
+.topbar-main .share-label { margin-left: auto; }
+.detail-page .btn-primary span { color: #032e3d !important; }
+.detail-page .content-body :deep(ol) { list-style: none; counter-reset: step; padding-left: 0; }
+.detail-page .content-body :deep(ol > li) { position: relative; counter-increment: step; padding-left: 34px; min-height: 26px; }
+.detail-page .content-body :deep(ol > li::before) { content: counter(step); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #47e5e1; color: #073341; font-weight: 700; line-height: 1; }
+</style>
+
+<style lang="scss" scoped>
+.detail-page {
+  min-height: 100vh;
+  padding: 22px 0 calc(70px + env(safe-area-inset-bottom, 0px));
+  color: #f4fbff;
+  background: linear-gradient(180deg, rgba(1, 29, 46, .23), rgba(0, 27, 43, .45)), url("/images/hero-starry-lake.webp") center / cover fixed no-repeat;
+}
+.detail-page .detail-container { width: calc(100% - 48px); max-width: 1320px; margin: 0 auto; }
+.detail-page .detail-topbar { margin-bottom: 20px !important; padding: 10px 24px 0 !important; border: 1px solid rgba(160, 229, 243, .44) !important; border-radius: 20px !important; background: rgba(3, 47, 65, .55); backdrop-filter: blur(18px); }
+.topbar-main { min-height: 55px; display: flex; align-items: center; gap: 24px; }
+.detail-brand { display: inline-flex; align-items: center; gap: 12px; color: #f5fdff; font: 500 19px Georgia, "Noto Serif CJK SC", serif; text-decoration: none; }
+.detail-brand img { width: 38px; height: 38px; border: 1px solid rgba(207, 246, 255, .64); border-radius: 50%; object-fit: cover; }
+.detail-page .back-link { padding: 8px 14px; border: 0; border-left: 1px solid rgba(199, 240, 247, .3); background: transparent; color: #f0fcff !important; cursor: pointer; }
+.detail-page .breadcrumbs { min-height: 42px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(199, 240, 247, .23); }
+.share-label { color: rgba(222, 246, 253, .68); font: 600 10px ui-monospace, monospace; letter-spacing: .38em; }
+.crumb-trail { display: inline-flex; align-items: center; gap: 9px; font-size: 13px; }
+.detail-page .detail-layout { gap: 22px !important; }
+.detail-page .main-card, .detail-page .sidebar-card { border-color: rgba(150, 229, 243, .38) !important; border-radius: 18px !important; background: linear-gradient(130deg, rgba(6, 61, 81, .76), rgba(3, 39, 57, .72)) !important; box-shadow: inset 0 1px rgba(255,255,255,.08), 0 20px 50px rgba(0,0,0,.16); backdrop-filter: blur(18px) !important; }
+.detail-page .main-card { padding: clamp(24px, 3vw, 40px) !important; }
+.detail-page .main-card .article-title { font-family: Georgia, "Noto Serif CJK SC", serif; font-size: clamp(28px, 3vw, 38px) !important; letter-spacing: .04em; }
+.detail-page .main-card .intro-box { border-color: rgba(136, 220, 237, .36) !important; background: linear-gradient(105deg, rgba(57, 134, 155, .38), rgba(4, 54, 74, .5)), url("/images/hero-starry-lake.webp") center 55% / cover !important; }
+.detail-page .main-card .disclosure-section { border-style: solid !important; border-color: rgba(143, 220, 235, .42) !important; background: rgba(48, 122, 141, .22) !important; }
+.detail-page .main-card .actions-row { gap: 16px !important; }
+.detail-page .main-card .actions-row .btn-primary, .detail-page .sidebar-card .btn-primary { color: #032e3d !important; border-color: #52e3e4 !important; background: linear-gradient(110deg, #61eceb, #30cdd2) !important; }
+.detail-page .main-card .actions-row .btn-secondary, .detail-page .sidebar-card .btn-secondary { border-color: rgba(107, 226, 235, .72) !important; background: rgba(4, 43, 59, .46) !important; }
+.detail-page .sidebar-card { padding: 22px !important; }
+.detail-page .sidebar-card .sidebar-header { padding-bottom: 14px; border-bottom: 1px solid rgba(191, 232, 243, .28); font-family: Georgia, "Noto Serif CJK SC", serif; font-size: 20px !important; }
+.detail-page .sidebar-card .sidebar-summary { color: rgba(241, 249, 253, .86) !important; }
+.detail-page .sidebar-card .meta-list { border-color: rgba(191, 232, 243, .28) !important; }
+.detail-page .sidebar-card .meta-row { padding: 4px 0; }
+
+@media (max-width: 820px) {
+  .detail-page { padding-top: 0; }
+  .detail-page .detail-container { width: 100%; }
+  .detail-page .detail-topbar { padding: 8px 18px 0 !important; border-width: 0 0 1px !important; border-radius: 0 !important; background: rgba(2, 42, 60, .52); }
+  .topbar-main { min-height: 58px; }
+  .detail-brand { font-size: 17px; }
+  .detail-brand img { width: 34px; height: 34px; }
+  .detail-page .back-link { margin-left: auto; padding-right: 0; }
+  .detail-page .breadcrumbs { min-height: 38px; }
+  .share-label { display: none; }
+  .detail-page .detail-layout { padding: 0 16px; }
+  .detail-page .main-card { padding: 20px 18px !important; }
+  .detail-page .main-card .article-title { font-size: 25px !important; }
+  .detail-page .main-card .meta-badges { gap: 7px; }
+  .detail-page .main-card .actions-row { padding-top: 14px; }
+}
+
+@media (max-width: 420px) {
+  .detail-page .detail-topbar { padding-inline: 14px !important; }
+  .detail-page .detail-layout { padding-inline: 12px; }
+  .detail-page .main-card { padding: 18px 14px !important; }
+  .detail-page .main-card .actions-row { flex-direction: column !important; }
+  .detail-page .main-card .actions-row .btn-primary, .detail-page .main-card .actions-row .btn-secondary { width: 100%; min-height: 48px; }
 }
 </style>

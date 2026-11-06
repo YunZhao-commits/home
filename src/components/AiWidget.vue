@@ -121,7 +121,7 @@ const sendMessage = async () => {
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
 
-    while (true) {
+    for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
 
@@ -146,7 +146,9 @@ const sendMessage = async () => {
             try {
               const meta = JSON.parse(data);
               if (meta.context) messages.value[aiMessageIndex].context = meta.context;
-            } catch(e) {}
+            } catch {
+              // Ignore malformed optional metadata and keep consuming the stream.
+            }
             currentEvent = 'message';
             continue;
           }
@@ -155,7 +157,9 @@ const sendMessage = async () => {
             try {
               const errMeta = JSON.parse(data);
               messages.value[aiMessageIndex].content += `\n[系统错误: ${errMeta.message}]`;
-            } catch(e) {}
+            } catch {
+              // Ignore malformed error payloads and continue consuming the stream.
+            }
             currentEvent = 'message';
             continue;
           }
@@ -166,7 +170,9 @@ const sendMessage = async () => {
               messages.value[aiMessageIndex].content += parsed.response;
               scrollToBottom();
             }
-          } catch(e) {}
+          } catch {
+            // Ignore malformed chunks; later stream chunks may still be valid.
+          }
         }
 
         if (line === '') { currentEvent = 'message'; }

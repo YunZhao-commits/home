@@ -24,13 +24,23 @@
       <Transition name="fade" mode="out-in">
         <Footer
           class="f-ter"
-          v-show="!store.backgroundShow && !store.setOpenState && router.currentRoute.value.name !== 'Home'"
+          v-if="
+            !store.backgroundShow &&
+            !store.setOpenState &&
+            !['Home', 'ShareList', 'ShareDetail', 'Notes', 'About', 'Admin'].includes(router.currentRoute.value.name)
+          "
         />
       </Transition>
     </main>
   </Transition>
   
-  <AiWidget v-if="router.currentRoute.value.name !== 'Home'" />
+  <AiWidget
+    v-if="
+      !['Home', 'ShareList', 'ShareDetail', 'Notes', 'About', 'Admin'].includes(
+        router.currentRoute.value.name,
+      )
+    "
+  />
 </template>
 
 <script setup>

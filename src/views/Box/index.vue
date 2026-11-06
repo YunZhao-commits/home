@@ -64,8 +64,6 @@ let timer = null;
 const updateTime = () => {
   const now = dayjs();
   const today = now.startOf("day");
-  const week = now.startOf("week");
-  const month = now.startOf("month");
   const year = now.startOf("year");
   
   const currentYear = now.year();
