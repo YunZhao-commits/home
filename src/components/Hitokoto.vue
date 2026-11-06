@@ -49,7 +49,7 @@ const store = mainStore();
   }
 
   .quote-author {
-    margin: 15px 30px 0 0;
+    margin: 15px 88px 0 0;
     color: rgba(255, 255, 255, 0.96);
     align-self: flex-end;
     font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif;
@@ -63,7 +63,7 @@ const store = mainStore();
     filter: drop-shadow(0 0 7px rgba(161, 232, 255, 0.24));
   }
 
-  .quote-mark-left { left: 29px; top: 23px; }
+  .quote-mark-left { left: 60px; top: 23px; }
   .quote-mark-right { right: 31px; bottom: 23px; transform: rotate(180deg); }
 }
 

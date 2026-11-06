@@ -1,13 +1,11 @@
 <template>
   <section class="function-card" aria-label="当地时间与天气">
     <div class="time">
-      <p class="date">
-        <span>{{ currentTime.year }} 年 </span>
-        <span>{{ currentTime.month }} 月 </span>
-        <span>{{ currentTime.day }} 日 </span>
-        <span>{{ currentTime.weekday }}</span>
-      </p>
       <p class="clock">{{ currentTime.hour }}:{{ currentTime.minute }}</p>
+      <p class="date">
+        <span>{{ currentTime.month }}月{{ currentTime.day }}日</span>
+        <span>{{ weekday }}</span>
+      </p>
     </div>
     <div class="divider" aria-hidden="true"></div>
     <Weather />
@@ -17,8 +15,10 @@
 <script setup>
 import { getCurrentTime } from "@/utils/getTime";
 import Weather from "@/components/Weather.vue";
+import { computed } from "vue";
 
 const currentTime = ref({});
+const weekday = computed(() => (currentTime.value.weekday || "").replace("星期", "周"));
 let timeInterval;
 
 const updateTimeData = () => {
@@ -39,12 +39,12 @@ onBeforeUnmount(() => {
 .function-card {
   min-height: 238px;
   transform: translateY(-35px);
-  padding: 21px 20px 18px;
+  padding: 20px 20px 17px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 0;
   border: 1px solid rgba(202, 246, 255, 0.56);
   border-radius: 24px;
   background: linear-gradient(145deg, rgba(11, 70, 96, 0.72), rgba(14, 57, 81, 0.61));
@@ -61,37 +61,38 @@ onBeforeUnmount(() => {
   }
 
   .date {
-    margin: 0;
+    margin: 5px 0 0;
     color: rgba(255, 255, 255, 0.97);
-    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    font-size: 17px;
     letter-spacing: 0.02em;
     white-space: nowrap;
   }
 
   .clock {
-    margin: 9px 0 0;
+    margin: 0;
     color: #fff;
-    font-size: clamp(48px, 4.1vw, 62px);
+    font-family: Georgia, "Times New Roman", "Noto Serif CJK SC", "Songti SC", serif;
+    font-size: clamp(48px, 3.2vw, 56px);
+    font-weight: 400;
     line-height: 1;
-    letter-spacing: 0.035em;
+    letter-spacing: 0.045em;
     text-shadow: 0 2px 16px rgba(110, 221, 255, 0.18);
   }
 
   .divider {
-    width: 84%;
+    width: 82%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(216, 248, 255, 0.6), transparent);
+    margin: 14px 0 12px;
+    background: linear-gradient(90deg, transparent, rgba(216, 248, 255, 0.72), transparent);
   }
 
   :deep(.weather) {
+    align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
     font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif;
-
-    .wx-icon { width: 27px; height: 27px; }
-    .city { font-size: 13px; letter-spacing: 0.12em; }
-    .temp { font-size: 20px; }
   }
 }
 
@@ -99,7 +100,6 @@ onBeforeUnmount(() => {
   .function-card { min-height: 218px; padding-inline: 14px; }
   .function-card .date { font-size: 15px; }
   .function-card .clock { font-size: 48px; }
-  .function-card :deep(.weather .meta) { display: none; }
 }
 
 @media (max-width: 900px) and (min-width: 721px) {
@@ -113,22 +113,13 @@ onBeforeUnmount(() => {
 @media (max-width: 720px) {
   .function-card {
     width: 100%;
-    min-height: 126px;
-    padding: 15px 12px 13px;
-    gap: 10px;
+    min-height: 132px;
+    padding: 13px 12px 12px;
     border-radius: 19px;
 
-    .date { font-size: clamp(13px, 3.7vw, 16px); }
-    .clock { margin-top: 5px; font-size: clamp(36px, 10vw, 45px); }
-    .divider { width: 70%; }
-
-    :deep(.weather) {
-      gap: 7px;
-      .wx-icon { width: 22px; height: 22px; }
-      .city { font-size: 11px; }
-      .temp { font-size: 16px; }
-      .label { font-size: 9px; }
-    }
+    .date { margin-top: 4px; gap: 8px; font-size: clamp(12px, 3.4vw, 15px); }
+    .clock { font-size: clamp(34px, 9vw, 43px); }
+    .divider { width: 70%; margin: 8px 0 6px; }
   }
 }
 </style>

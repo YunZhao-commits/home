@@ -12,28 +12,31 @@
     </template>
 
     <template v-else>
-      <component
-        :is="wmoInfo.icon"
-        theme="filled"
-        size="15"
-        :fill="wmoInfo.fill"
-        class="wx-icon"
-      />
-      <span class="city">
-        <LocalTwo
-          v-if="isDefault"
+      <div class="weather-main">
+        <component
+          :is="wmoInfo.icon"
           theme="filled"
-          size="10"
-          fill="#faad14"
-          class="loc-badge"
-          title="默认位置"
+          size="38"
+          :fill="wmoInfo.fill"
+          class="wx-icon"
         />
-        {{ city }}
-      </span>
-      <span class="temp">{{ temp }}°C</span>
-      <span class="meta sm-hidden">{{ wmoInfo.label }}</span>
-      <span class="meta sm-hidden">{{ windLabel }}</span>
-      <span class="meta sm-hidden rh">RH {{ humidity }}%</span>
+        <span class="temp">{{ temp }}°C</span>
+      </div>
+      <div class="weather-caption">
+        <span class="condition">{{ localizedCondition }}</span>
+        <span class="separator" aria-hidden="true">·</span>
+        <span class="city">
+          <LocalTwo
+            v-if="isDefault"
+            theme="filled"
+            size="10"
+            fill="#faad14"
+            class="loc-badge"
+            title="默认位置"
+          />
+          {{ city }}
+        </span>
+      </div>
     </template>
 
   </div>
@@ -55,7 +58,7 @@ import { ref, computed, onMounted } from "vue";
 // ─── 默认回退坐标（北京）──────────────────────────────────────────────
 const DEFAULT_LAT  = 39.9042;
 const DEFAULT_LON  = 116.4074;
-const DEFAULT_CITY = "BEIJING";
+const DEFAULT_CITY = "Beijing";
 
 // ─── WMO 4677 天气代码映射 ────────────────────────────────────────────
 const WMO = {
@@ -85,28 +88,28 @@ const WMO = {
   99: { label: "T-STORM / HAIL",  icon: Lightning, fill: "#9B72E8" },
 };
 
-const WIND_DIRS = [
-  "N","NNE","NE","ENE","E","ESE","SE","SSE",
-  "S","SSW","SW","WSW","W","WNW","NW","NNW",
-];
-
 // ─── 响应式状态 ───────────────────────────────────────────────────────
 const status    = ref("loading");   
 const isDefault = ref(false);
 const city      = ref("");
 const temp      = ref(null);
-const humidity  = ref(null);
-const windSpeed = ref(null);
-const windDeg   = ref(null);
 const wmoCode   = ref(0);
 
 // ─── 计算属性 ─────────────────────────────────────────────────────────
 const wmoInfo = computed(() => WMO[wmoCode.value] ?? WMO[0]);
 
-const windLabel = computed(() => {
-  if (windSpeed.value == null) return "";
-  const dir = WIND_DIRS[Math.round(windDeg.value / 22.5) % 16];
-  return `${dir} ${Math.round(windSpeed.value)} KM/H`;
+const localizedCondition = computed(() => {
+  const code = Number(wmoCode.value);
+  if (code === 0) return "晴朗";
+  if (code === 1) return "晴间多云";
+  if (code === 2) return "多云";
+  if (code === 3) return "阴";
+  if ([45, 48].includes(code)) return "有雾";
+  if ([51, 53, 55, 56, 57].includes(code)) return "毛毛雨";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "有雨";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "有雪";
+  if ([95, 96, 99].includes(code)) return "雷雨";
+  return "天气";
 });
 
 // ─── 核心修改：静默 IP 定位 API ───────────────────────────────────────
@@ -126,7 +129,7 @@ const fetchWeather = async (lat, lon) => {
   const params = new URLSearchParams({
     latitude:  lat,
     longitude: lon,
-    current:   "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m",
+    current:   "temperature_2m,weather_code",
     timezone:  "auto",
   });
   const res  = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
@@ -138,9 +141,6 @@ const fetchWeather = async (lat, lon) => {
 // ─── 数据写入 ─────────────────────────────────────────────────────────
 const applyWeather = (cur) => {
   temp.value      = Math.round(cur.temperature_2m);
-  humidity.value  = cur.relative_humidity_2m;
-  windSpeed.value = cur.wind_speed_10m;
-  windDeg.value   = cur.wind_direction_10m;
   wmoCode.value   = cur.weather_code;
   status.value    = "ready";
 };
@@ -162,7 +162,7 @@ const init = async () => {
   try {
     // 1. 静默获取 IP 对应坐标与城市
     const loc = await fetchIPLocation();
-    city.value = loc.cityName.toUpperCase();
+    city.value = loc.cityName;
     
     // 2. 携带坐标请求天气
     const cur = await fetchWeather(loc.lat, loc.lon);
@@ -180,13 +180,36 @@ onMounted(init);
 <style lang="scss" scoped>
 .weather {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  gap: 4px;
   font-family: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
-  font-size: 12px;
   letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.82);
   white-space: nowrap;
+
+  .weather-main {
+    min-height: 39px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .weather-caption {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: "HarmonyOS_Regular", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .condition { color: rgba(255, 255, 255, 0.85); }
+  .separator { color: rgba(222, 249, 255, 0.65); }
 
   .label {
     font-size: 11px;
@@ -199,32 +222,25 @@ onMounted(init);
 
   .wx-icon {
     flex-shrink: 0;
+    width: 38px;
+    height: 38px;
   }
 
   .city {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: inherit;
+    color: inherit;
     .loc-badge { flex-shrink: 0; }
   }
 
   .temp {
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 27px;
+    font-weight: 400;
+    font-family: Georgia, "Times New Roman", "Noto Serif CJK SC", "Songti SC", serif;
     color: #ffffff;
     letter-spacing: 0.02em;
-  }
-
-  .meta {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.45);
-    letter-spacing: 0.07em;
-  }
-
-  .rh {
-    color: rgba(120, 200, 255, 0.5);
   }
 
   @keyframes spin {
@@ -236,7 +252,11 @@ onMounted(init);
   }
 
   @media (max-width: 720px) {
-    .sm-hidden { display: none; }
+    gap: 2px;
+    .weather-main { min-height: 25px; gap: 7px; }
+    .wx-icon { width: 24px; height: 24px; }
+    .temp { font-size: 18px; }
+    .weather-caption { gap: 6px; font-size: 12px; }
   }
 }
 </style>
