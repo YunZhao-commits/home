@@ -6,7 +6,7 @@
         <div class="topbar-main">
           <RouterLink class="detail-brand" to="/" aria-label="Yunchu Studio 首页">
             <img src="/images/avatar.png" alt="" />
-            <span>Yunchu Studio</span>
+            <span>{{ settings.site_name }}</span>
           </RouterLink>
           <button class="back-link" type="button" @click="router.push('/share')">
             <Left theme="outline" size="18" fill="#00e5c9" />
@@ -61,6 +61,7 @@
             </span>
           </div>
 
+          <img v-if="post.cover_url" class="article-cover" :src="post.cover_url" alt="文章封面" @error="$event.target.hidden = true" />
           <!-- 导读摘要框 -->
           <div class="intro-box" v-if="post.summary">
             <p>{{ post.summary }}</p>
@@ -78,7 +79,7 @@
             <div class="disclosure-content">
               <span class="info-icon">ⓘ</span>
               <p>
-                {{ post.disclosure || '说明：此内容包含推荐或邀请链接。如果你通过此链接注册或开通，站长可能会获得平台提供的奖励（如积分或时长），你不会因此产生额外费用。仅在知情自愿情况下使用。' }}
+                {{ post.disclosure || '此内容包含推荐或邀请链接。使用后站长可能获得平台奖励，具体权益、规则和费用以服务方说明为准。' }}
               </p>
             </div>
           </section>
@@ -86,12 +87,13 @@
           <!-- 底部操作按钮 -->
           <div class="actions-row">
             <a
-              :href="post.link_url"
+              :href="post.status === 'expired' ? undefined : post.link_url"
+              :aria-disabled="post.status === 'expired'"
               target="_blank"
               rel="noopener noreferrer nofollow"
               class="btn-primary"
             >
-              <span>前往领取</span>
+              <span>{{post.status === "expired" ? "活动已结束" : "前往领取"}}</span>
               <span class="icon">↗</span>
             </a>
             <button class="btn-secondary" @click="copyTargetUrl">
@@ -139,12 +141,13 @@
 
           <div class="sidebar-actions">
             <a
-              :href="post.link_url"
+              :href="post.status === 'expired' ? undefined : post.link_url"
+              :aria-disabled="post.status === 'expired'"
               target="_blank"
               rel="noopener noreferrer nofollow"
               class="btn-primary"
             >
-              <span>前往领取</span>
+              <span>{{post.status === "expired" ? "活动已结束" : "前往领取"}}</span>
               <span class="icon">↗</span>
             </a>
             <button class="btn-secondary" @click="copyTargetUrl">
@@ -159,6 +162,8 @@
 </template>
 
 <script setup>
+import { useSite } from "@/composables/useSite";
+const { settings, categoryName } = useSite();
 import { ref, computed, watch } from "vue";
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import { Left, ShareTwo, LoadingFour, FileText } from "@icon-park/vue-next";
@@ -197,10 +202,7 @@ const renderedContent = computed(() => {
   return DOMPurify.sanitize(marked.parse(post.value.content));
 });
 
-const getCategoryLabel = (cat) => {
-  const map = { tools: "工具", vip: "会员福利", deals: "限时优惠" };
-  return map[cat] || "精选分享";
-};
+const getCategoryLabel = categoryName;
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
@@ -719,6 +721,7 @@ watch(() => route.params.id, fetchDetail, { immediate: true });
 .detail-page .content-body :deep(ol) { list-style: none; counter-reset: step; padding-left: 0; }
 .detail-page .content-body :deep(ol > li) { position: relative; counter-increment: step; padding-left: 34px; min-height: 26px; }
 .detail-page .content-body :deep(ol > li::before) { content: counter(step); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #47e5e1; color: #073341; font-weight: 700; line-height: 1; }
+.article-cover{display:block;width:100%;max-height:300px;object-fit:cover;border-radius:14px;margin:20px 0}.detail-page a[aria-disabled="true"]{opacity:.5;cursor:not-allowed;pointer-events:none}
 </style>
 
 <style lang="scss" scoped>
@@ -776,4 +779,5 @@ watch(() => route.params.id, fetchDetail, { immediate: true });
   .detail-page .main-card .actions-row { flex-direction: column !important; }
   .detail-page .main-card .actions-row .btn-primary, .detail-page .main-card .actions-row .btn-secondary { width: 100%; min-height: 48px; }
 }
+.article-cover{display:block;width:100%;max-height:300px;object-fit:cover;border-radius:14px;margin:20px 0}.detail-page a[aria-disabled="true"]{opacity:.5;cursor:not-allowed;pointer-events:none}
 </style>

@@ -10,7 +10,7 @@
           <span>精选分享</span>
         </h1>
         <p class="page-subtitle">
-          我在使用中发现的实用工具、会员权益与合适优惠，经过筛选与体验后，整理成这份持续更新的精选清单。
+          {{ settings.share_intro }}
         </p>
       </section>
 
@@ -22,8 +22,9 @@
             ref="searchInput"
             v-model="searchQuery"
             type="text"
+            maxlength="10"
             aria-label="搜索精选分享"
-            placeholder="搜索你感兴趣的工具、会员或优惠..."
+            placeholder="搜索工具、会员或优惠（最多10字）..."
             @input="handleSearch"
           />
         </div>
@@ -67,7 +68,7 @@
           <div class="empty-icon" aria-hidden="true"><span></span></div>
           <div class="empty-title">精选内容暂时无法显示</div>
           <div class="empty-subtitle">{{ errorMessage }}</div>
-          <button class="retry-button" type="button" @click="fetchPosts">重新加载</button>
+          <button class="retry-button" type="button" @click="fetchPosts()">重新加载</button>
         </div>
 
         <div v-else-if="posts.length === 0" class="stream-empty">
@@ -84,6 +85,7 @@
             @click="goDetail(item.id)"
           >
             <div class="card-art" :class="`art-${item.category || 'default'}`" aria-hidden="true">
+              <img v-if="item.cover_url" :src="item.cover_url" alt="" loading="lazy" @error="$event.target.hidden = true" />
               <span class="art-orbit"></span>
               <span class="art-symbol">{{ getCategorySymbol(item.category) }}</span>
             </div>
@@ -120,28 +122,28 @@
             </aside>
           </article>
         </div>
+        <p v-if="loadMoreError" class="load-more-error" role="alert">{{ loadMoreError }}</p>
+        <button v-if="!loading && !errorMessage && posts.length < total" class="retry-button load-more" type="button" :disabled="loadingMore" @click="fetchPosts(true)">{{loadingMore ? '加载中…' : loadMoreError ? '加载失败，点击重试' : '加载更多'}}</button>
       </section>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Search, LoadingFour } from "@icon-park/vue-next";
 import { getPublicPosts } from "@/api/posts";
 import SiteHeader from "@/components/SiteHeader.vue";
+import { useSite } from "@/composables/useSite";
 
 const router = useRouter();
 const route = useRoute();
 const searchInput = ref(null);
 
-const categories = [
-  { key: "all", label: "全部" },
-  { key: "tools", label: "工具" },
-  { key: "vip", label: "会员" },
-  { key: "deals", label: "优惠" },
-];
+const { settings, categories: siteCategories, categoryName } = useSite();
+const categories = computed(() => [{key:'all',label:'全部'}, ...siteCategories.value.map(item=>({key:item.id,label:item.name}))]);
+const page = ref(1), total = ref(0), loadingMore = ref(false), loadMoreError = ref('');
 
 const currentCategory = ref("all");
 const searchQuery = ref("");
@@ -151,27 +153,37 @@ const loading = ref(true);
 const errorMessage = ref("");
 let latestRequest = 0;
 
-const fetchPosts = async () => {
+const fetchPosts = async (append = false) => {
+  if (append && loadingMore.value) return;
   const request = ++latestRequest;
-  loading.value = true;
+  const requestedPage = append ? page.value + 1 : 1;
+  loadingMore.value = append;
+  loading.value = !append;
+  loadMoreError.value = '';
   errorMessage.value = "";
   try {
-    const { list, error } = await getPublicPosts({
+    const { list, total: count, error } = await getPublicPosts({
       category: currentCategory.value,
       keyword: searchQuery.value,
+      page: requestedPage,
     });
     if (request !== latestRequest) return;
     if (error) {
-      console.error("[share] Failed to load curated posts", error);
-      errorMessage.value = "请稍后重试，或返回首页继续浏览。";
-      posts.value = [];
-      featuredPost.value = null;
+      if (append) {
+        loadMoreError.value = "追加内容失败，已保留当前列表；请重试。";
+      } else {
+        errorMessage.value = "请稍后重试，或返回首页继续浏览。";
+        posts.value = [];
+        featuredPost.value = null;
+      }
     } else {
-      posts.value = list;
-      featuredPost.value = list.find((p) => p.is_featured) || null;
+      posts.value = append ? [...posts.value, ...list.filter(item=>!posts.value.some(old=>old.id===item.id))] : list;
+      page.value = requestedPage;
+      total.value = count ?? posts.value.length;
+      featuredPost.value = posts.value.find((p) => p.is_featured) || null;
     }
   } finally {
-    if (request === latestRequest) loading.value = false;
+    if (request === latestRequest) { loading.value = false; loadingMore.value = false; }
   }
 };
 
@@ -195,10 +207,7 @@ const goDetail = (id) => {
   router.push(`/share/${id}`);
 };
 
-const getCategoryLabel = (cat) => {
-  const map = { tools: "工具", vip: "会员", deals: "优惠" };
-  return map[cat] || "精选";
-};
+const getCategoryLabel = categoryName;
 
 const getCategorySymbol = (cat) => ({ tools: "⌘", vip: "✦", deals: "％" }[cat] || "✧");
 
@@ -494,6 +503,7 @@ onBeforeUnmount(() => {
 
   // 卡片流
   .cards-stream {
+    .load-more-error { margin: 1rem 0 0; color: #ffd0c8; text-align: center; font-size: .9rem; }
     .stream-status,
     .stream-empty {
       width: min(100%, 680px);
@@ -911,6 +921,7 @@ onBeforeUnmount(() => {
     transform: rotate(360deg);
   }
 }
+.share-page .card-art{position:relative}.share-page .card-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}.load-more{display:block;margin:24px auto 0}.load-more:disabled{opacity:.5}
 </style>
 
 <style lang="scss" scoped>
@@ -1031,4 +1042,5 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) { .deal-card { transition: none !important; } }
+.share-page .card-art{position:relative}.share-page .card-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2}.load-more{display:block;margin:24px auto 0}.load-more:disabled{opacity:.5}
 </style>

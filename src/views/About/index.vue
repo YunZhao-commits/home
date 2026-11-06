@@ -10,7 +10,7 @@
           <span>关于本站</span>
         </h1>
         <p class="page-subtitle">
-          Yunchu Studio 是一个由个人维护的精选分享站，用于整理、筛选并分享在日常学习、工作与生活中发现的优质内容与实用资源。
+          {{ settings.about_intro }}
         </p>
       </section>
 
@@ -103,11 +103,13 @@
 </template>
 
 <script setup>
-import socialLinks from "@/assets/socialLinks.json";
+import { computed } from "vue";
+import { useSite } from "@/composables/useSite";
 import SiteHeader from "@/components/SiteHeader.vue";
 
-const contactUrl = socialLinks.find((item) => item.name === "Email")?.url;
-const contactEmail = contactUrl?.replace(/^mailto:/i, "") || "";
+const { settings } = useSite();
+const contactEmail = computed(() => settings.value.contact_email);
+const contactUrl = computed(() => `mailto:${contactEmail.value}`);
 </script>
 
 <style lang="scss" scoped>

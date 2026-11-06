@@ -10,6 +10,7 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
+    "test:content": "node --test tests/content-management.test.js",
     "format": "prettier --write src/",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix"
   },

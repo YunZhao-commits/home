@@ -1,8 +1,8 @@
 <template>
   <section class="quote-card" aria-label="工作室寄语" @click="store.boxOpenState = true">
     <Quote class="quote-mark quote-mark-left" theme="filled" size="34" fill="#bceefa" />
-    <p class="quote-text">在山与星之间，记录热爱，分享美好。</p>
-    <p class="quote-author">——&nbsp; Yunchu Studio</p>
+    <p class="quote-text">{{ settings.quote }}</p>
+    <p class="quote-author">——&nbsp; {{ settings.site_name }}</p>
     <Quote class="quote-mark quote-mark-right" theme="filled" size="34" fill="#bceefa" />
   </section>
 </template>
@@ -10,8 +10,10 @@
 <script setup>
 import { Quote } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
+import { useSite } from "@/composables/useSite";
 
 const store = mainStore();
+const { settings } = useSite();
 </script>
 
 <style lang="scss" scoped>

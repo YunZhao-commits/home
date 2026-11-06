@@ -1,3 +1,5 @@
+import { handleAction, jsonBody } from '../_lib/manage.js';
+
 /**
  * Protected Webmaster Admin API
  * Bound to Cloudflare D1 (env.DB)
@@ -73,7 +75,7 @@ async function signToken(dataStr, secret) {
 }
 
 async function verifyToken(token, secret) {
-  if (!token || !token.includes(".")) return null;
+  if (!token || token.split(".").length !== 2) return null;
   const [b64Data, b64Sig] = token.split(".");
   try {
     const dataStr = atob(b64Data);
@@ -104,6 +106,7 @@ function getCorsHeaders(request) {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
+    "Cache-Control": "no-store",
   };
 }
 
@@ -144,8 +147,8 @@ export async function onRequest(context) {
     }
 
     try {
-      const body = await request.json();
-      const inputPass = body.password || "";
+      const body = await jsonBody(request);
+      const inputPass = typeof body.password === "string" && body.password.length <= 256 ? body.password : "";
 
       // Constant-time comparison
       const encoder = new TextEncoder();
@@ -183,7 +186,7 @@ export async function onRequest(context) {
   const token = authHeader.replace(/^Bearer\s+/i, "");
   const session = await verifyToken(token, adminSecret);
 
-  if (!session) {
+  if (!session || session.role !== "admin") {
     return Response.json({ error: "Unauthorized. Please log in." }, { status: 401, headers: corsHeaders });
   }
 
@@ -191,107 +194,16 @@ export async function onRequest(context) {
     return Response.json({ error: "Database not bound" }, { status: 500, headers: corsHeaders });
   }
 
-  // 3. ADMIN POSTS CRUD
+  // Every management action uses the same authenticated, origin-checked boundary.
   try {
-    // GET /api/admin?action=posts
-    if (request.method === "GET") {
-      const { results } = await env.DB.prepare(
-        "SELECT * FROM posts ORDER BY updated_at DESC"
-      ).all();
-      return Response.json({ data: results || [] }, { headers: corsHeaders });
-    }
-
-    // POST /api/admin?action=posts (Create)
-    if (request.method === "POST") {
-      const b = await request.json();
-      if (!b.title || !b.link_url) {
-        return Response.json({ error: "Title and Link URL are required" }, { status: 400, headers: corsHeaders });
-      }
-
-      const id = b.id || `post_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      const now = new Date().toISOString();
-
-      await env.DB.prepare(`
-        INSERT INTO posts (
-          id, title, summary, content, category, link_type, link_url,
-          disclosure, validity, provider, status, is_featured, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        id,
-        b.title.trim(),
-        b.summary ? b.summary.trim() : "",
-        b.content ? b.content.trim() : "",
-        b.category || "tools",
-        b.link_type || "normal",
-        b.link_url.trim(),
-        b.disclosure ? b.disclosure.trim() : "",
-        b.validity || "permanent",
-        b.provider ? b.provider.trim() : "",
-        b.status || "draft",
-        b.is_featured ? 1 : 0,
-        now,
-        now
-      ).run();
-
-      return Response.json({ success: true, id }, { headers: corsHeaders });
-    }
-
-    // PUT /api/admin?action=posts (Update / Soft offline)
-    if (request.method === "PUT") {
-      const b = await request.json();
-      if (!b.id) {
-        return Response.json({ error: "Post ID is required" }, { status: 400, headers: corsHeaders });
-      }
-
-      const now = new Date().toISOString();
-
-      await env.DB.prepare(`
-        UPDATE posts SET
-          title = COALESCE(?, title),
-          summary = COALESCE(?, summary),
-          content = COALESCE(?, content),
-          category = COALESCE(?, category),
-          link_type = COALESCE(?, link_type),
-          link_url = COALESCE(?, link_url),
-          disclosure = COALESCE(?, disclosure),
-          validity = COALESCE(?, validity),
-          provider = COALESCE(?, provider),
-          status = COALESCE(?, status),
-          is_featured = COALESCE(?, is_featured),
-          updated_at = ?
-        WHERE id = ?
-      `).bind(
-        b.title !== undefined ? b.title.trim() : null,
-        b.summary !== undefined ? b.summary.trim() : null,
-        b.content !== undefined ? b.content.trim() : null,
-        b.category !== undefined ? b.category : null,
-        b.link_type !== undefined ? b.link_type : null,
-        b.link_url !== undefined ? b.link_url.trim() : null,
-        b.disclosure !== undefined ? b.disclosure.trim() : null,
-        b.validity !== undefined ? b.validity : null,
-        b.provider !== undefined ? b.provider.trim() : null,
-        b.status !== undefined ? b.status : null,
-        b.is_featured !== undefined ? (b.is_featured ? 1 : 0) : null,
-        now,
-        b.id
-      ).run();
-
-      return Response.json({ success: true, id: b.id }, { headers: corsHeaders });
-    }
-
-    // DELETE /api/admin?action=posts&id=xxx
-    if (request.method === "DELETE") {
-      const id = url.searchParams.get("id");
-      if (!id) {
-        return Response.json({ error: "Post ID is required" }, { status: 400, headers: corsHeaders });
-      }
-
-      await env.DB.prepare("DELETE FROM posts WHERE id = ?").bind(id).run();
-      return Response.json({ success: true, id }, { headers: corsHeaders });
-    }
-
-    return Response.json({ error: "Method not supported" }, { status: 405, headers: corsHeaders });
-  } catch (err) {
-    return Response.json({ error: err.message }, { status: 500, headers: corsHeaders });
+    const response = await handleAction(context, action || "posts");
+    const headers = new Headers(response.headers);
+    for (const [key, value] of Object.entries(corsHeaders)) headers.set(key, value);
+    return new Response(response.body, { status: response.status, headers });
+  } catch (error) {
+    return Response.json(
+      { error: error.status ? error.message : "服务暂时不可用，请稍后重试" },
+      { status: error.status || 500, headers: corsHeaders },
+    );
   }
 }

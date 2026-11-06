@@ -12,12 +12,13 @@ export async function getPublicPosts(params = {}) {
       searchParams.set("keyword", params.keyword.trim());
     }
 
+    if (params.page) searchParams.set("page", String(params.page));
     const queryStr = searchParams.toString();
     const res = await fetch(`/api/posts${queryStr ? `?${queryStr}` : ""}`);
     if (res.ok) {
       const data = await res.json();
       if (data && Array.isArray(data.data)) {
-        return { list: data.data, error: null };
+        return { list: data.data, total: data.total, error: null };
       }
     } else {
       const errJson = await res.json().catch(() => ({}));
@@ -70,7 +71,7 @@ export async function adminGetPosts(token) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    return { data: [], error: data.error || `获取后台数据失败 (HTTP ${res.status})` };
+    return { data: [], status: res.status, error: data.error || `获取后台数据失败 (HTTP ${res.status})` };
   }
   return data;
 }

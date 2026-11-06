@@ -72,14 +72,14 @@ export async function onRequest(context) {
         {
           headers: {
             "Content-Type": "application/json",
-            "Cache-Control": "public, max-age=30, s-maxage=60",
+            "Cache-Control": "no-store",
           },
         }
       );
     }
 
     // 2. Query Public Posts List
-    let query = "SELECT id, title, summary, category, link_type, link_url, validity, provider, status, is_featured, created_at, updated_at FROM posts WHERE status IN ('published', 'expired')";
+    let query = "SELECT id, title, summary, category, link_type, link_url, disclosure, cover_url, validity, provider, status, is_featured, created_at, updated_at FROM posts WHERE status IN ('published', 'expired')";
     const params = [];
 
     if (category && category !== "all") {
@@ -89,21 +89,27 @@ export async function onRequest(context) {
 
     if (keyword && keyword.trim()) {
       query += " AND (title LIKE ? OR summary LIKE ?)";
-      const pattern = `%${keyword.trim()}%`;
+      const term = Array.from(keyword.trim()).slice(0, 10).join("");
+      const pattern = `%${term}%`;
       params.push(pattern, pattern);
     }
 
-    query += " ORDER BY is_featured DESC, updated_at DESC LIMIT 50";
+    const countQuery = query.replace(/^SELECT .*? FROM posts/, "SELECT COUNT(*) AS total FROM posts");
+    const count = await env.DB.prepare(countQuery).bind(...params).first();
+    const page = Math.min(10000, Math.max(1, Number.parseInt(url.searchParams.get("page") || "1", 10) || 1));
+    const limit = 20;
+    query += " ORDER BY is_featured DESC, updated_at DESC, id DESC LIMIT ? OFFSET ?";
+    params.push(limit, (page - 1) * limit);
 
     const stmt = params.length > 0 ? env.DB.prepare(query).bind(...params) : env.DB.prepare(query);
     const { results } = await stmt.all();
 
     return Response.json(
-      { data: results || [] },
+      { data: results || [], total: count.total, page },
       {
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "public, max-age=30, s-maxage=60",
+          "Cache-Control": "no-store",
         },
       }
     );

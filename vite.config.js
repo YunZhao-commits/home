@@ -49,12 +49,14 @@ export default ({ mode }) => {
   workbox: {
     skipWaiting: true,
     clientsClaim: true,
+    navigateFallbackDenylist: [/^\/api\//],
 
     // ── 新增 1：将 siteLinks.json 从预缓存清单中排除 ──
     // 避免被 precacheAndRoute 锁死版本，交给下方运行时规则接管
     globIgnores: ["**/siteLinks.json"],
 
     runtimeCaching: [
+      { urlPattern: ({ url }) => url.pathname.startsWith("/api/"), handler: "NetworkOnly" },
       // ── 新增 2：siteLinks.json 专用 NetworkFirst 规则 ──
       // 每次优先走网络，3 秒超时后才降级用缓存，确保数据实时性
       {
@@ -85,7 +87,7 @@ export default ({ mode }) => {
       },
       // JS/CSS 代码文件
       {
-        urlPattern: /(.*?)\.(js|css)/,
+        urlPattern: /\/assets\/.*\.(js|css)$/,
         handler: "CacheFirst",
         options: {
           cacheName: "code-cache",

@@ -39,8 +39,10 @@
             <img src="/images/avatar.png" alt="" />
             <span>Yunchu Studio</span>
           </RouterLink>
-          <button class="side-link active" type="button"><span aria-hidden="true">▦</span> 内容管理</button>
+          <button :class="['side-link', { active: activeTab === 'posts' }]" type="button" @click="switchTab('posts')"><span aria-hidden="true">▦</span> 内容管理</button>
           <button class="side-link" type="button" @click="openCreateModal"><span aria-hidden="true">＋</span> 新增内容</button>
+          <button :class="['side-link', { active: activeTab === 'categories' }]" type="button" @click="switchTab('categories')"><span aria-hidden="true">◇</span> 分类管理</button>
+          <button :class="['side-link', { active: activeTab === 'settings' }]" type="button" @click="switchTab('settings')"><span aria-hidden="true">⚙</span> 站点设置</button>
           <RouterLink class="side-link public-link" to="/share"><span aria-hidden="true">↗</span> 查看公开站</RouterLink>
         </aside>
 
@@ -52,7 +54,7 @@
               <span class="logo">Yunchu Studio</span>
               <span class="badge">站长后台</span>
             </div>
-            <h1>内容管理</h1>
+            <h1>{{ activeTab === "posts" ? "内容管理" : activeTab === "categories" ? "分类管理" : "站点设置" }}</h1>
             <p class="subtitle">管理精选分享内容，支持新增、编辑、草稿保存与软下架，数据实时生效。</p>
           </div>
 
@@ -64,6 +66,8 @@
           </div>
         </header>
 
+        <nav class="management-tabs" aria-label="后台功能"><button v-for="tab in [{id:'posts',name:'内容管理'},{id:'categories',name:'分类管理'},{id:'settings',name:'站点设置'}]" :key="tab.id" type="button" :class="{active:activeTab===tab.id}" @click="switchTab(tab.id)">{{tab.name}}</button></nav>
+        <div v-if="activeTab === 'posts'">
         <!-- 筛选栏 -->
         <section class="toolbar-section">
           <div class="search-input">
@@ -74,9 +78,7 @@
           <div class="filter-dropdowns">
             <select v-model="filterCategory">
               <option value="all">全部分类</option>
-              <option value="tools">工具</option>
-              <option value="vip">会员福利</option>
-              <option value="deals">限时优惠</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">{{category.name}}</option>
             </select>
 
             <select v-model="filterStatus">
@@ -85,6 +87,7 @@
               <option value="draft">草稿</option>
               <option value="expired">已结束</option>
               <option value="offline">已下架</option>
+              <option value="deleted">回收站</option>
             </select>
           </div>
         </section>
@@ -95,6 +98,7 @@
             <span>正在同步云端内容列表...</span>
           </div>
 
+          <div v-else-if="listError" class="empty-state" role="alert"><span>{{listError}}</span><button type="button" class="btn-action" @click="loadAdminList">重新加载</button></div>
           <div v-else-if="filteredList.length === 0" class="empty-state">
             <span>暂无匹配的内容记录</span>
           </div>
@@ -114,7 +118,7 @@
             <tbody>
               <tr v-for="item in filteredList" :key="item.id">
                 <td>
-                  <div class="title-cell">
+                  <div class="title-cell"><img v-if="item.cover_url" class="admin-cover" :src="item.cover_url" alt="" loading="lazy" />
                     <span class="star" v-if="item.is_featured">★</span>
                     <strong class="item-title">{{ item.title }}</strong>
                     <p class="item-summary">{{ item.summary }}</p>
@@ -141,9 +145,9 @@
                       class="btn-action toggle"
                       @click="togglePublishStatus(item)"
                     >
-                      {{ item.status === 'published' ? '下架' : '发布' }}
+                      {{ item.status === "deleted" ? "恢复草稿" : item.status === "published" ? "下架" : "发布" }}
                     </button>
-                    <button class="btn-action delete" @click="confirmDelete(item.id)">删除</button>
+                    <button v-if="item.status !== 'deleted'" class="btn-action delete" @click="confirmDelete(item.id)">删除</button>
                   </div>
                 </td>
               </tr>
@@ -168,21 +172,23 @@
               <div class="m-actions">
                 <button class="btn-action edit" @click="openEditModal(item)">编辑</button>
                 <button class="btn-action toggle" @click="togglePublishStatus(item)">
-                  {{ item.status === 'published' ? '软下架' : '上线' }}
+                  {{ item.status === "deleted" ? "恢复草稿" : item.status === "published" ? "下架" : "发布" }}
                 </button>
-                <button class="btn-action delete" @click="confirmDelete(item.id)">删除</button>
+                <button v-if="item.status !== 'deleted'" class="btn-action delete" @click="confirmDelete(item.id)">删除</button>
               </div>
             </div>
           </div>
         </section>
 
+        </div>
+        <ManagementPanel v-else :key="activeTab" :token="token" :tab="activeTab" />
       <!-- 3. 编辑 / 新增抽屉弹窗 -->
-      <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+      <div v-if="showModal" class="modal-overlay" @click.self="!uploading && (showModal = false)">
         <div class="modal-window card-blur">
           <div class="modal-header">
             <span class="editor-handle" aria-hidden="true"></span>
             <h3>{{ isEditMode ? '✏️ 编辑分享内容' : '➕ 新增精选分享' }}</h3>
-            <button class="btn-close" aria-label="关闭编辑面板" @click="showModal = false">×</button>
+            <button class="btn-close" :disabled="uploading" aria-label="关闭编辑面板" @click="showModal = false">×</button>
           </div>
 
           <form class="modal-body" @submit.prevent="savePost">
@@ -191,6 +197,7 @@
               <input v-model="form.title" type="text" placeholder="输入醒目标题" required />
             </div>
 
+            <div class="form-row"><label>文章封面（可选）</label><CoverUploader v-model="form.cover_url" :token="token" @busy="uploading = $event" /></div>
             <div class="form-row">
               <label>简介摘要 (建议 200 字内)</label>
               <textarea
@@ -214,9 +221,7 @@
               <div class="form-row">
                 <label>所属分类 <span class="req">*</span></label>
                 <select v-model="form.category">
-                  <option value="tools">实用工具</option>
-                  <option value="vip">会员福利</option>
-                  <option value="deals">限时优惠</option>
+                  <option v-for="category in categories" :key="category.id" :value="category.id">{{category.name}}</option>
                 </select>
               </div>
 
@@ -284,10 +289,11 @@
             </div>
 
             <div class="modal-footer">
-              <button type="submit" class="btn-draft" :disabled="saving" @click="form.status = 'draft'">
+              <button v-if="['expired','offline'].includes(form.status)" type="submit" class="btn-draft" :disabled="saving || uploading">按当前状态保存</button>
+              <button type="submit" class="btn-draft" :disabled="saving || uploading" @click="form.status = 'draft'">
                 保存草稿
               </button>
-              <button type="submit" class="btn-submit" :disabled="saving" @click="form.status = 'published'">
+              <button type="submit" class="btn-submit" :disabled="saving || uploading" @click="form.status = 'published'">
                 <span v-if="saving">保存中...</span>
                 <span v-else>{{ isEditMode ? '保存并发布' : '发布' }}</span>
               </button>
@@ -303,6 +309,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import ManagementPanel from '@/components/ManagementPanel.vue';
+import CoverUploader from '@/components/CoverUploader.vue';
+import { useSite } from '@/composables/useSite';
 import { RouterLink } from "vue-router";
 import { Lock, Search } from "@icon-park/vue-next";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -313,6 +322,11 @@ import {
   adminDeletePost,
 } from "@/api/posts";
 
+const { categories, categoryName } = useSite();
+const activeTab = ref('posts');
+const uploading = ref(false);
+const listError = ref('');
+const switchTab = tab => { if (uploading.value) return; activeTab.value = tab; showModal.value = false; };
 const isLoggedIn = ref(false);
 const password = ref("");
 const loggingIn = ref(false);
@@ -341,6 +355,7 @@ const form = ref({
   provider: "",
   status: "draft",
   is_featured: false,
+  cover_url: "",
 });
 
 // 登录处理
@@ -355,29 +370,14 @@ const handleLogin = async () => {
       isLoggedIn.value = true;
       ElMessage.success("登录成功");
       loadAdminList();
-    } else if (import.meta.env.DEV && /HTTP 404/.test(res.error || "")) {
-      // Vite 本地预览不运行 Pages Functions；仅开发环境使用空数据验证后台布局。
-      token.value = `mock_token_${Date.now()}`;
-      sessionStorage.setItem("admin_token", token.value);
-      isLoggedIn.value = true;
-      ElMessage.info("本地预览模式：后台数据接口不可用，列表为空");
-      postsList.value = [];
     } else {
       ElMessage.error(res.error || "口令验证未通过");
     }
-  } catch (err) {
-    // 仅开发环境允许本地模拟登录，生产环境绝不能因接口异常放行。
-    if (import.meta.env.DEV && (password.value === "admin" || password.value.length >= 6)) {
-      token.value = "mock_token_" + Date.now();
-      sessionStorage.setItem("admin_token", token.value);
-      isLoggedIn.value = true;
-      ElMessage.warning("当前为本地离线开发模拟模式");
-      loadAdminList();
-    } else {
-      ElMessage.error("登录服务暂时不可用，请检查网络后重试");
-    }
+  } catch {
+    ElMessage.error("登录服务暂时不可用，请稍后重试");
   } finally {
     loggingIn.value = false;
+    password.value = "";
   }
 };
 
@@ -391,8 +391,11 @@ const handleLogout = () => {
 // 加载后台列表
 const loadAdminList = async () => {
   loadingList.value = true;
+  listError.value = "";
   try {
     const res = await adminGetPosts(token.value);
+    if (res.status === 401) { handleLogout(); throw new Error('登录已过期，请重新登录'); }
+    if (res.error) throw new Error(res.error);
     if (res.data && Array.isArray(res.data)) {
       postsList.value = res.data;
     } else {
@@ -401,7 +404,7 @@ const loadAdminList = async () => {
     }
   } catch (error) {
     postsList.value = [];
-    ElMessage.error("无法读取云端内容，请刷新或重新登录");
+    listError.value = error.message || "无法读取云端内容，请刷新或重新登录";
   } finally {
     loadingList.value = false;
   }
@@ -417,19 +420,21 @@ const filteredList = computed(() => {
       !q ||
       (item.title && item.title.toLowerCase().includes(q)) ||
       (item.summary && item.summary.toLowerCase().includes(q));
-    return matchCat && matchStatus && matchKw;
+    return matchCat && matchStatus && matchKw && (filterStatus.value === "deleted" || item.status !== "deleted");
   });
 });
 
 // 打开新增弹窗
 const openCreateModal = () => {
+  if (uploading.value) return;
+  activeTab.value = "posts";
   isEditMode.value = false;
   form.value = {
     id: `post_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
     title: "",
     summary: "",
     content: "",
-    category: "tools",
+    category: categories.value[0]?.id || "tools",
     link_type: "normal",
     link_url: "",
     disclosure: "",
@@ -437,6 +442,7 @@ const openCreateModal = () => {
     provider: "",
     status: "draft",
     is_featured: false,
+  cover_url: "",
   };
   showModal.value = true;
 };
@@ -450,6 +456,7 @@ const openEditModal = (item) => {
 
 // 保存提交
 const savePost = async () => {
+  if (saving.value || uploading.value) return;
   saving.value = true;
   try {
     const res = await adminSavePost(form.value, token.value, isEditMode.value);
@@ -475,12 +482,12 @@ const savePost = async () => {
 
 // 快捷下架/发布切换
 const togglePublishStatus = async (item) => {
-  const newStatus = item.status === "published" ? "offline" : "published";
+  const newStatus = item.status === "deleted" ? "draft" : item.status === "published" ? "offline" : "published";
   try {
     const res = await adminSavePost({ id: item.id, status: newStatus }, token.value, true);
     if (!res.success) throw new Error(res.error || "云端更新失败");
     item.status = newStatus;
-    ElMessage.success(`条目已设置为: ${newStatus === 'published' ? '已发布' : '已下架'}`);
+    ElMessage.success(newStatus === 'draft' ? '已恢复为草稿' : newStatus === 'published' ? '已发布' : '已下架');
   } catch (error) {
     ElMessage.error(error.message || "状态更新失败，云端内容未更改");
   }
@@ -488,8 +495,8 @@ const togglePublishStatus = async (item) => {
 
 // 安全删除二次确认
 const confirmDelete = (id) => {
-  ElMessageBox.confirm("确定要永久删除该分享条目吗？删除后不可恢复。", "安全删除确认", {
-    confirmButtonText: "确认删除",
+  ElMessageBox.confirm("将这篇分享移到回收站？前台将不可见，可在回收站恢复为草稿。", "移到回收站", {
+    confirmButtonText: "移到回收站",
     cancelButtonText: "取消",
     type: "warning",
   })
@@ -498,7 +505,7 @@ const confirmDelete = (id) => {
         const res = await adminDeletePost(id, token.value);
         if (!res.success) throw new Error(res.error || "云端删除失败");
         postsList.value = postsList.value.filter((p) => p.id !== id);
-        ElMessage.success("删除成功");
+        ElMessage.success("已移到回收站，可在状态筛选中恢复");
       } catch (error) {
         ElMessage.error(error.message || "删除失败，云端内容未更改");
       }
@@ -506,10 +513,7 @@ const confirmDelete = (id) => {
     .catch(() => {});
 };
 
-const getCategoryText = (cat) => {
-  const map = { tools: "实用工具", vip: "会员福利", deals: "限时优惠" };
-  return map[cat] || "精选";
-};
+const getCategoryText = categoryName;
 
 const getStatusText = (status) => {
   const map = {
@@ -517,6 +521,7 @@ const getStatusText = (status) => {
     draft: "草稿",
     expired: "已结束",
     offline: "已下架",
+    deleted: "回收站",
   };
   return map[status] || status;
 };
@@ -1206,6 +1211,7 @@ onMounted(() => {
     .dashboard-box .mobile-card-list .m-card .m-actions .btn-action { min-width: 84px; }
   }
 }
+.management-tabs{display:none}.admin-cover{width:66px;height:42px;object-fit:cover;border-radius:7px;float:left;margin:0 10px 5px 0}.admin-page .modal-overlay .modal-window .modal-body > .form-row{min-width:0}.status-pill.deleted{color:#ccd8de;background:#6a7e8844}@media(max-width:768px){.management-tabs{display:flex;gap:8px;margin:0 0 16px}.management-tabs button{flex:1;min-height:42px;padding:8px;border:1px solid #8be0ec44;background:#13465b88;border-radius:10px;color:#daf5ff}.management-tabs button.active{background:#35dadb;color:#053543}.admin-page .modal-overlay .modal-footer{display:flex;flex-wrap:wrap}.admin-page .modal-overlay .modal-footer button{flex:1;min-width:100px}}
 </style>
 
 <style lang="scss" scoped>
@@ -1340,4 +1346,5 @@ onMounted(() => {
   .admin-page .modal-overlay .modal-window .modal-body .form-grid-2 { grid-template-columns: 1fr; }
   .admin-page .modal-overlay .modal-header, .admin-page .modal-overlay .modal-footer { margin-inline: -14px; padding-inline: 14px; }
 }
+.management-tabs{display:none}.admin-cover{width:66px;height:42px;object-fit:cover;border-radius:7px;float:left;margin:0 10px 5px 0}.admin-page .modal-overlay .modal-window .modal-body > .form-row{min-width:0}.status-pill.deleted{color:#ccd8de;background:#6a7e8844}@media(max-width:768px){.management-tabs{display:flex;gap:8px;margin:0 0 16px}.management-tabs button{flex:1;min-height:42px;padding:8px;border:1px solid #8be0ec44;background:#13465b88;border-radius:10px;color:#daf5ff}.management-tabs button.active{background:#35dadb;color:#053543}.admin-page .modal-overlay .modal-footer{display:flex;flex-wrap:wrap}.admin-page .modal-overlay .modal-footer button{flex:1;min-width:100px}}
 </style>

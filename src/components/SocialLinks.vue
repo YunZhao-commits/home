@@ -17,7 +17,11 @@
 </template>
 
 <script setup>
-import socialLinks from "@/assets/socialLinks.json";
+import baseLinks from "@/assets/socialLinks.json";
+import { computed } from "vue";
+import { useSite } from "@/composables/useSite";
+const { settings } = useSite();
+const socialLinks = computed(() => baseLinks.map(item => ({...item, url: item.name === 'Github' ? settings.value.github_url : item.name === 'BiliBili' ? settings.value.bilibili_url : item.name === 'Email' ? `mailto:${settings.value.contact_email}` : item.url})));
 
 const labels = {
   Github: "GitHub",

@@ -4,12 +4,17 @@
     <span class="brand-divider" aria-hidden="true"></span>
     <div class="brand-copy">
       <span class="brand-orbit" aria-hidden="true"><i></i></span>
-      <h1>Yunchu Studio</h1>
-      <div class="brand-cn"><span>云 初 工 作 室</span></div>
-      <p>探 索&nbsp; · &nbsp;分 享&nbsp; · &nbsp;记 录&nbsp; · &nbsp;创 造</p>
+      <h1>{{ settings.site_name }}</h1>
+      <div class="brand-cn"><span>{{ settings.site_cn }}</span></div>
+      <p>{{ settings.tagline }}</p>
     </div>
   </header>
 </template>
+
+<script setup>
+import { useSite } from "@/composables/useSite";
+const { settings } = useSite();
+</script>
 
 <style lang="scss" scoped>
 .brand-lockup {

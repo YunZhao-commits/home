@@ -4,8 +4,8 @@
       <RouterLink class="brand" to="/" aria-label="Yunchu Studio 首页">
         <img class="brand-avatar" src="/images/avatar.png" alt="" />
         <span class="brand-copy">
-          <strong>Yunchu Studio</strong>
-          <small>云初工作室</small>
+          <strong>{{ settings.site_name }}</strong>
+          <small>{{ settings.site_cn }}</small>
         </span>
       </RouterLink>
 
@@ -48,6 +48,8 @@
 
 <script setup>
 import { ref, watch } from "vue";
+import { useSite } from "@/composables/useSite";
+const { settings } = useSite();
 import { useRoute, useRouter, RouterLink } from "vue-router";
 import { Search, HamburgerButton, CloseSmall } from "@icon-park/vue-next";
 
