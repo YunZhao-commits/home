@@ -6,6 +6,7 @@ export async function onRequest({ request }) {
   if (!context.timeZone || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat)>90 || Math.abs(lon)>180)
     return privateJson({ ...context, weather: null, error: 'Network region unavailable' });
   const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 5000);
+  let reason = 'upstream_unreachable';
   try {
     const params = new URLSearchParams({ latitude: lat.toFixed(2), longitude: lon.toFixed(2),
       current:'temperature_2m,weather_code,is_day', timezone:'UTC', forecast_days:'1' });
@@ -15,10 +16,12 @@ export async function onRequest({ request }) {
         'CF-Connecting-IP':'0.0.0.0', 'X-Real-IP':'0.0.0.0', 'X-Forwarded-For':'0.0.0.0' },
       cf: { cacheEverything:true, cacheTtlByStatus: { '200-299':600, '400-599':0 } },
     });
+    reason = `upstream_http_${response.status}`;
     if (!response.ok) throw new Error('Weather unavailable');
+    reason = 'invalid_weather_data';
     const { current } = await response.json();
     if (typeof current?.temperature_2m !== 'number' || !Number.isFinite(current.temperature_2m) || !Number.isInteger(current.weather_code)) throw new Error('Invalid weather');
     return privateJson({ ...context, weather: { temperature: Math.round(current.temperature_2m), code:current.weather_code, isDay:current.is_day===1 } });
-  } catch { return privateJson({ ...context, weather:null, error:'Weather temporarily unavailable' }); }
+  } catch (error) { return privateJson({ ...context, weather:null, error:'Weather temporarily unavailable', reason:controller.signal.aborted ? 'upstream_timeout' : reason }); }
   finally { clearTimeout(timer); }
 }
