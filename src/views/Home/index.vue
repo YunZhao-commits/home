@@ -356,3 +356,9 @@ const router = useRouter();
   }
 }
 </style>
+
+<style scoped lang="scss">
+.home-wrapper .more { display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; }
+.home-wrapper .box-view { width:min(760px,100%); height:auto; min-height:0; margin:auto; }
+@media(max-width:720px) { .home-wrapper .more { padding:12px; } .home-wrapper .box-view { min-height:0; height:auto; } }
+</style>

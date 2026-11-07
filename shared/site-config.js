@@ -12,6 +12,6 @@ export const DEFAULT_SETTINGS = {
   share_intro: '我在使用中发现的实用工具、会员权益与合适优惠，经过筛选与体验后，整理成这份持续更新的精选清单。',
   about_intro: 'Yunchu Studio 是一个由个人维护的精选分享站，用于整理、筛选并分享在日常学习、工作与生活中发现的优质内容与实用资源。',
   contact_email: 'yunchu@191607.xyz',
-  github_url: 'https://github.com/',
-  bilibili_url: 'https://space.bilibili.com/98544142',
+  whatsapp_url: '',
+  telegram_url: '',
 };

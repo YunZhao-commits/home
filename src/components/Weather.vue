@@ -1,14 +1,14 @@
 <template>
-  <div class="weather">
+  <div class="weather" title="按当前网络 IP 估算地区，不使用设备定位">
 
     <template v-if="status === 'loading'">
       <LoadingFour theme="outline" size="14" fill="rgba(255,255,255,0.6)" class="spin" />
-      <span class="label">ACQUIRING SIGNAL…</span>
+      <span class="label">正在获取网络地区天气…</span>
     </template>
 
     <template v-else-if="status === 'error'">
       <Caution theme="filled" size="14" fill="#ff6b6b" />
-      <span class="label err">DATA LINK FAILED</span>
+      <span class="label err">天气暂不可用</span>
     </template>
 
     <template v-else>
@@ -26,17 +26,10 @@
         <span class="condition">{{ localizedCondition }}</span>
         <span class="separator" aria-hidden="true">·</span>
         <span class="city">
-          <LocalTwo
-            v-if="isDefault"
-            theme="filled"
-            size="10"
-            fill="#faad14"
-            class="loc-badge"
-            title="默认位置"
-          />
           {{ city }}
         </span>
       </div>
+      <a class="attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">天气 · Open-Meteo</a>
     </template>
 
   </div>
@@ -45,6 +38,7 @@
 <script setup>
 import {
   Sun,
+  Moon,
   Cloudy,
   Umbrella,
   Snowflake,
@@ -53,12 +47,8 @@ import {
   Caution,
   LocalTwo,
 } from "@icon-park/vue-next";
-import { ref, computed, onMounted } from "vue";
-
-// ─── 默认回退坐标（北京）──────────────────────────────────────────────
-const DEFAULT_LAT  = 39.9042;
-const DEFAULT_LON  = 116.4074;
-const DEFAULT_CITY = "Beijing";
+import { computed } from "vue";
+import { useVisitorContext } from "@/composables/useVisitorContext";
 
 // ─── WMO 4677 天气代码映射 ────────────────────────────────────────────
 const WMO = {
@@ -88,15 +78,12 @@ const WMO = {
   99: { label: "T-STORM / HAIL",  icon: Lightning, fill: "#9B72E8" },
 };
 
-// ─── 响应式状态 ───────────────────────────────────────────────────────
-const status    = ref("loading");   
-const isDefault = ref(false);
-const city      = ref("");
-const temp      = ref(null);
-const wmoCode   = ref(0);
-
-// ─── 计算属性 ─────────────────────────────────────────────────────────
-const wmoInfo = computed(() => WMO[wmoCode.value] ?? WMO[0]);
+const { context, locationLabel: city } = useVisitorContext();
+const status = computed(() => context.weatherStatus);
+const temp = computed(() => context.weather?.temperature);
+const wmoCode = computed(() => context.weather?.code);
+const wmoInfo = computed(() => !context.weather?.isDay && [0,1].includes(wmoCode.value)
+  ? { icon: Moon, fill: '#DCF0FF' } : WMO[wmoCode.value] ?? WMO[3]);
 
 const localizedCondition = computed(() => {
   const code = Number(wmoCode.value);
@@ -112,69 +99,6 @@ const localizedCondition = computed(() => {
   return "天气";
 });
 
-// ─── 核心修改：静默 IP 定位 API ───────────────────────────────────────
-const fetchIPLocation = async () => {
-  // 使用 GeoJS 接口，无需 Key，免跨域，100% 静默无弹窗
-  const res = await fetch("https://get.geojs.io/v1/ip/geo.json");
-  if (!res.ok) throw new Error("IP Geolocation failed");
-  const data = await res.json();
-  return {
-    lat: data.latitude,
-    lon: data.longitude,
-    cityName: data.city || "UNKNOWN",
-  };
-};
-
-const fetchWeather = async (lat, lon) => {
-  const params = new URLSearchParams({
-    latitude:  lat,
-    longitude: lon,
-    current:   "temperature_2m,weather_code",
-    timezone:  "auto",
-  });
-  const res  = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  if (!res.ok) throw new Error(`open-meteo ${res.status}`);
-  const data = await res.json();
-  return data.current;
-};
-
-// ─── 数据写入 ─────────────────────────────────────────────────────────
-const applyWeather = (cur) => {
-  temp.value      = Math.round(cur.temperature_2m);
-  wmoCode.value   = cur.weather_code;
-  status.value    = "ready";
-};
-
-// ─── 回退：使用默认坐标 ───────────────────────────────────────────────
-const loadDefault = async () => {
-  try {
-    isDefault.value = true;
-    city.value      = DEFAULT_CITY;
-    const cur       = await fetchWeather(DEFAULT_LAT, DEFAULT_LON);
-    applyWeather(cur);
-  } catch {
-    status.value = "error";
-  }
-};
-
-// ─── 主入口 (纯净网络请求，告别 navigator.geolocation) ────────────────
-const init = async () => {
-  try {
-    // 1. 静默获取 IP 对应坐标与城市
-    const loc = await fetchIPLocation();
-    city.value = loc.cityName;
-    
-    // 2. 携带坐标请求天气
-    const cur = await fetchWeather(loc.lat, loc.lon);
-    applyWeather(cur);
-  } catch (err) {
-    console.warn("Weather chain failed, falling back to default:", err);
-    // 任何一环断裂（如挂了特殊代理），优雅降级到默认城市
-    loadDefault();
-  }
-};
-
-onMounted(init);
 </script>
 
 <style lang="scss" scoped>
@@ -189,6 +113,7 @@ onMounted(init);
   color: rgba(255, 255, 255, 0.82);
   white-space: nowrap;
 
+  .attribution { color: rgba(255,255,255,.55); font-size: 10px; text-decoration: none; }
   .weather-main {
     min-height: 39px;
     display: flex;
@@ -198,6 +123,7 @@ onMounted(init);
   }
 
   .weather-caption {
+    max-width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -227,6 +153,9 @@ onMounted(init);
   }
 
   .city {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     display: inline-flex;
     align-items: center;
     gap: 3px;

@@ -1,209 +1,43 @@
 <template>
-  <div class="box-container" @click.stop>
-    <div class="close-btn" @click="store.boxOpenState = false">
-      <close-small theme="outline" size="24" fill="#ffffff80" />
-    </div>
-    
-    <div class="content">
-      <div class="time-capsule">
-        <div class="header">
-          <hourglass-full theme="outline" size="22" fill="#efefef" />
-          <span class="title-text">时光胶囊</span>
-        </div>
-        
-        <div class="progress-list">
-          <div class="progress-item" v-for="(item, index) in timeData" :key="index">
-            <div class="info-row">
-              <div class="name">{{ item.name }}已度过 <span>{{ item.passed }}</span> {{ item.unit }}</div>
-              <div class="remaining">剩余 {{ item.remaining }} {{ item.unit }}</div>
-            </div>
-            <div class="progress-bg">
-              <div class="progress-bar" :style="{ width: item.percentage + '%' }"></div>
-              <div class="percentage-text">{{ item.percentage }}%</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="site-intro">
-        <div class="logo">
-          <span class="bg">Yunchu</span>
-          <span class="sm">Studio</span>
-        </div>
-        <div class="desc">致力于探索前沿技术与极简设计的个人数字实验室。</div>
-        
-        <div class="sys-info">
-          <div class="info-row">
-            <span class="label">CURRENT NODE</span>
-            <span class="value">Decentralized Edge</span>
-          </div>
-          <div class="info-row">
-            <span class="label">ACTIVE TASK</span>
-            <span class="value">Infrastructure Setup</span>
-          </div>
-          <div class="info-row">
-            <span class="label">NEXT PHASE</span>
-            <span class="value">Exploring Web3</span>
-          </div>
-        </div>
-        
-        <div class="status-text">-- SYSTEMS ONLINE --</div>
-      </div>
-    </div>
-  </div>
+  <section class="capsule-panel" role="dialog" aria-modal="true" aria-label="时光胶囊与站点说明" tabindex="-1" ref="panel" @click.stop @keydown.esc="close" @keydown.tab="trapFocus">
+    <button class="close-btn" type="button" aria-label="关闭时光胶囊" @click="close">×</button>
+    <TimeCapsule />
+    <section class="site-intro">
+      <h2>{{ settings.site_name }}</h2>
+      <p class="description">分享我亲自发现和筛选的实用工具、会员权益与优惠。</p>
+      <dl>
+        <div><dt>分享内容</dt><dd>工具 · 会员 · 优惠</dd></div>
+        <div><dt>链接说明</dt><dd>邀请链接会单独标注，具体权益和条件以平台官方页面为准。</dd></div>
+        <div><dt>联系反馈</dt><dd>发现失效链接或有建议？<a :href="'mailto:' + settings.contact_email">发邮件给我 ↗</a></dd></div>
+      </dl>
+      <router-link to="/about" class="about-link" @click="close">了解本站与推广说明 →</router-link>
+    </section>
+  </section>
 </template>
-
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import { CloseSmall, HourglassFull } from "@icon-park/vue-next";
-import { mainStore } from "@/store";
-import dayjs from "dayjs";
-
-const store = mainStore();
-const timeData = ref([]);
-let timer = null;
-
-// 核心时间计算引擎 (纯净版，不依赖外部配置，绝不报错白屏)
-const updateTime = () => {
-  const now = dayjs();
-  const today = now.startOf("day");
-  const week = now.startOf("week");
-  const year = now.startOf("year");
-  
-  const currentYear = now.year();
-  const isLeapYear = (currentYear % 4 === 0 && currentYear % 100 !== 0) || currentYear % 400 === 0;
-  const daysInYear = isLeapYear ? 366 : 365;
-
-  timeData.value = [
-    {
-      name: "今日", unit: "小时",
-      passed: now.diff(today, "hour"),
-      remaining: 24 - now.diff(today, "hour"),
-      percentage: ((now.diff(today, "hour") / 24) * 100).toFixed(2),
-    },
-    {
-      name: "本周", unit: "天",
-      passed: now.diff(week, "day") === 0 ? 1 : now.diff(week, "day"),
-      remaining: 7 - (now.diff(week, "day") === 0 ? 1 : now.diff(week, "day")),
-      percentage: (((now.diff(week, "day") === 0 ? 1 : now.diff(week, "day")) / 7) * 100).toFixed(2),
-    },
-    {
-      name: "本月", unit: "天",
-      passed: now.date(),
-      remaining: now.daysInMonth() - now.date(),
-      percentage: ((now.date() / now.daysInMonth()) * 100).toFixed(2),
-    },
-    {
-      name: "本年", unit: "天",
-      passed: now.diff(year, "day"),
-      remaining: daysInYear - now.diff(year, "day"),
-      percentage: ((now.diff(year, "day") / daysInYear) * 100).toFixed(2),
-    },
-  ];
-};
-
-onMounted(() => {
-  updateTime();
-  timer = setInterval(updateTime, 1000 * 60 * 30); // 每半小时自动刷新一次进度
-});
-
-onBeforeUnmount(() => {
-  if (timer) clearInterval(timer);
-});
-</script>
-
-<style lang="scss" scoped>
-.box-container {
-  width: 100%;
-  height: 100%;
-  background: rgba(20, 20, 25, 0.75);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-
-  .close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    z-index: 10;
-    &:hover { transform: rotate(90deg) scale(1.1); color: #f87171 !important; }
-  }
-
-  .content {
-    flex: 1;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    
-    &::-webkit-scrollbar { width: 0px; }
-
-    /* ⏳ 时光胶囊样式 */
-    .time-capsule {
-      margin-bottom: 30px;
-      .header {
-        display: flex; align-items: center; margin-bottom: 20px;
-        .title-text { font-size: 18px; color: #fff; margin-left: 8px; font-weight: bold; letter-spacing: 1px; }
-      }
-
-      .progress-list {
-        .progress-item {
-          margin-bottom: 18px;
-          .info-row {
-            display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;
-            .name { color: #fff; span { font-weight: bold; } }
-            .remaining { color: rgba(255,255,255,0.6); }
-          }
-          .progress-bg {
-            width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; position: relative;
-            .progress-bar { height: 100%; background: #fff; border-radius: 6px; transition: width 1s ease-out; }
-            .percentage-text {
-              position: absolute; width: 100%; text-align: center; top: -1px;
-              font-size: 10px; color: #1a1a1a; font-weight: bold; font-family: 'JetBrains Mono', monospace;
-            }
-          }
-        }
-      }
-    }
-
-    /* 🔬 实验室简介样式 */
-    .site-intro {
-      border-top: 1px dashed rgba(255, 255, 255, 0.15);
-      padding-top: 25px;
-
-      .logo {
-        margin-bottom: 10px;
-        .bg { font-family: "Pacifico-Regular", sans-serif; font-size: 28px; color: #fff; margin-right: 5px; }
-        .sm { font-size: 18px; color: rgba(255, 255, 255, 0.7); }
-      }
-
-      .desc {
-        color: rgba(255, 255, 255, 0.7); font-size: 13px; line-height: 1.6;
-        margin-bottom: 20px; border-left: 2px solid rgba(255,255,255,0.3); padding-left: 10px;
-      }
-
-      .sys-info {
-        background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;
-        .info-row {
-          display: flex; justify-content: space-between; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
-          &:last-child { margin-bottom: 0; }
-          .label { color: rgba(255, 255, 255, 0.5); }
-          .value { color: #fff; font-weight: bold; }
-        }
-      }
-
-      .status-text {
-        text-align: center; margin-top: 20px; font-family: 'JetBrains Mono', monospace;
-        font-size: 12px; color: rgba(255, 255, 255, 0.3); letter-spacing: 2px;
-      }
-    }
-  }
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { mainStore } from '@/store';
+import { useSite } from '@/composables/useSite';
+import TimeCapsule from '@/components/TimeCapsule.vue';
+const store=mainStore(), { settings }=useSite(), panel=ref(null);
+let previousFocus;
+const close=()=>{store.boxOpenState=false;store.setOpenState=false;};
+function trapFocus(event) {
+  const items=panel.value?.querySelectorAll('button, a[href], [tabindex="0"]');
+  if (!items?.length) return;
+  const first=items[0],last=items[items.length-1];
+  if (event.shiftKey && (document.activeElement===first || document.activeElement===panel.value)) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement===last) { event.preventDefault(); first.focus(); }
 }
+onMounted(async()=>{previousFocus=document.activeElement;await nextTick();panel.value?.focus();});
+onBeforeUnmount(()=>previousFocus?.isConnected && previousFocus.focus());
+</script>
+<style scoped lang="scss">
+.capsule-panel { position:relative; width:min(760px,100%); max-height:calc(100dvh - 48px); overflow-y:auto; padding:32px; box-sizing:border-box; border:1px solid rgba(176,239,245,.4); border-radius:24px; background:linear-gradient(145deg,rgba(3,35,51,.96),rgba(4,52,62,.93)); box-shadow:0 24px 80px #00121d70; backdrop-filter:blur(25px); color:#efffff; outline:none; }
+.close-btn { position:absolute; right:14px; top:10px; width:40px; height:40px; border:0; border-radius:50%; background:transparent; color:#c2e8e8; font-size:30px; cursor:pointer; }
+.close-btn:hover { background:#7df3f114; } .close-btn:focus-visible,a:focus-visible { outline:2px solid #7df3f1; outline-offset:3px; }
+.site-intro { margin-top:26px; padding-top:24px; border-top:1px solid #c8f7ff26; }
+h2 { margin:0 0 12px; font:27px Georgia,serif; }.description { font-size:14px; line-height:1.8; color:#d8ecee; }
+dl { margin:20px 0; } dl div { display:grid; grid-template-columns:80px minmax(0,1fr); gap:16px; margin-bottom:14px; font-size:13px; line-height:1.7; }dt { color:#8db6bd; }dd { margin:0; }a { color:#76f6f0; text-decoration:none; }.about-link { font-size:13px; }
+@media(max-width:480px) { .capsule-panel { padding:26px 18px; max-height:calc(100dvh - 24px); border-radius:18px; } dl div { grid-template-columns:64px minmax(0,1fr); gap:10px; } }
 </style>

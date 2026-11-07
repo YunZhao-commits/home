@@ -1,18 +1,21 @@
 <template>
   <nav class="social" aria-label="社交链接">
-    <a
+    <component
+      :is="item.url ? 'a' : 'span'"
       v-for="item in socialLinks"
       :key="item.name"
       class="social-link"
+      :class="{ 'is-unconfigured': !item.url }"
       :href="item.url"
-      :target="item.url.startsWith('mailto:') ? null : '_blank'"
-      :rel="item.url.startsWith('mailto:') ? null : 'noopener noreferrer'"
-      :aria-label="labelFor(item.name)"
-      :title="item.tip"
+      :target="item.url && !item.url.startsWith('mailto:') ? '_blank' : null"
+      :rel="item.url && !item.url.startsWith('mailto:') ? 'noopener noreferrer' : null"
+      :aria-label="item.url ? item.name : `${item.name} 链接尚未配置`"
+      :aria-disabled="item.url ? null : 'true'"
+      :title="item.url ? item.tip : `${item.name} 链接尚未配置`"
     >
       <img class="icon" :src="item.icon" alt="" width="27" height="27" />
-      <span>{{ labelFor(item.name) }}</span>
-    </a>
+      <span>{{ item.name }}</span>
+    </component>
   </nav>
 </template>
 
@@ -21,15 +24,18 @@ import baseLinks from "@/assets/socialLinks.json";
 import { computed } from "vue";
 import { useSite } from "@/composables/useSite";
 const { settings } = useSite();
-const socialLinks = computed(() => baseLinks.map(item => ({...item, url: item.name === 'Github' ? settings.value.github_url : item.name === 'BiliBili' ? settings.value.bilibili_url : item.name === 'Email' ? `mailto:${settings.value.contact_email}` : item.url})));
-
-const labels = {
-  Github: "GitHub",
-  BiliBili: "Bilibili",
-  Email: "Email",
+const safeWebUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+  } catch { return ""; }
 };
-
-const labelFor = (name) => labels[name] || name;
+const socialLinks = computed(() => baseLinks.map(item => ({
+  ...item,
+  url: item.name === "Email"
+    ? `mailto:${settings.value.contact_email}`
+    : safeWebUrl(settings.value[item.name === "WhatsApp" ? "whatsapp_url" : "telegram_url"]),
+})));
 </script>
 
 <style lang="scss" scoped>
@@ -78,6 +84,19 @@ const labelFor = (name) => labels[name] || name;
       color: #c5fbff;
       text-decoration: none;
       transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #7cf5f1;
+      outline-offset: -3px;
+      border-radius: 999px;
+    }
+
+    &.is-unconfigured {
+      color: rgba(255, 255, 255, 0.62);
+      cursor: default;
+      transform: none;
+      .icon { opacity: 0.62; }
     }
   }
 

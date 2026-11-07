@@ -1,10 +1,10 @@
 <template>
   <section class="function-card" aria-label="当地时间与天气">
     <div class="time">
-      <p class="clock">{{ currentTime.hour }}:{{ currentTime.minute }}</p>
-      <p class="date">
-        <span>{{ currentTime.month }}月{{ currentTime.day }}日</span>
-        <span>{{ weekday }}</span>
+      <p class="clock">{{ clock?.hour || '—' }}:{{ clock?.minute || '—' }}</p>
+      <p v-if="clock" class="date">
+        <span>{{ clock.month }}月{{ clock.day }}日</span>
+        <span>{{ clock.weekday }}</span>
       </p>
     </div>
     <div class="divider" aria-hidden="true"></div>
@@ -13,26 +13,9 @@
 </template>
 
 <script setup>
-import { getCurrentTime } from "@/utils/getTime";
 import Weather from "@/components/Weather.vue";
-import { computed } from "vue";
-
-const currentTime = ref({});
-const weekday = computed(() => (currentTime.value.weekday || "").replace("星期", "周"));
-let timeInterval;
-
-const updateTimeData = () => {
-  currentTime.value = getCurrentTime();
-};
-
-onMounted(() => {
-  updateTimeData();
-  timeInterval = setInterval(updateTimeData, 1000);
-});
-
-onBeforeUnmount(() => {
-  if (timeInterval) clearInterval(timeInterval);
-});
+import { useVisitorContext } from "@/composables/useVisitorContext";
+const { clock } = useVisitorContext();
 </script>
 
 <style lang="scss" scoped>

@@ -11,7 +11,7 @@
 
   <Loading />
 
-  <Background @loadComplete="loadComplete" />
+  <Background />
   
   <Transition name="fade" mode="out-in">
     <main id="main" v-if="store.imgLoadStatus">
@@ -45,13 +45,12 @@
 
 <script setup>
 import AiWidget from '@/components/AiWidget.vue';
-import { helloInit, checkDays } from "@/utils/getTime.js";
 import { mainStore } from "@/store";
 
 import Loading from "@/components/Loading.vue";
 import Background from "@/components/Background.vue";
 import Footer from "@/components/Footer.vue";
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import CommandPalette from "@/components/CommandPalette.vue";
 import router from "@/router";
 
@@ -63,15 +62,6 @@ const isHovering = ref(false);
 
 const getWidth = () => { store.setInnerWidth(window.innerWidth); };
 
-const loadComplete = () => {
-  nextTick(() => {
-    // 欢迎与纪念日提示只属于主页，不要盖住分享详情或后台操作。
-    if (router.currentRoute.value.name === "Home") {
-      helloInit();
-      checkDays();
-    }
-  });
-};
 
 watch(
   () => store.innerWidth,

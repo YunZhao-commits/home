@@ -96,6 +96,8 @@ test('公开配置、分类可正常读取；管理设置不会越权修改密�
   const config = await publicConfig.json();
   assert.deepEqual(config.categories.map(item => item.id), ['tools', 'vip', 'deals']);
   assert.equal(config.settings.site_name, 'Yunchu Studio');
+  assert.equal(config.settings.whatsapp_url, '');
+  assert.equal(config.settings.telegram_url, '');
 
   const create = await adminCall('categories', 'POST', { body: { id: 'resources', name: '资源', sort_order: 40 } });
   assert.equal(create.status, 200);
@@ -108,6 +110,10 @@ test('公开配置、分类可正常读取；管理设置不会越权修改密�
   const saved = await adminCall('settings', 'PUT', { body: settings });
   assert.equal(saved.status, 200);
   assert.equal((await saved.json()).data.site_name, '云初精选');
+  const socials = await adminCall('settings', 'PUT', { body: { ...settings, telegram_url:'https://t.me/example', whatsapp_url:'' } });
+  assert.equal(socials.status, 200);
+  assert.equal((await socials.json()).data.telegram_url, 'https://t.me/example');
+  assert.equal((await adminCall('settings', 'PUT', { body: { ...settings, whatsapp_url:'javascript:alert(1)' } })).status, 400);
   const invalid = await adminCall('settings', 'PUT', { body: { ...settings, contact_email: 'not-an-email' } });
   assert.equal(invalid.status, 400);
   assert.equal((await invalid.json()).error, '邮箱格式无效');

@@ -1,20 +1,17 @@
 [
   {
-    "name": "Github",
-    "icon": "/images/icon/github.png",
-    "tip": "去 Github 看看",
-    "url": "https://github.com/"
+    "name": "WhatsApp",
+    "icon": "/images/icon/whatsapp.svg",
+    "tip": "通过 WhatsApp 联系我"
   },
   {
-    "name": "BiliBili",
-    "icon": "/images/icon/bilibili.png",
-    "tip": "(゜-゜)つロ 干杯 ~",
-    "url": "https://space.bilibili.com/98544142"
+    "name": "Telegram",
+    "icon": "/images/icon/telegram-white.svg",
+    "tip": "在 Telegram 查看分享"
   },
   {
     "name": "Email",
     "icon": "/images/icon/email.png",
-    "tip": "来封 Email ~",
-    "url": "mailto:yunchu@191607.xyz"
+    "tip": "通过邮件联系我"
   }
 ]

@@ -128,10 +128,11 @@ async function settingsAction({ request, env }) {
   if (request.method !== 'PUT') invalid('Method not allowed', 405);
   const b = await jsonBody(request);
   const result = {};
-  const limits = { site_name: 40, site_cn: 30, tagline: 100, quote: 200, share_intro: 500, about_intro: 1000, contact_email: 254, github_url: 2048, bilibili_url: 2048 };
+  const limits = { site_name: 40, site_cn: 30, tagline: 100, quote: 200, share_intro: 500, about_intro: 1000, contact_email: 254, whatsapp_url: 2048, telegram_url: 2048 };
   for (const key of Object.keys(DEFAULT_SETTINGS)) {
-    result[key] = text(b[key] ?? DEFAULT_SETTINGS[key], key, limits[key], true);
-    if (key.endsWith('_url')) result[key] = webUrl(result[key], key);
+    const optionalUrl = key.endsWith('_url');
+    result[key] = text(b[key] ?? DEFAULT_SETTINGS[key], key, limits[key], !optionalUrl);
+    if (optionalUrl && result[key]) result[key] = webUrl(result[key], key);
   }
   if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(result.contact_email)) invalid('邮箱格式无效');
   await env.DB.prepare("INSERT INTO site_settings (key, value, updated_at) VALUES ('site', ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at").bind(JSON.stringify(result), new Date().toISOString()).run();
