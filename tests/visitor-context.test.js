@@ -37,6 +37,7 @@ test('weather never forwards visitor identity; failures do not fabricate a defau
     globalThis.fetch = async (url, init) => {
       assert.ok(url.startsWith('https://api.open-meteo.com/'));
       assert.ok(url.includes('latitude=27.72'));
+      assert.equal(init.redirect,'manual');
       assert.equal(init.headers.Cookie,undefined);
       assert.equal(init.headers['CF-Connecting-IP'],'0.0.0.0');
       return Response.json({current:{temperature_2m:13.6,weather_code:2,is_day:1}});

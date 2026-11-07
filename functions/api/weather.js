@@ -12,7 +12,7 @@ export async function onRequest({ request }) {
       current:'temperature_2m,weather_code,is_day', timezone:'UTC', forecast_days:'1' });
     // Never forward the incoming request, cookies, IP or browser headers upstream.
     const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
-      signal: controller.signal, redirect:'error', headers: { Accept:'application/json',
+      signal: controller.signal, redirect:'manual', headers: { Accept:'application/json',
         'CF-Connecting-IP':'0.0.0.0', 'X-Real-IP':'0.0.0.0', 'X-Forwarded-For':'0.0.0.0' },
       cf: { cacheEverything:true, cacheTtlByStatus: { '200-299':600, '400-599':0 } },
     });
