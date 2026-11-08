@@ -20,7 +20,7 @@
           :fill="wmoInfo.fill"
           class="wx-icon"
         />
-        <span class="temp">{{ temp }}°C</span>
+        <span class="temp">{{ temp }}<small>°C</small></span>
       </div>
       <div class="weather-caption">
         <span class="condition">{{ localizedCondition }}</span>
@@ -109,17 +109,17 @@ const localizedCondition = computed(() => {
   justify-content: center;
   gap: 4px;
   font-family: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.035em;
   color: rgba(255, 255, 255, 0.82);
   white-space: nowrap;
 
-  .attribution { color: rgba(255,255,255,.55); font-size: 10px; text-decoration: none; }
+  .attribution { color: rgba(255,255,255,.62); font-size: 11px; text-decoration: none; }
   .weather-main {
     min-height: 39px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 14px;
   }
 
   .weather-caption {
@@ -130,7 +130,7 @@ const localizedCondition = computed(() => {
     gap: 8px;
     font-family: "HarmonyOS_Regular", "PingFang SC", "Microsoft YaHei", sans-serif;
     font-size: 15px;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.025em;
     color: rgba(255, 255, 255, 0.88);
   }
 
@@ -170,6 +170,9 @@ const localizedCondition = computed(() => {
     font-family: Georgia, "Times New Roman", "Noto Serif CJK SC", "Songti SC", serif;
     color: #ffffff;
     letter-spacing: 0.02em;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: "lnum" 1, "tnum" 1;
+    small { margin-left: 0.08em; font-size: 0.62em; font-weight: 500; letter-spacing: 0.01em; }
   }
 
   @keyframes spin {
@@ -182,8 +185,9 @@ const localizedCondition = computed(() => {
 
   @media (max-width: 720px) {
     gap: 2px;
-    .weather-main { min-height: 25px; gap: 7px; }
-    .wx-icon { width: 24px; height: 24px; }
+    .weather-main { min-height: 28px; min-width: 80px; gap: 12px; }
+    :deep(.wx-icon) { width: 24px !important; height: 24px !important; }
+    :deep(.wx-icon svg) { width: 100% !important; height: 100% !important; }
     .temp { font-size: 18px; }
     .weather-caption { gap: 6px; font-size: 12px; }
   }

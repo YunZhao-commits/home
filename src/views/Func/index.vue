@@ -1,10 +1,11 @@
 <template>
   <section class="function-card" aria-label="当地时间与天气">
     <div class="time">
-      <p class="clock">{{ clock?.hour || '—' }}:{{ clock?.minute || '—' }}</p>
-      <p v-if="clock" class="date">
-        <span>{{ clock.month }}月{{ clock.day }}日</span>
-        <span>{{ clock.weekday }}</span>
+      <p class="clock" aria-label="当地时间">{{ clock?.hour || '—' }}<span class="clock-separator">:</span>{{ clock?.minute || '—' }}</p>
+      <p v-if="clock" class="date" aria-label="当地日期">
+        <span class="calendar-day">{{ clock.month }}月{{ clock.day }}日</span>
+        <span class="date-divider" aria-hidden="true"></span>
+        <span class="weekday">{{ clock.weekday }}</span>
       </p>
     </div>
     <div class="divider" aria-hidden="true"></div>
@@ -40,29 +41,44 @@ const { clock } = useVisitorContext();
   .time {
     width: 100%;
     text-align: center;
-    font-family: Georgia, "Noto Serif CJK SC", "Songti SC", serif;
+    font-family: "HarmonyOS_Regular", "PingFang SC", "Microsoft YaHei", sans-serif;
   }
 
   .date {
-    margin: 5px 0 0;
-    color: rgba(255, 255, 255, 0.97);
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-    font-size: 17px;
-    letter-spacing: 0.02em;
+    width: min(100%, 222px);
+    min-height: 29px;
+    margin: 7px auto 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr);
+    align-items: center;
+    color: rgba(246, 253, 255, 0.94);
+    font-size: 16px;
+    line-height: 1;
+    letter-spacing: 0.035em;
     white-space: nowrap;
+
+    .calendar-day { justify-self: end; }
+    .weekday { justify-self: start; }
+    .date-divider { justify-self: center; width: 1px; height: 15px; background: rgba(214, 247, 255, 0.42); }
   }
 
   .clock {
     margin: 0;
     color: #fff;
-    font-family: Georgia, "Times New Roman", "Noto Serif CJK SC", "Songti SC", serif;
-    font-size: clamp(48px, 3.2vw, 56px);
+    font-family: Georgia, "Times New Roman", "Noto Serif", "Noto Serif SC", "Songti SC", serif;
+    font-size: clamp(52px, 3.45vw, 62px);
     font-weight: 400;
-    line-height: 1;
-    letter-spacing: 0.045em;
-    text-shadow: 0 2px 16px rgba(110, 221, 255, 0.18);
+    line-height: 1.04;
+    letter-spacing: 0.055em;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: "lnum" 1, "tnum" 1;
+    text-shadow: 0 2px 20px rgba(110, 221, 255, 0.22);
+  }
+
+  .clock-separator {
+    display: inline-block;
+    margin: 0 0.025em;
+    opacity: 0.72;
   }
 
   .divider {
@@ -82,7 +98,7 @@ const { clock } = useVisitorContext();
 @media (max-width: 1100px) and (min-width: 721px) {
   .function-card { min-height: 218px; padding-inline: 14px; }
   .function-card .date { font-size: 15px; }
-  .function-card .clock { font-size: 48px; }
+  .function-card .clock { font-size: 52px; }
 }
 
 @media (max-width: 900px) and (min-width: 721px) {
@@ -100,8 +116,9 @@ const { clock } = useVisitorContext();
     padding: 13px 12px 12px;
     border-radius: 19px;
 
-    .date { margin-top: 4px; gap: 8px; font-size: clamp(12px, 3.4vw, 15px); }
-    .clock { font-size: clamp(34px, 9vw, 43px); }
+    .date { width: min(100%, 206px); min-height: 27px; margin-top: 6px; font-size: clamp(14px, 3.8vw, 16px); }
+    .date .date-divider { height: 13px; }
+    .clock { font-size: clamp(50px, 14vw, 62px); line-height: 1.02; }
     .divider { width: 70%; margin: 8px 0 6px; }
   }
 }
