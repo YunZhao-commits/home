@@ -1,0 +1,50 @@
+[
+  {
+    "id": "featured",
+    "icon": "Star",
+    "kicker": "START HERE",
+    "name": "精选分享",
+    "subtitle": "所有精选内容，从这里开始",
+    "url": "/share"
+  },
+  {
+    "id": "tools",
+    "icon": "Tool",
+    "kicker": "TOOLS & APPS",
+    "name": "实用工具",
+    "subtitle": "效率工具与日常好物",
+    "url": "/share?category=tools"
+  },
+  {
+    "id": "vip",
+    "icon": "VipOne",
+    "kicker": "MEMBERSHIP",
+    "name": "会员福利",
+    "subtitle": "会员权益与邀请活动",
+    "url": "/share?category=vip"
+  },
+  {
+    "id": "deals",
+    "icon": "Ticket",
+    "kicker": "OFFERS",
+    "name": "优惠活动",
+    "subtitle": "正在进行的优惠与活动",
+    "url": "/share?category=deals"
+  },
+  {
+    "id": "about",
+    "icon": "Info",
+    "kicker": "ABOUT YUNCHU",
+    "name": "关于本站",
+    "subtitle": "收录原则、更新方式与说明",
+    "url": "/about"
+  },
+  {
+    "id": "contact",
+    "icon": "Mail",
+    "kicker": "SAY HELLO",
+    "name": "联系站长",
+    "subtitle": "反馈失效链接或分享建议",
+    "action": "contact"
+  }
+]

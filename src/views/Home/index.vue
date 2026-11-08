@@ -24,7 +24,7 @@
         </div>
       </main>
 
-      <section v-else-if="store.mobileOpenState" class="mobile-menu-view" aria-label="网站导航">
+      <section v-else-if="store.mobileOpenState" class="mobile-menu-view" aria-label="内容探索">
         <MainRight />
       </section>
 
@@ -199,12 +199,12 @@ const router = useRouter();
   }
 
   .mobile-menu-view {
-    width: min(600px, 100%);
+    width: min(1040px, 100%);
     margin: auto;
 
     :deep(.right) {
       width: 100%;
-      max-width: 600px;
+      max-width: 1040px;
       margin: 0;
       padding: 0 2px;
     }

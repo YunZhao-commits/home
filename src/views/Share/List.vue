@@ -145,7 +145,11 @@ const { settings, categories: siteCategories, categoryName } = useSite();
 const categories = computed(() => [{key:'all',label:'全部'}, ...siteCategories.value.map(item=>({key:item.id,label:item.name}))]);
 const page = ref(1), total = ref(0), loadingMore = ref(false), loadMoreError = ref('');
 
-const currentCategory = ref("all");
+const categoryFromQuery = (value) =>
+  typeof value === "string" && categories.value.some((item) => item.key === value)
+    ? value
+    : "all";
+const currentCategory = ref(categoryFromQuery(route.query.category));
 const searchQuery = ref("");
 const posts = ref([]);
 const featuredPost = ref(null);
@@ -188,8 +192,11 @@ const fetchPosts = async (append = false) => {
 };
 
 const selectCategory = (key) => {
-  currentCategory.value = key;
-  fetchPosts();
+  if (key === currentCategory.value) return;
+  const query = { ...route.query };
+  if (key === "all") delete query.category;
+  else query.category = key;
+  router.push({ query });
 };
 
 let searchTimer = null;
@@ -223,6 +230,13 @@ onMounted(() => {
 
 watch(() => route.query.focus, (value) => {
   if (value === "search") nextTick(focusSearch);
+});
+
+watch(() => route.query.category, (value) => {
+  const category = categoryFromQuery(value);
+  if (category === currentCategory.value) return;
+  currentCategory.value = category;
+  fetchPosts();
 });
 
 onBeforeUnmount(() => {
