@@ -124,53 +124,6 @@ const store = mainStore();
   .context-divider { width: 1px; height: 12px; background: rgba(213, 245, 249, 0.28); }
   .context-note { color: rgba(215, 237, 245, 0.62); font-family: "HarmonyOS_Regular", "PingFang SC", sans-serif; font-size: 11px; letter-spacing: 0; }
 
-  :deep(.function-card.discovery-clock) {
-    position: relative;
-    width: 100%;
-    min-height: 276px;
-    margin: 0 auto 34px;
-    padding: 28px 22px 25px;
-    overflow: hidden;
-    transform: none;
-    border: 1px solid rgba(202, 246, 255, 0.52);
-    border-radius: 27px;
-    background:
-      radial-gradient(ellipse at 85% 18%, rgba(118, 223, 231, 0.18), transparent 34%),
-      radial-gradient(ellipse at 12% 100%, rgba(20, 146, 178, 0.2), transparent 43%),
-      linear-gradient(145deg, rgba(10, 65, 91, 0.82), rgba(5, 38, 60, 0.76));
-    box-shadow: inset 0 1px 0 rgba(239, 252, 255, 0.13), 0 18px 42px rgba(0, 17, 32, 0.24);
-  }
-
-  :deep(.function-card.discovery-clock)::before {
-    content: "";
-    position: absolute;
-    top: -96px;
-    right: -64px;
-    width: 250px;
-    height: 250px;
-    border: 1px solid rgba(194, 247, 255, 0.14);
-    border-radius: 50%;
-    box-shadow: 0 0 0 18px rgba(191, 244, 255, 0.025), 0 0 0 42px rgba(191, 244, 255, 0.018);
-    pointer-events: none;
-  }
-
-  :deep(.function-card.discovery-clock .time),
-  :deep(.function-card.discovery-clock .divider),
-  :deep(.function-card.discovery-clock .weather) { position: relative; z-index: 1; }
-
-  :deep(.function-card.discovery-clock .clock) {
-    font-size: clamp(62px, 7vw, 82px);
-    letter-spacing: 0.075em;
-  }
-
-  :deep(.function-card.discovery-clock .date) {
-    width: min(100%, 248px);
-    margin-top: 8px;
-    font-size: 17px;
-  }
-
-  :deep(.function-card.discovery-clock .divider) { width: min(75%, 520px); margin: 17px 0 14px; }
-  :deep(.function-card.discovery-clock .weather) { gap: 5px; }
 }
 
 @media (max-width: 720px) {
@@ -184,16 +137,6 @@ const store = mainStore();
     .local-context { margin-bottom: 7px; gap: 7px; font-size: 9px; letter-spacing: 0.11em; }
     .context-note { font-size: 10px; }
 
-    :deep(.function-card.discovery-clock) {
-      min-height: 238px;
-      margin-bottom: 28px;
-      padding: 23px 16px 20px;
-      border-radius: 23px;
-    }
-
-    :deep(.function-card.discovery-clock .clock) { font-size: clamp(58px, 15vw, 72px); }
-    :deep(.function-card.discovery-clock .date) { font-size: 16px; }
-    :deep(.function-card.discovery-clock .divider) { margin: 14px 0 11px; }
   }
 }
 
