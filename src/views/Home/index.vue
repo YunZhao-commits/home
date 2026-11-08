@@ -1,6 +1,6 @@
 <template>
   <div class="home-wrapper" v-show="!store.backgroundShow">
-    <div v-if="!store.setOpenState" class="home-stage">
+    <div v-if="!store.setOpenState" id="home-stage" class="home-stage">
       <main v-if="!store.mobileOpenState && !store.boxOpenState" class="landing">
         <div class="brand-row">
           <Message />
@@ -37,22 +37,23 @@
       <MoreSet />
     </section>
 
-    <Icon
+    <button
       class="menu glass-btn"
-      size="24"
+      type="button"
       v-show="!store.backgroundShow && !store.setOpenState"
       :aria-label="store.mobileOpenState ? '关闭导航' : '打开导航'"
+      :aria-expanded="store.mobileOpenState"
+      aria-controls="home-stage"
       @click="store.mobileOpenState = !store.mobileOpenState"
     >
-      <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
-    </Icon>
+      <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" theme="outline" size="24" />
+    </button>
   </div>
 </template>
 
 <script setup>
 import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
 import { useRouter } from "vue-router";
-import Icon from "@/components/Icon.vue";
 import Message from "@/components/Message.vue";
 import Hitokoto from "@/components/Hitokoto.vue";
 import SocialLinks from "@/components/SocialLinks.vue";
@@ -246,6 +247,11 @@ const router = useRouter();
     -webkit-backdrop-filter: blur(12px);
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
+
+    &:focus-visible {
+      outline: 2px solid #76f0ed;
+      outline-offset: 3px;
+    }
 
     &:active { transform: translateX(-50%) scale(0.94); }
   }

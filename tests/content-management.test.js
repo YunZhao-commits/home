@@ -6,6 +6,8 @@ import { onRequest as admin } from '../functions/api/admin.js';
 import { onRequest as posts } from '../functions/api/posts.js';
 import { onRequest as catalog } from '../functions/api/catalog.js';
 import { onRequest as media } from '../functions/api/media.js';
+import { onRequest as broadcast } from '../functions/api/broadcast.js';
+import { onRequest as views } from '../functions/api/views.js';
 
 const db = new DatabaseSync(':memory:');
 const env = { ADMIN_PASSWORD: 'local-test-password-only' };
@@ -67,6 +69,53 @@ test('未登录不能读写管理数据；登录签发有效会话', async () =>
   assert.ok(token);
   const malformed = await admin({ request: new Request('http://localhost:5173/api/admin?action=posts', { headers: { Origin: origin, Host: 'localhost:5173', Authorization: `Bearer ${token}.extra` } }), env });
   assert.equal(malformed.status, 401);
+});
+
+test('管理员登录尝试使用 D1 共享限流，且只保存加密指纹', async () => {
+  const ip = '198.51.100.44';
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const response = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', {
+      body: { password: 'wrong-password' },
+      headers: { 'CF-Connecting-IP': ip },
+    }));
+    assert.equal(response.status, 401);
+  }
+  const stored = db.prepare('SELECT ip_hash, attempts FROM admin_login_limits').all();
+  assert.equal(stored.length, 1);
+  assert.ok(stored.every(row => !row.ip_hash.includes(ip) && /^[a-f0-9]{64}$/.test(row.ip_hash)));
+  assert.equal(stored[0].attempts, 5);
+  for (let attempt = 6; attempt <= 7; attempt += 1) {
+    const limited = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', {
+      body: { password: 'wrong-password' },
+      headers: { 'CF-Connecting-IP': ip },
+    }));
+    assert.equal(limited.status, 429);
+    assert.equal(db.prepare('SELECT attempts FROM admin_login_limits WHERE ip_hash = ?').get(stored[0].ip_hash).attempts, 5);
+  }
+  db.prepare('UPDATE admin_login_limits SET window_started = ? WHERE ip_hash = ?')
+    .run(Date.now() - 60001, stored[0].ip_hash);
+  const restarted = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', {
+    body: { password: 'wrong-password' },
+    headers: { 'CF-Connecting-IP': ip },
+  }));
+  assert.equal(restarted.status, 401);
+  assert.equal(db.prepare('SELECT attempts FROM admin_login_limits WHERE ip_hash = ?').get(stored[0].ip_hash).attempts, 1);
+});
+
+test('旧版公开写入与访问量接口已关闭', async () => {
+  const oldWrite = await broadcast({ request: new Request('https://191607.xyz/api/broadcast', { method: 'POST' }), env });
+  const oldCounter = await views({ request: new Request('https://191607.xyz/api/views'), env });
+  assert.equal(oldWrite.status, 410);
+  assert.equal(oldCounter.status, 410);
+});
+
+test('公开文章接口不再把数据库异常细节返回给访客', async () => {
+  const broken = await posts({
+    request: new Request('https://191607.xyz/api/posts'),
+    env: { DB: { prepare: () => { throw new Error('private-schema-detail'); } } },
+  });
+  assert.equal(broken.status, 500);
+  assert.equal((await broken.json()).error, '精选分享暂时不可用，请稍后重试');
 });
 
 test('旧版 D1 升级脚本保留文章和 page_views，只补充管理所需字段与表', async () => {
@@ -139,7 +188,10 @@ test('草稿创建、发布、查询、分页搜索、下架与回收站恢复',
   assert.equal(listBody.data[0].disclosure, '测试说明');
   assert.equal(listBody.data[0].is_featured, 1);
   const detail = await posts({ request: new Request(`https://191607.xyz/api/posts?id=${postId}`), env, waitUntil: () => {} });
-  assert.equal((await detail.json()).data.id, postId);
+  const detailBody = await detail.json();
+  assert.equal(detailBody.data.id, postId);
+  assert.equal(Object.hasOwn(detailBody.data, 'view_count'), false);
+  assert.equal(db.prepare('SELECT view_count FROM posts WHERE id = ?').get(postId).view_count, 0);
   const invalidUrl = await adminCall('posts', 'PUT', { body: { id: postId, link_url: 'javascript:alert(1)' } });
   assert.equal(invalidUrl.status, 400);
 

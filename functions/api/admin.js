@@ -9,29 +9,75 @@ import { handleAction, jsonBody } from '../_lib/manage.js';
  * - Optional: Cloudflare Zero Trust / Access header passthrough
  */
 
-// NOTE: In Cloudflare Workers/Pages Functions, this in-memory Map is per-isolate.
-// Different global edge POPs / instances do NOT share this memory map.
-// It mitigates rapid burst brute-force attacks on the same isolate, but is NOT a global distributed rate limiter.
 const loginAttempts = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_ATTEMPTS = 5;
 
-function checkRateLimit(ip) {
+async function ipFingerprint(ip, secret) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(ip)));
+  return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function checkRateLimit(context, ip, secret) {
   const now = Date.now();
-  const record = loginAttempts.get(ip) || { count: 0, firstAttempt: now };
+  const fingerprint = await ipFingerprint(ip, secret);
+
+  if (context.env.DB) {
+    try {
+      const record = await context.env.DB.prepare(`
+        INSERT INTO admin_login_limits (ip_hash, window_started, attempts)
+        VALUES (?, ?, 1)
+        ON CONFLICT(ip_hash) DO UPDATE SET
+          window_started = CASE
+            WHEN admin_login_limits.window_started <= ? THEN excluded.window_started
+            ELSE admin_login_limits.window_started
+          END,
+          attempts = CASE
+            WHEN admin_login_limits.window_started <= ? THEN 1
+            ELSE admin_login_limits.attempts + 1
+          END
+        WHERE admin_login_limits.window_started <= ?
+          OR admin_login_limits.attempts < ?
+        RETURNING attempts
+      `).bind(fingerprint, now, now - RATE_LIMIT_WINDOW, now - RATE_LIMIT_WINDOW,
+        now - RATE_LIMIT_WINDOW, MAX_ATTEMPTS).first();
+
+      if (record && Math.random() < 0.01 && context.waitUntil) {
+        context.waitUntil(
+          context.env.DB.prepare("DELETE FROM admin_login_limits WHERE window_started < ?")
+            .bind(now - RATE_LIMIT_WINDOW * 2)
+            .run()
+            .catch(() => {}),
+        );
+      }
+      return { allowed: Boolean(record) && Number(record.attempts) <= MAX_ATTEMPTS, fingerprint, shared: true };
+    } catch {
+      // If the migration has not been applied yet, keep the login path working
+      // with a per-isolate fallback until the D1 table is available.
+    }
+  }
+
+  const record = loginAttempts.get(fingerprint) || { count: 0, firstAttempt: now };
 
   if (now - record.firstAttempt > RATE_LIMIT_WINDOW) {
-    loginAttempts.set(ip, { count: 1, firstAttempt: now });
-    return true;
+    loginAttempts.set(fingerprint, { count: 1, firstAttempt: now });
+    return { allowed: true, fingerprint, shared: false };
   }
 
   if (record.count >= MAX_ATTEMPTS) {
-    return false;
+    return { allowed: false, fingerprint, shared: false };
   }
 
   record.count += 1;
-  loginAttempts.set(ip, record);
-  return true;
+  loginAttempts.set(fingerprint, record);
+  return { allowed: true, fingerprint, shared: false };
 }
 
 function isAllowedOrigin(origin, request) {
@@ -139,7 +185,8 @@ export async function onRequest(context) {
 
   // 1. LOGIN HANDLER
   if (request.method === "POST" && action === "login") {
-    if (!checkRateLimit(clientIp)) {
+    const rateLimit = await checkRateLimit(context, clientIp, adminSecret);
+    if (!rateLimit.allowed) {
       return Response.json(
         { error: "Too many login attempts. Please wait 1 minute." },
         { status: 429, headers: corsHeaders }
@@ -168,6 +215,13 @@ export async function onRequest(context) {
         return Response.json({ error: "Invalid password" }, { status: 401, headers: corsHeaders });
       }
 
+      if (rateLimit.shared) {
+        await env.DB.prepare("DELETE FROM admin_login_limits WHERE ip_hash = ?")
+          .bind(rateLimit.fingerprint)
+          .run()
+          .catch(() => {});
+      }
+
       const tokenPayload = JSON.stringify({
         role: "admin",
         iat: Date.now(),
@@ -176,8 +230,11 @@ export async function onRequest(context) {
       const token = await signToken(tokenPayload, adminSecret);
 
       return Response.json({ success: true, token }, { headers: corsHeaders });
-    } catch (e) {
-      return Response.json({ error: e.message }, { status: 400, headers: corsHeaders });
+    } catch (error) {
+      return Response.json(
+        { error: error.status ? error.message : "登录暂时失败，请稍后重试" },
+        { status: error.status || 500, headers: corsHeaders },
+      );
     }
   }
 

@@ -33,18 +33,57 @@
 
 <script setup>
 import { Folder, Star, Tool, VipOne, Ticket, Info, Mail } from "@icon-park/vue-next";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
-import siteLinks from "@/assets/homeNavigation.json";
 import { useSite } from "@/composables/useSite";
 
 const router = useRouter();
-const { settings } = useSite();
+const { settings, categories } = useSite();
 const iconMap = { Folder, Star, Tool, VipOne, Ticket, Info, Mail };
+const categoryIcons = { tools: "Tool", vip: "VipOne", deals: "Ticket" };
+const siteLinks = computed(() => [
+  {
+    id: "featured",
+    icon: "Star",
+    kicker: "START HERE",
+    name: "精选分享",
+    subtitle: "所有精选内容，从这里开始",
+    url: "/share",
+  },
+  ...categories.value.map((category) => ({
+    id: `category-${category.id}`,
+    category: category.id,
+    icon: categoryIcons[category.id] || "Folder",
+    kicker: "EXPLORE CATEGORY",
+    name: category.name,
+    subtitle: `浏览「${category.name}」相关分享`,
+  })),
+  {
+    id: "about",
+    icon: "Info",
+    kicker: "ABOUT YUNCHU",
+    name: "关于本站",
+    subtitle: "收录原则、更新方式与说明",
+    url: "/about",
+  },
+  {
+    id: "contact",
+    icon: "Mail",
+    kicker: "SAY HELLO",
+    name: "联系站长",
+    subtitle: "反馈失效链接或分享建议",
+    action: "contact",
+  },
+]);
 
 const jumpLink = (item) => {
   if (item.action === "contact") {
     const email = settings.value.contact_email;
     if (email) window.location.href = `mailto:${email}`;
+    return;
+  }
+  if (item.category) {
+    router.push({ path: "/share", query: { category: item.category } });
     return;
   }
   if (item.url) router.push(item.url);

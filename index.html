@@ -2,7 +2,6 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Access-Control-Allow-Origin" content="*" />
     <!-- CSP is primarily delivered via Cloudflare _headers; meta tag provides fallback -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' static.cloudflareinsights.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -10,21 +9,21 @@
     <link rel="apple-touch-icon" href="%VITE_SITE_APPLE_LOGO%" />
     <link rel="bookmark" href="%VITE_SITE_APPLE_LOGO%" />
     <link rel="apple-touch-icon-precomposed" sizes="200x200" href="%VITE_SITE_APPLE_LOGO%" />
-    <meta name="description" content="%VITE_SITE_DES%" />
+    <meta name="description" content="云初工作室精选分享实用工具、会员权益与优惠资源，提供清晰说明、领取步骤与邀请链接。" />
     <meta name="keywords" content="%VITE_SITE_KEYWORDS%" />
     <meta name="author" content="%VITE_SITE_AUTHOR%" />
     <meta property="og:title" content="%VITE_SITE_NAME%" />
-    <meta property="og:description" content="%VITE_SITE_DES%" />
+    <meta property="og:description" content="云初工作室精选分享实用工具、会员权益与优惠资源，提供清晰说明、领取步骤与邀请链接。" />
     <meta property="og:image" content="%VITE_SITE_URL%/screenshots/main.jpg" />
     <meta property="og:url" content="%VITE_SITE_URL%" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="%VITE_SITE_NAME%" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="%VITE_SITE_NAME%" />
-    <meta name="twitter:description" content="%VITE_SITE_DES%" />
+    <meta name="twitter:description" content="云初工作室精选分享实用工具、会员权益与优惠资源，提供清晰说明、领取步骤与邀请链接。" />
     <meta name="twitter:image" content="%VITE_SITE_URL%/screenshots/main.jpg" />
     <link rel="canonical" href="%VITE_SITE_URL%" />
-    <meta name="theme-color" content="#424242" />
+    <meta name="theme-color" content="#062c3d" />
     <title>%VITE_SITE_NAME%</title>
     <!-- IE Out -->
     <script>
@@ -63,10 +62,6 @@
         if (el) { el.style.display = 'flex'; el.textContent = 'Promise Error: ' + err; }
         if (ld) ld.style.display = 'none';
       });
-    </script>
-    <script>
-      // 临时禁用 SW 以排查问题
-      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
     </script>
     <script type="module" src="/src/main.js"></script>
   </body>

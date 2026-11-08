@@ -45,7 +45,6 @@ import {
   Lightning,
   LoadingFour,
   Caution,
-  LocalTwo,
 } from "@icon-park/vue-next";
 import { computed } from "vue";
 import { useVisitorContext } from "@/composables/useVisitorContext";

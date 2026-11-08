@@ -229,6 +229,15 @@ const copyShareUrl = async () => {
 };
 
 watch(() => route.params.id, fetchDetail, { immediate: true });
+watch(
+  () => [post.value?.title, settings.value.site_name],
+  ([title, siteName]) => {
+    document.title = title
+      ? `${title} | ${siteName} 精选分享`
+      : `精选分享 | ${siteName}`;
+  },
+  { immediate: true },
+);
 </script>
 
 <style lang="scss" scoped>

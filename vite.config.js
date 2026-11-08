@@ -17,7 +17,7 @@ export default ({ mode }) => {
     "%VITE_SITE_NAME%": env.VITE_SITE_NAME || "Yunchu Studio",
     "%VITE_SITE_LOGO%": env.VITE_SITE_LOGO || "/images/avatar.png",
     "%VITE_SITE_APPLE_LOGO%": env.VITE_SITE_APPLE_LOGO || "/images/avatar.png",
-    "%VITE_SITE_DES%": env.VITE_SITE_DES || "A Private Digital Infrastructure",
+    "%VITE_SITE_DES%": env.VITE_SITE_DES || "云初工作室精选分享实用工具、会员权益与优惠资源，提供清晰说明、领取步骤与邀请链接。",
     "%VITE_SITE_KEYWORDS%": env.VITE_SITE_KEYWORDS || "Yunchu, 个人门户",
     "%VITE_SITE_AUTHOR%": env.VITE_SITE_AUTHOR || "Yunchu Studio",
     "%VITE_SITE_URL%": env.VITE_SITE_URL || "https://191607.xyz",
@@ -105,7 +105,7 @@ export default ({ mode }) => {
         manifest: {
           name: env.VITE_SITE_NAME,
           short_name: env.VITE_SITE_NAME,
-          description: env.VITE_SITE_DES,
+          description: "云初工作室精选分享实用工具、会员权益与优惠资源，提供清晰说明、领取步骤与邀请链接。",
           lang: "zh-CN",
           dir: "ltr",
           scope: "/",
@@ -113,8 +113,8 @@ export default ({ mode }) => {
           display: "standalone",
           display_override: ["window-controls-overlay", "standalone", "minimal-ui"],
           orientation: "any",
-          theme_color: "#424242",
-          background_color: "#424242",
+          theme_color: "#062c3d",
+          background_color: "#062c3d",
           categories: ["personalization", "utilities"],
           screenshots: [
             {

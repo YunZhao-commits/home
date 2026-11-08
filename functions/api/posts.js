@@ -34,12 +34,10 @@ export async function onRequest(context) {
   if (!env.DB) {
     return Response.json(
       {
-        error: "Database not bound",
-        is_fallback: true,
-        data: [],
+        error: "精选分享暂时不可用，请稍后重试",
       },
       {
-        status: 200,
+        status: 503,
         headers: {
           "Content-Type": "application/json",
           "Cache-Control": "no-store",
@@ -52,20 +50,13 @@ export async function onRequest(context) {
     // 1. Single Post Detail
     if (postId) {
       const stmt = env.DB.prepare(
-        "SELECT * FROM posts WHERE id = ? AND status IN ('published', 'expired')"
+        "SELECT id, title, summary, content, category, link_type, link_url, disclosure, validity, provider, status, is_featured, cover_url, created_at, updated_at FROM posts WHERE id = ? AND status IN ('published', 'expired')"
       ).bind(postId);
       const post = await stmt.first();
 
       if (!post) {
         return Response.json({ error: "Post not found" }, { status: 404 });
       }
-
-      // Increment view_count asynchronously
-      context.waitUntil(
-        env.DB.prepare(
-          "UPDATE posts SET view_count = view_count + 1 WHERE id = ?"
-        ).bind(postId).run().catch(() => {})
-      );
 
       return Response.json(
         { data: post },
@@ -113,10 +104,10 @@ export async function onRequest(context) {
         },
       }
     );
-  } catch (error) {
+  } catch {
     return Response.json(
-      { error: error.message, is_fallback: true, data: [] },
-      { status: 500 }
+      { error: "精选分享暂时不可用，请稍后重试" },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }

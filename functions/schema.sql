@@ -46,3 +46,11 @@ CREATE TABLE IF NOT EXISTS media (
   body TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+
+-- Shared, short-lived admin login throttling stores only a keyed IP fingerprint.
+CREATE TABLE IF NOT EXISTS admin_login_limits (
+  ip_hash TEXT PRIMARY KEY,
+  window_started INTEGER NOT NULL,
+  attempts INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_admin_login_limits_window ON admin_login_limits (window_started);

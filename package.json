@@ -11,8 +11,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:content": "node --test tests/content-management.test.js",
+    "test": "node --test tests/*.test.js",
     "format": "prettier --write src/",
-    "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix"
+    "lint": "eslint src functions shared tests --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue"
   },
   "dependencies": {
     "@icon-park/vue-next": "^1.4.2",

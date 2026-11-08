@@ -65,6 +65,16 @@
 
           <div class="info-card card-blur">
             <div class="card-title">
+              <span class="icon" aria-hidden="true">⌖</span>
+              <span>时间与天气如何显示</span>
+            </div>
+            <p class="card-desc">
+              页面时区与天气地区根据访问连接的网络信息作近似判断，不会请求浏览器设备定位，也不会弹出定位权限请求。VPN、代理或运营商网络可能影响判断结果。天气查询使用近似地区，不向天气服务转发访客 IP；页面不会展示 IP 地址或精确坐标。
+            </p>
+          </div>
+
+          <div class="info-card card-blur">
+            <div class="card-title">
               <span class="icon" aria-hidden="true">✉</span>
               <span>联系方式</span>
             </div>

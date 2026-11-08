@@ -1,4 +1,10 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
+import { legacyRouteFromHash } from "../../shared/legacy-route.js";
+
+// Keep existing links such as /#/share?category=tools working after switching
+// to readable, crawler-friendly URLs.
+const legacyPath = legacyRouteFromHash(window.location.hash);
+if (legacyPath) window.history.replaceState(window.history.state, "", legacyPath);
 
 const routes = [
   {
@@ -38,7 +44,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior() {
     return { top: 0 };
