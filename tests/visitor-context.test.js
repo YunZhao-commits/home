@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clockParts, capsuleProgress } from '../shared/visitor-time.js';
+import { clockParts, capsuleProgress, preferredTimeZone } from '../shared/visitor-time.js';
 import { onRequest as visitor } from '../functions/api/visitor-context.js';
 import { onRequest as weather } from '../functions/api/weather.js';
 const cf = { timezone:'Asia/Kathmandu', city:'Kathmandu', country:'NP', latitude:'27.717245', longitude:'85.323958' };
@@ -13,6 +13,11 @@ test('IP timezone clock handles fractional offsets and date line independently o
   assert.equal(clockParts(t,'Pacific/Kiritimati').hour,'10');
   assert.equal(clockParts(t,'America/Los_Angeles').day,'06');
   assert.equal(clockParts(t,null),null);
+});
+test('device timezone takes priority; valid network IP timezone is the fallback', () => {
+  assert.deepEqual(preferredTimeZone('Europe/Paris', 'America/New_York'), { timeZone:'Europe/Paris', source:'device' });
+  assert.deepEqual(preferredTimeZone('Invalid/Zone', 'America/New_York'), { timeZone:'America/New_York', source:'network-ip' });
+  assert.deepEqual(preferredTimeZone(null, null), { timeZone:null, source:null });
 });
 test('capsule uses completed calendar days, Monday weeks, leap years and local midnight', () => {
   const p = capsuleProgress(Date.parse('2024-03-01T00:00:00Z'),'UTC');

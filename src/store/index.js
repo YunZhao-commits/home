@@ -89,10 +89,9 @@ export const mainStore = defineStore("main", {
       "playerLoop",
       "playerOrder",
     ],
-    // 老版本默认值为 1（第三方每日一图）。迁移已有访客的旧默认设置，
-    // 让更新后首次载入也使用本地壁纸；用户之后仍可在设置中主动选择其他类型。
+    // 清理已下线的第三方随机壁纸选项；避免旧设置继续请求失效接口。
     afterRestore: ({ store }) => {
-      if (String(store.coverType) === "1") {
+      if (["2", "3"].includes(String(store.coverType))) {
         store.coverType = "0";
         store.$persist();
       }

@@ -1,7 +1,6 @@
 <template>
   <div :class="store.backgroundShow ? 'cover show' : 'cover'">
     <img
-      v-show="store.imgLoadStatus"
       :src="bgUrl"
       class="bg"
       alt="cover"
@@ -12,7 +11,7 @@
     <div :class="store.backgroundShow ? 'gray hidden' : 'gray'" />
     <Transition name="fade" mode="out-in">
       <a
-        v-if="store.backgroundShow && store.coverType != '3'"
+        v-if="store.backgroundShow"
         class="down"
         :href="bgUrl"
         target="_blank"
@@ -46,10 +45,6 @@ const changeBg = (type) => {
     bgUrl.value = `/images/background${bgRandom}.jpg`;
   } else if (type == 1) {
     bgUrl.value = "https://api.dujin.org/bing/1920.php"; // 必应每日一图
-  } else if (type == 2) {
-    bgUrl.value = "https://api.vvhan.com/api/wallpaper/views"; // 随机风景
-  } else if (type == 3) {
-    bgUrl.value = "https://api.vvhan.com/api/wallpaper/acg"; // 随机动漫
   }
 };
 

@@ -69,7 +69,7 @@
               <span>时间与天气如何显示</span>
             </div>
             <p class="card-desc">
-              页面时区与天气地区根据访问连接的网络信息作近似判断，不会请求浏览器设备定位，也不会弹出定位权限请求。VPN、代理或运营商网络可能影响判断结果。天气查询使用近似地区，不向天气服务转发访客 IP；页面不会展示 IP 地址或精确坐标。
+              时钟优先使用浏览器提供的设备时区；检测不到时才回退到访问网络的 IP 时区。天气城市根据网络地区作近似判断，不会请求设备定位或弹出权限框。VPN、代理或运营商网络可能影响天气地区；查询天气时不会向天气服务转发访客 IP，页面也不会展示 IP 地址或精确坐标。
             </p>
           </div>
 
@@ -102,6 +102,15 @@
             </div>
 
             <div class="meta-item">
+              <div class="label"><span aria-hidden="true">▦</span> 已收录分享</div>
+              <div class="val">
+                <span v-if="postCount === null">读取中…</span>
+                <span v-else-if="postCount < 0">暂不可用</span>
+                <span v-else>{{ postCount }} 条</span>
+              </div>
+            </div>
+
+            <div class="meta-item">
               <div class="label"><span aria-hidden="true">◷</span> 内容核对</div>
               <div class="val">以页面标注与官方信息为准</div>
             </div>
@@ -113,13 +122,24 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { getPublicPosts } from "@/api/posts";
 import { useSite } from "@/composables/useSite";
 import SiteHeader from "@/components/SiteHeader.vue";
 
 const { settings } = useSite();
 const contactEmail = computed(() => settings.value.contact_email);
 const contactUrl = computed(() => `mailto:${contactEmail.value}`);
+const postCount = ref(null);
+
+onMounted(async () => {
+  const result = await getPublicPosts({ page: 1 });
+  postCount.value = result.error
+    ? -1
+    : Number.isFinite(result.total)
+      ? result.total
+      : result.list.length;
+});
 </script>
 
 <style lang="scss" scoped>

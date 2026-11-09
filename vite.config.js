@@ -48,7 +48,14 @@ export default ({ mode }) => {
   workbox: {
     skipWaiting: true,
     clientsClaim: true,
-    navigateFallbackDenylist: [/^\/api\//, /^\/robots\.txt$/i, /^\/sitemap\.xml$/i],
+    navigateFallbackDenylist: [
+      /^\/api\//,
+      /^\/robots\.txt$/i,
+      /^\/sitemap\.xml$/i,
+      // Let Cloudflare return real 404s for unknown paths. Only the SPA's
+      // actual routes may use the cached app shell as an offline fallback.
+      /^\/(?!$|about\/?$|notes\/?$|admin\/?$|share(?:\/[^/]+)?\/?$).+/
+    ],
 
     // ── 新增 1：将 siteLinks.json 从预缓存清单中排除 ──
     // 避免被 precacheAndRoute 锁死版本，交给下方运行时规则接管

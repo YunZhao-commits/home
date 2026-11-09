@@ -9,18 +9,19 @@
           <p>请输入管理员邮箱和密码</p>
         </div>
 
-        <form class="login-form" @submit.prevent="handleLogin">
+        <form class="login-form" autocomplete="off" @submit.prevent="handleLogin">
           <div class="input-wrap">
             <span class="input-icon" aria-hidden="true">✉</span>
-            <input v-model="email" type="email" placeholder="请输入管理员邮箱" aria-label="管理员邮箱" autocomplete="username" required />
+            <input v-model="email" name="admin-email" type="email" placeholder="请输入管理员邮箱" aria-label="管理员邮箱" autocomplete="off" required />
           </div>
           <div class="input-wrap">
             <Lock theme="outline" size="18" fill="rgba(255,255,255,0.6)" class="input-icon" />
             <input
               v-model="password"
+              name="admin-password"
               type="password"
               placeholder="请输入管理密码"
-              autocomplete="current-password"
+              autocomplete="off"
               required
             />
           </div>
@@ -393,6 +394,8 @@ const handleLogout = () => {
   sessionStorage.removeItem("admin_token");
   token.value = "";
   isLoggedIn.value = false;
+  email.value = "";
+  password.value = "";
   ElMessage.info("已退出后台");
 };
 
@@ -512,7 +515,8 @@ const confirmDelete = (id) => {
       try {
         const res = await adminDeletePost(id, token.value);
         if (!res.success) throw new Error(res.error || "云端删除失败");
-        postsList.value = postsList.value.filter((p) => p.id !== id);
+        const deletedPost = postsList.value.find((post) => post.id === id);
+        if (deletedPost) deletedPost.status = "deleted";
         ElMessage.success("已移到回收站，可在状态筛选中恢复");
       } catch (error) {
         ElMessage.error(error.message || "删除失败，云端内容未更改");

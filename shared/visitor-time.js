@@ -3,6 +3,11 @@ export function validTimeZone(zone) {
   if (typeof zone !== 'string' || !zone) return false;
   try { new Intl.DateTimeFormat('en', { timeZone: zone }); return true; } catch { return false; }
 }
+export function preferredTimeZone(deviceZone, networkZone) {
+  if (validTimeZone(deviceZone)) return { timeZone: deviceZone, source: 'device' };
+  if (validTimeZone(networkZone)) return { timeZone: networkZone, source: 'network-ip' };
+  return { timeZone: null, source: null };
+}
 export function clockParts(now, timeZone) {
   if (!validTimeZone(timeZone)) return null;
   if (!formatters.has(timeZone)) formatters.set(timeZone, new Intl.DateTimeFormat('en-CA', {

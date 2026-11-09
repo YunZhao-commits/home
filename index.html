@@ -37,7 +37,12 @@
   <body>
     <!-- 主体内容 -->
     <div id="app">
-      <div id="app-loading" style="display:flex;align-items:center;justify-content:center;height:100vh;color:rgba(255,255,255,0.6);font-family:sans-serif;font-size:14px">Loading...</div>
+      <main id="app-loading" style="min-height:100vh;display:grid;place-content:center;gap:12px;padding:24px;text-align:center;color:#effbff;font-family:system-ui,sans-serif;background:radial-gradient(ellipse at 50% 32%,#15596d 0,#082f42 48%,#031c2a 100%)">
+        <p style="margin:0;color:#8ff4ed;letter-spacing:.18em;font-size:12px">YUNCHU STUDIO</p>
+        <h1 style="margin:0;font-family:Georgia,'Noto Serif CJK SC',serif;font-size:clamp(28px,6vw,48px)">云初工作室</h1>
+        <p style="max-width:34rem;margin:0 auto;color:#c8dce4;line-height:1.8">整理、筛选并分享日常发现的实用工具、会员权益与优质资源。</p>
+        <p style="margin:8px 0 0"><a href="/share" style="color:#8ff4ed">浏览精选分享 →</a></p>
+      </main>
       <div id="app-error" style="display:none;align-items:center;justify-content:center;height:100vh;color:#f87171;font-family:monospace;font-size:13px;padding:20px;white-space:pre-wrap;word-break:break-all"></div>
     </div>
     <!-- noscript -->

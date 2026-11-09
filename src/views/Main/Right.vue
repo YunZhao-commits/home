@@ -14,7 +14,7 @@
       <span class="context-indicator" aria-hidden="true"></span>
       <span>YOUR LOCAL SKY</span>
       <span class="context-divider" aria-hidden="true"></span>
-      <span class="context-note">依网络地区显示当地时间与天气，不请求设备定位</span>
+      <span class="context-note">时钟优先使用设备时区；天气按网络地区估算，不请求设备定位</span>
     </div>
 
     <Func class="discovery-clock" />

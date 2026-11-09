@@ -9,31 +9,27 @@
 
   <CommandPalette />
 
-  <Loading />
-
   <Background />
-  
-  <Transition name="fade" mode="out-in">
-    <main id="main" v-if="store.imgLoadStatus">
-      <router-view v-slot="{ Component }">
-        <Transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </Transition>
-      </router-view>
 
+  <main id="main">
+    <router-view v-slot="{ Component }">
       <Transition name="fade" mode="out-in">
-        <Footer
-          class="f-ter"
-          v-if="
-            !store.backgroundShow &&
-            !store.setOpenState &&
-            !['Home', 'ShareList', 'ShareDetail', 'Notes', 'About', 'Admin'].includes(router.currentRoute.value.name)
-          "
-        />
+        <component :is="Component" />
       </Transition>
-    </main>
-  </Transition>
-  
+    </router-view>
+
+    <Transition name="fade" mode="out-in">
+      <Footer
+        class="f-ter"
+        v-if="
+          !store.backgroundShow &&
+          !store.setOpenState &&
+          !['Home', 'ShareList', 'ShareDetail', 'Notes', 'About', 'Admin'].includes(router.currentRoute.value.name)
+        "
+      />
+    </Transition>
+  </main>
+
   <AiWidget
     v-if="
       !['Home', 'ShareList', 'ShareDetail', 'Notes', 'About', 'Admin'].includes(
@@ -47,7 +43,6 @@
 import AiWidget from '@/components/AiWidget.vue';
 import { mainStore } from "@/store";
 
-import Loading from "@/components/Loading.vue";
 import Background from "@/components/Background.vue";
 import Footer from "@/components/Footer.vue";
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
