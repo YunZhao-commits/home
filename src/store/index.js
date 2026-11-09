@@ -5,7 +5,7 @@ export const mainStore = defineStore("main", {
     return {
       imgLoadStatus: false, // 壁纸加载状态
       innerWidth: null, // 当前窗口宽度
-      coverType: "1", // 壁纸种类
+      coverType: "0", // 默认使用本站自带壁纸，避免默认向第三方图片站发起请求
       siteStartShow: false, // 建站日期显示
       musicClick: false, // 音乐链接是否跳转
       musicIsOk: false, // 音乐是否加载完成
@@ -89,5 +89,13 @@ export const mainStore = defineStore("main", {
       "playerLoop",
       "playerOrder",
     ],
+    // 老版本默认值为 1（第三方每日一图）。迁移已有访客的旧默认设置，
+    // 让更新后首次载入也使用本地壁纸；用户之后仍可在设置中主动选择其他类型。
+    afterRestore: ({ store }) => {
+      if (String(store.coverType) === "1") {
+        store.coverType = "0";
+        store.$persist();
+      }
+    },
   },
 });

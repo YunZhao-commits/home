@@ -6,7 +6,6 @@ import { VitePWA } from "vite-plugin-pwa";
 import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
-import viteCompression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
 export default ({ mode }) => {
@@ -49,7 +48,7 @@ export default ({ mode }) => {
   workbox: {
     skipWaiting: true,
     clientsClaim: true,
-    navigateFallbackDenylist: [/^\/api\//],
+    navigateFallbackDenylist: [/^\/api\//, /^\/robots\.txt$/i, /^\/sitemap\.xml$/i],
 
     // ── 新增 1：将 siteLinks.json 从预缓存清单中排除 ──
     // 避免被 precacheAndRoute 锁死版本，交给下方运行时规则接管
@@ -174,7 +173,6 @@ export default ({ mode }) => {
           ],
         },
       }),
-      viteCompression(),
     ],
     server: {
       port: "3000",
