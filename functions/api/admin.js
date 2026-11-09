@@ -185,6 +185,8 @@ export async function onRequest(context) {
 
   // 1. LOGIN HANDLER
   if (request.method === "POST" && action === "login") {
+    const adminEmail = typeof env.ADMIN_EMAIL === "string" ? env.ADMIN_EMAIL.trim().toLowerCase() : "";
+    if (!adminEmail) return Response.json({ error: "管理员邮箱未配置" }, { status: 503, headers: corsHeaders });
     const rateLimit = await checkRateLimit(context, clientIp, adminSecret);
     if (!rateLimit.allowed) {
       return Response.json(
@@ -195,6 +197,7 @@ export async function onRequest(context) {
 
     try {
       const body = await jsonBody(request);
+      const inputEmail = typeof body.email === "string" && body.email.length <= 320 ? body.email.trim().toLowerCase() : "";
       const inputPass = typeof body.password === "string" && body.password.length <= 256 ? body.password : "";
 
       // Constant-time comparison
@@ -211,8 +214,8 @@ export async function onRequest(context) {
         matched = diff === 0;
       }
 
-      if (!matched) {
-        return Response.json({ error: "Invalid password" }, { status: 401, headers: corsHeaders });
+      if (!matched || inputEmail !== adminEmail) {
+        return Response.json({ error: "邮箱或密码错误" }, { status: 401, headers: corsHeaders });
       }
 
       if (rateLimit.shared) {

@@ -6,10 +6,14 @@
         <div class="login-header">
           <img class="avatar" src="/images/avatar.png" alt="logo" />
           <h2>站长管理终端</h2>
-          <p>请输入站长独立管理密码以验证身份</p>
+          <p>请输入管理员邮箱和密码</p>
         </div>
 
         <form class="login-form" @submit.prevent="handleLogin">
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">✉</span>
+            <input v-model="email" type="email" placeholder="请输入管理员邮箱" aria-label="管理员邮箱" autocomplete="username" required />
+          </div>
           <div class="input-wrap">
             <Lock theme="outline" size="18" fill="rgba(255,255,255,0.6)" class="input-icon" />
             <input
@@ -328,6 +332,7 @@ const uploading = ref(false);
 const listError = ref('');
 const switchTab = tab => { if (uploading.value) return; activeTab.value = tab; showModal.value = false; };
 const isLoggedIn = ref(false);
+const email = ref("");
 const password = ref("");
 const loggingIn = ref(false);
 const token = ref("");
@@ -360,10 +365,10 @@ const form = ref({
 
 // 登录处理
 const handleLogin = async () => {
-  if (!password.value) return;
+  if (!email.value.trim() || !password.value) return;
   loggingIn.value = true;
   try {
-    const res = await adminLogin(password.value);
+    const res = await adminLogin(email.value.trim(), password.value);
     if (res.token) {
       token.value = res.token;
       sessionStorage.setItem("admin_token", res.token);

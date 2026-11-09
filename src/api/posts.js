@@ -52,11 +52,11 @@ export async function getPostDetail(id) {
 /**
  * Admin API Client (Stationmaster only)
  */
-export async function adminLogin(password) {
+export async function adminLogin(email, password) {
   const res = await fetch("/api/admin?action=login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ email, password }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

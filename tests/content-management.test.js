@@ -10,7 +10,7 @@ import { onRequest as broadcast } from '../functions/api/broadcast.js';
 import { onRequest as views } from '../functions/api/views.js';
 
 const db = new DatabaseSync(':memory:');
-const env = { ADMIN_PASSWORD: 'local-test-password-only' };
+const env = { ADMIN_PASSWORD: 'local-test-password-only', ADMIN_EMAIL: 'owner@example.test' };
 const schema = await readFile(new URL('../functions/schema.sql', import.meta.url), 'utf8');
 
 class D1Statement {
@@ -57,13 +57,21 @@ test('未登录不能读写管理数据；登录签发有效会话', async () =>
   const missingSecret = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { password: 'x' } }));
   assert.equal(missingSecret.status, 503);
   env.ADMIN_PASSWORD = configuredPassword;
+  const configuredEmail = env.ADMIN_EMAIL;
+  env.ADMIN_EMAIL = '';
+  assert.equal((await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { email: configuredEmail, password: env.ADMIN_PASSWORD } }))).status, 503);
+  env.ADMIN_EMAIL = configuredEmail;
   const blocked = await adminCall('posts');
   assert.equal(blocked.status, 401);
   const denied = await adminCall('posts', 'POST', { body: { title: 'blocked' } });
   assert.equal(denied.status, 401);
   const login = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { password: 'wrong' } }));
   assert.equal(login.status, 401);
-  const success = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { password: env.ADMIN_PASSWORD } }));
+  const wrongEmail = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { email: 'other@example.test', password: env.ADMIN_PASSWORD } }));
+  assert.equal(wrongEmail.status, 401);
+  const missingEmail = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { password: env.ADMIN_PASSWORD } }));
+  assert.equal(missingEmail.status, 401);
+  const success = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { email: env.ADMIN_EMAIL, password: env.ADMIN_PASSWORD } }));
   assert.equal(success.status, 200);
   token = (await success.json()).token;
   assert.ok(token);
