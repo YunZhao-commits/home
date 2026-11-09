@@ -47,6 +47,7 @@
           <button class="side-link" type="button" @click="openCreateModal"><span aria-hidden="true">＋</span> 新增内容</button>
           <button :class="['side-link', { active: activeTab === 'categories' }]" type="button" @click="switchTab('categories')"><span aria-hidden="true">◇</span> 分类管理</button>
           <button :class="['side-link', { active: activeTab === 'settings' }]" type="button" @click="switchTab('settings')"><span aria-hidden="true">⚙</span> 站点设置</button>
+          <button :class="['side-link', { active: activeTab === 'login-logs' }]" type="button" @click="switchTab('login-logs')"><span aria-hidden="true">◷</span> 登录记录</button>
           <RouterLink class="side-link public-link" to="/share"><span aria-hidden="true">↗</span> 查看公开站</RouterLink>
         </aside>
 
@@ -58,7 +59,7 @@
               <span class="logo">Yunchu Studio</span>
               <span class="badge">站长后台</span>
             </div>
-            <h1>{{ activeTab === "posts" ? "内容管理" : activeTab === "categories" ? "分类管理" : "站点设置" }}</h1>
+            <h1>{{ activeTab === "posts" ? "内容管理" : activeTab === "categories" ? "分类管理" : activeTab === "login-logs" ? "登录记录" : "站点设置" }}</h1>
             <p class="subtitle">管理精选分享内容，支持新增、编辑、草稿保存与软下架，数据实时生效。</p>
           </div>
 
@@ -70,7 +71,7 @@
           </div>
         </header>
 
-        <nav class="management-tabs" aria-label="后台功能"><button v-for="tab in [{id:'posts',name:'内容管理'},{id:'categories',name:'分类管理'},{id:'settings',name:'站点设置'}]" :key="tab.id" type="button" :class="{active:activeTab===tab.id}" @click="switchTab(tab.id)">{{tab.name}}</button></nav>
+        <nav class="management-tabs" aria-label="后台功能"><button v-for="tab in [{id:'posts',name:'内容管理'},{id:'categories',name:'分类管理'},{id:'settings',name:'站点设置'},{id:'login-logs',name:'登录记录'}]" :key="tab.id" type="button" :class="{active:activeTab===tab.id}" @click="switchTab(tab.id)">{{tab.name}}</button></nav>
         <div v-if="activeTab === 'posts'">
         <!-- 筛选栏 -->
         <section class="toolbar-section">
@@ -185,6 +186,7 @@
         </section>
 
         </div>
+        <LoginLogs v-else-if="activeTab === 'login-logs'" :token="token" />
         <ManagementPanel v-else :key="activeTab" :token="token" :tab="activeTab" />
       <!-- 3. 编辑 / 新增抽屉弹窗 -->
       <div v-if="showModal" class="modal-overlay" @click.self="!uploading && (showModal = false)">
@@ -314,6 +316,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import ManagementPanel from '@/components/ManagementPanel.vue';
+import LoginLogs from '@/components/LoginLogs.vue';
 import CoverUploader from '@/components/CoverUploader.vue';
 import { useSite } from '@/composables/useSite';
 import { RouterLink } from "vue-router";

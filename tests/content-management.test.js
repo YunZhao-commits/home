@@ -110,6 +110,23 @@ test('管理员登录尝试使用 D1 共享限流，且只保存加密指纹', a
   assert.equal(db.prepare('SELECT attempts FROM admin_login_limits WHERE ip_hash = ?').get(stored[0].ip_hash).attempts, 1);
 });
 
+test('登录记录仅管理员可读，网站接口不可删除，支持筛选且不存密码', async () => {
+  const anonymous = await admin(context('http://localhost:5173/api/admin?action=login-logs'));
+  assert.equal(anonymous.status, 401);
+  const response = await adminCall('login-logs');
+  assert.equal(response.status, 200);
+  const { data } = await response.json();
+  assert.ok(data.some(row => row.result === 'success'));
+  assert.ok(data.some(row => row.result === 'failed'));
+  assert.equal(data.filter(row => row.result === 'blocked' && row.ip === '198.51.100.44').length, 1);
+  assert.ok(!JSON.stringify(data).includes(env.ADMIN_PASSWORD));
+  assert.ok(!JSON.stringify(data).includes('wrong-password'));
+  assert.equal((await adminCall('login-logs', 'DELETE')).status, 405);
+  const filtered = await admin({ request: new Request('http://localhost:5173/api/admin?action=login-logs&result=blocked&ip=198.51.100', { headers: { Origin: origin, Host: 'localhost:5173', Authorization: `Bearer ${token}` } }), env });
+  const filteredData = (await filtered.json()).data;
+  assert.ok(filteredData.length && filteredData.every(row => row.result === 'blocked' && row.ip.includes('198.51.100')));
+});
+
 test('旧版公开写入与访问量接口已关闭', async () => {
   const oldWrite = await broadcast({ request: new Request('https://191607.xyz/api/broadcast', { method: 'POST' }), env });
   const oldCounter = await views({ request: new Request('https://191607.xyz/api/views'), env });

@@ -13,6 +13,22 @@ const loginAttempts = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_ATTEMPTS = 5;
 
+async function recordLogin(context, result) {
+  if (!context.env.DB) return;
+  const req = context.request, cf = req.cf || {};
+  const bounded = (v, max) => typeof v === 'string' ? v.slice(0, max) : '';
+  const ip = bounded(req.headers.get('CF-Connecting-IP'), 64) || '未知';
+  try {
+    await context.env.DB.prepare(`INSERT OR IGNORE INTO admin_login_logs
+      (id, created_at, ip, city, country, user_agent, result, blocked_bucket)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).bind(
+      crypto.randomUUID(), new Date().toISOString(), ip, bounded(cf.city, 120),
+      bounded(cf.country, 16), bounded(req.headers.get('User-Agent'), 300), result,
+      result === 'blocked' ? Math.floor(Date.now() / 60000) : null,
+    ).run();
+  } catch { /* Logging failure must not lock the owner out. */ }
+}
+
 async function ipFingerprint(ip, secret) {
   const key = await crypto.subtle.importKey(
     "raw",
@@ -189,6 +205,7 @@ export async function onRequest(context) {
     if (!adminEmail) return Response.json({ error: "管理员邮箱未配置" }, { status: 503, headers: corsHeaders });
     const rateLimit = await checkRateLimit(context, clientIp, adminSecret);
     if (!rateLimit.allowed) {
+      await recordLogin(context, 'blocked');
       return Response.json(
         { error: "Too many login attempts. Please wait 1 minute." },
         { status: 429, headers: corsHeaders }
@@ -215,6 +232,7 @@ export async function onRequest(context) {
       }
 
       if (!matched || inputEmail !== adminEmail) {
+        await recordLogin(context, 'failed');
         return Response.json({ error: "邮箱或密码错误" }, { status: 401, headers: corsHeaders });
       }
 
@@ -231,6 +249,8 @@ export async function onRequest(context) {
         exp: Date.now() + 7 * 24 * 3600 * 1000, // 7 days
       });
       const token = await signToken(tokenPayload, adminSecret);
+
+      await recordLogin(context, 'success');
 
       return Response.json({ success: true, token }, { headers: corsHeaders });
     } catch (error) {
@@ -252,6 +272,25 @@ export async function onRequest(context) {
 
   if (!env.DB) {
     return Response.json({ error: "Database not bound" }, { status: 500, headers: corsHeaders });
+  }
+
+  if (action === 'login-logs') {
+    if (request.method !== 'GET') return Response.json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders });
+    const page = Math.max(0, Math.min(200, Number.parseInt(url.searchParams.get('page') || '0', 10) || 0));
+    const result = url.searchParams.get('result') || '';
+    const ip = (url.searchParams.get('ip') || '').trim().slice(0, 64);
+    const day = url.searchParams.get('day') || '';
+    if ((result && !['success', 'failed', 'blocked'].includes(result)) || (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)))
+      return Response.json({ error: '筛选条件无效' }, { status: 400, headers: corsHeaders });
+    const clauses = [], params = [];
+    if (result) { clauses.push('result = ?'); params.push(result); }
+    if (ip) { clauses.push('instr(ip, ?) > 0'); params.push(ip); }
+    if (day) { clauses.push('substr(created_at, 1, 10) = ?'); params.push(day); }
+    const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : '';
+    try {
+      const rows = await env.DB.prepare(`SELECT id, created_at, ip, city, country, user_agent, result FROM admin_login_logs${where} ORDER BY created_at DESC, id DESC LIMIT 51 OFFSET ?`).bind(...params, page * 50).all();
+      return Response.json({ data: rows.results.slice(0, 50), hasMore: rows.results.length > 50 }, { headers: corsHeaders });
+    } catch { return Response.json({ error: '登录记录暂不可用' }, { status: 503, headers: corsHeaders }); }
   }
 
   // Every management action uses the same authenticated, origin-checked boundary.
