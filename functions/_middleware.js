@@ -1,3 +1,5 @@
+import { DEFAULT_SETTINGS } from "../shared/site-config.js";
+
 const SITE_ORIGIN = "https://191607.xyz";
 const PAGE_METADATA = {
   "/": {
@@ -60,11 +62,59 @@ function applyPageMetadata(html, metadata) {
   return result;
 }
 
+async function loadHomeSettings(db) {
+  if (!db) return DEFAULT_SETTINGS;
+  try {
+    const row = await db.prepare("SELECT value FROM site_settings WHERE key = 'site'").first();
+    if (!row?.value) return DEFAULT_SETTINGS;
+    const stored = JSON.parse(row.value);
+    return stored && typeof stored === "object" ? { ...DEFAULT_SETTINGS, ...stored } : DEFAULT_SETTINGS;
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+function applyHomeStructuredData(html, settings) {
+  const name = String(settings.site_name || DEFAULT_SETTINGS.site_name).trim();
+  const alternateName = String(settings.site_cn || DEFAULT_SETTINGS.site_cn).trim();
+  const tagline = String(settings.tagline || DEFAULT_SETTINGS.tagline).trim();
+  const description = String(settings.about_intro || DEFAULT_SETTINGS.about_intro).trim().slice(0, 300);
+  const quote = String(settings.quote || DEFAULT_SETTINGS.quote).trim();
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name,
+    alternateName,
+    url: `${SITE_ORIGIN}/`,
+    description: `${tagline} ${description}`.trim().slice(0, 500),
+    inLanguage: "zh-CN",
+  }).replace(/</g, "\\u003c");
+
+  let result = html.replace(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, "");
+  result = result.replace(/<\/head>/i, `<script type="application/ld+json">${jsonLd}</script></head>`);
+
+  // A meaningful non-JavaScript fallback keeps the existing Vue presentation untouched.
+  const fallback = `<noscript><main><p>${escapeHtml(name)}</p><h1>${escapeHtml(alternateName)}</h1><p>${escapeHtml(tagline)}</p><p>${escapeHtml(quote)}</p><p>${escapeHtml(description)}</p><p><a href="/share">浏览精选分享</a></p></main></noscript>`;
+  if (/<noscript\b[^>]*>[\s\S]*?<\/noscript>/i.test(result)) {
+    result = result.replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/i, fallback);
+  } else {
+    result = result.replace(/<\/body>/i, `${fallback}</body>`);
+  }
+  return result;
+}
+
 export async function onRequest(context) {
   const response = await context.next();
   if (!response.headers.get("content-type")?.toLowerCase().includes("text/html")) return response;
   const pathname = new URL(context.request.url).pathname.replace(/\/+$/, "") || "/";
-  const metadata = PAGE_METADATA[pathname];
+  const homeSettings = pathname === "/" ? await loadHomeSettings(context.env?.DB) : null;
+  const metadata = pathname === "/"
+    ? {
+        ...PAGE_METADATA["/"],
+        title: `${homeSettings.site_name || DEFAULT_SETTINGS.site_name} | ${homeSettings.site_cn || DEFAULT_SETTINGS.site_cn}`,
+        description: `${homeSettings.tagline || DEFAULT_SETTINGS.tagline}. ${homeSettings.about_intro || DEFAULT_SETTINGS.about_intro}`.slice(0, 300),
+      }
+    : PAGE_METADATA[pathname];
   if (!metadata) return response;
 
   const headers = new Headers(response.headers);
@@ -73,7 +123,9 @@ export async function onRequest(context) {
   headers.delete("etag");
   headers.set("Cache-Control", metadata.noindex ? "private, no-store" : "public, max-age=0, s-maxage=60");
   if (metadata.noindex) headers.set("X-Robots-Tag", "noindex, nofollow");
-  return new Response(applyPageMetadata(await response.text(), metadata), {
+  let html = applyPageMetadata(await response.text(), metadata);
+  if (pathname === "/") html = applyHomeStructuredData(html, homeSettings);
+  return new Response(html, {
     status: response.status,
     statusText: response.statusText,
     headers,

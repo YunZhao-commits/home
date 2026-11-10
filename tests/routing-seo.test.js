@@ -30,7 +30,12 @@ test("常规页面返回有意义的搜索元数据，后台禁止搜索引擎�
     request: new Request("https://191607.xyz/"),
     next: async () => new Response(shell, { headers: { "Content-Type": "text/html" } }),
   });
-  assert.match(await home.text(), /<title>Yunchu Studio \| 云初工作室<\/title>/);
+  const homeHtml = await home.text();
+  assert.match(homeHtml, /<title>Yunchu Studio \| 云初工作室<\/title>/);
+  assert.match(homeHtml, /application\/ld\+json/);
+  assert.match(homeHtml, /"@type":"WebSite"/);
+  assert.match(homeHtml, /<noscript><main>/);
+  assert.match(homeHtml, /在山与星之间，记录热爱，分享美好。/);
 
   const about = await pageMetadata({
     request: new Request("https://191607.xyz/about"),
@@ -47,6 +52,33 @@ test("常规页面返回有意义的搜索元数据，后台禁止搜索引擎�
   });
   assert.equal(admin.headers.get("X-Robots-Tag"), "noindex, nofollow");
   assert.match(await admin.text(), /name="robots" content="noindex, nofollow"/);
+});
+
+test("首页 SEO 标题、描述与非脚本正文读取公开站点配置且正确转义", async () => {
+  const db = {
+    prepare(sql) {
+      assert.match(sql, /site_settings/);
+      return { first: async () => ({
+        value: JSON.stringify({
+          site_name: '<script>alert(1)</script>',
+          site_cn: '云初测试站',
+          tagline: '分享工具与资源',
+          about_intro: '公开介绍文本',
+          quote: '不可信内容 <img src=x onerror=alert(1)>',
+        }),
+      }) };
+    },
+  };
+  const response = await pageMetadata({
+    request: new Request("https://191607.xyz/"),
+    env: { DB: db },
+    next: async () => new Response(shell, { headers: { "Content-Type": "text/html" } }),
+  });
+  const html = await response.text();
+  assert.match(html, /<title>&lt;script&gt;alert\(1\)&lt;\/script&gt; \| 云初测试站<\/title>/);
+  assert.match(html, /name="description" content="分享工具与资源\. 公开介绍文本"/);
+  assert.match(html, /不可信内容 &lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
 });
 
 test("分享详情返回按文章生成且已转义的社交预览元数据", async () => {

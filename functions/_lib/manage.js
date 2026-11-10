@@ -156,8 +156,58 @@ async function upload({ request, env }) {
   return Response.json({ success: true, url: `/api/media?id=${id}` });
 }
 
+async function exportBackup({ request, env }) {
+  if (request.method !== 'GET') invalid('Method not allowed', 405);
+
+  const [posts, categories, settingsRow, media] = await Promise.all([
+    env.DB.prepare('SELECT * FROM posts ORDER BY updated_at DESC, id').all(),
+    env.DB.prepare('SELECT * FROM categories ORDER BY sort_order, id').all(),
+    env.DB.prepare("SELECT value, updated_at FROM site_settings WHERE key = 'site'").first(),
+    env.DB.prepare('SELECT id, content_type, body, created_at FROM media ORDER BY created_at, id').all(),
+  ]);
+
+  let siteSettings = DEFAULT_SETTINGS;
+  if (settingsRow?.value) {
+    try {
+      const parsed = JSON.parse(settingsRow.value);
+      if (parsed && typeof parsed === 'object') {
+        siteSettings = Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map((key) => [
+          key,
+          typeof parsed[key] === 'string' ? parsed[key] : DEFAULT_SETTINGS[key],
+        ]));
+      }
+    } catch {
+      invalid('站点设置数据格式异常，无法安全导出', 503);
+    }
+  }
+
+  const exportedAt = new Date().toISOString();
+  const filename = `yunchu-site-backup-${exportedAt.slice(0, 10)}.json`;
+  const backup = {
+    format: 'yunchu-studio-backup',
+    version: 1,
+    exported_at: exportedAt,
+    posts: posts.results || [],
+    categories: categories.results || [],
+    site_settings: siteSettings,
+    site_settings_updated_at: settingsRow?.updated_at || null,
+    // Covers are stored in D1 media; include their base64 bodies so the backup is restorable.
+    media: media.results || [],
+  };
+
+  return new Response(JSON.stringify(backup), {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
+}
+
 export async function handleAction(context, action) {
   const { request, env } = context;
+  if (action === 'export') return exportBackup(context);
   if (action === 'categories') return categoriesAction(context);
   if (action === 'settings') return settingsAction(context);
   if (action === 'upload') return upload(context);

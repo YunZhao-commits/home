@@ -65,6 +65,9 @@
           </div>
 
           <div class="dash-actions">
+            <button class="btn-export" type="button" :disabled="exporting" @click="exportBackup">
+              {{ exporting ? '正在导出…' : '导出备份' }}
+            </button>
             <button class="btn-add" @click="openCreateModal">
               <span>➕ 新增分享</span>
             </button>
@@ -328,6 +331,7 @@ import {
   adminGetPosts,
   adminSavePost,
   adminDeletePost,
+  adminExportBackup,
 } from "@/api/posts";
 
 const { categories, categoryName } = useSite();
@@ -340,6 +344,7 @@ const email = ref("");
 const password = ref("");
 const loggingIn = ref(false);
 const token = ref("");
+const exporting = ref(false);
 
 const postsList = ref([]);
 const loadingList = ref(false);
@@ -397,6 +402,19 @@ const handleLogout = () => {
   email.value = "";
   password.value = "";
   ElMessage.info("已退出后台");
+};
+
+const exportBackup = async () => {
+  if (!token.value || exporting.value) return;
+  exporting.value = true;
+  try {
+    const filename = await adminExportBackup(token.value);
+    ElMessage.success(`备份已下载：${filename}`);
+  } catch (error) {
+    ElMessage.error(error.message || '导出失败，请稍后重试');
+  } finally {
+    exporting.value = false;
+  }
 };
 
 // 加载后台列表
@@ -739,6 +757,24 @@ onMounted(() => {
             background: #1affdf;
             box-shadow: 0 4px 16px rgba(0, 229, 201, 0.35);
           }
+        }
+
+        .btn-export {
+          padding: 0.65rem 1.1rem;
+          border: 1px solid rgba(160, 230, 239, 0.5);
+          border-radius: 50px;
+          color: rgba(245, 253, 255, 0.92);
+          background: rgba(255, 255, 255, 0.08);
+          font: inherit;
+          cursor: pointer;
+          transition: border-color 0.2s ease, background 0.2s ease;
+
+          &:hover:not(:disabled) {
+            border-color: #7bf1ee;
+            background: rgba(49, 197, 199, 0.16);
+          }
+
+          &:disabled { opacity: 0.6; cursor: wait; }
         }
 
         .btn-logout {
@@ -1261,6 +1297,7 @@ onMounted(() => {
 .admin-page .dashboard-box .dash-header .subtitle { color: rgba(228, 245, 250, .68); font-size: 13px; line-height: 1.6; }
 .admin-page .dashboard-box .dash-header .dash-actions { align-items: center; }
 .admin-page .dashboard-box .dash-header .dash-actions .btn-add { min-height: 42px; padding: 0 22px; border-radius: 10px; background: #39dddf; box-shadow: 0 5px 18px rgba(51, 210, 218, .18); }
+.admin-page .dashboard-box .dash-header .dash-actions .btn-export { min-height: 42px; padding: 0 16px; border-radius: 10px; }
 .admin-page .dashboard-box .dash-header .dash-actions .btn-logout { min-height: 42px; padding-inline: 16px; border-radius: 10px; }
 .admin-page .dashboard-box .toolbar-section { gap: 12px; margin-bottom: 16px; }
 .admin-page .dashboard-box .toolbar-section .search-input { flex-basis: 360px; }

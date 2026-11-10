@@ -199,7 +199,61 @@ const fetchDetail = async () => {
 
 const renderedContent = computed(() => {
   if (!post.value || !post.value.content) return "";
-  return DOMPurify.sanitize(marked.parse(post.value.content));
+  const sanitized = DOMPurify.sanitize(marked.parse(post.value.content));
+  const doc = new DOMParser().parseFromString(sanitized, "text/html");
+  const domainPattern = /(^|[^\p{L}\p{N}_@/])((?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:com|org|net|edu|gov|io|dev|app|co|xyz|info|biz|me|ai|gg|tv|uk|us|ca|de|fr|jp|cn|online|site|tech|cloud|store|top|live|pro|work|digital|studio|design|space|world|club|fun|shop|wiki|blog|news|mobi|network|today|link|art|vip|cc|ws|in|au|nz|sg|hk|ru|es|it|nl|se|no|fi|kr|tw|br|mx|za)(?::\d{1,5})?(?:[/?#][^\s<]*)?)(?![\p{L}\p{N}_@-])/giu;
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  const textNodes = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (!node.parentElement?.closest("a, code, pre, script, style")) textNodes.push(node);
+  }
+
+  for (const node of textNodes) {
+    const text = node.nodeValue || "";
+    domainPattern.lastIndex = 0;
+    let match;
+    let lastIndex = 0;
+    const fragment = doc.createDocumentFragment();
+    let changed = false;
+
+    while ((match = domainPattern.exec(text))) {
+      let candidate = match[2];
+      let trailing = "";
+      while (/[.,!?;:)\]}]$/.test(candidate)) {
+        trailing = candidate.slice(-1) + trailing;
+        candidate = candidate.slice(0, -1);
+      }
+      if (!candidate) continue;
+
+      const domainStart = match.index + match[1].length;
+      fragment.append(doc.createTextNode(text.slice(lastIndex, domainStart)));
+      const link = doc.createElement("a");
+      link.href = `https://${candidate}`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = candidate;
+      fragment.append(link, doc.createTextNode(trailing));
+      lastIndex = domainStart + match[2].length;
+      changed = true;
+    }
+
+    if (changed) {
+      fragment.append(doc.createTextNode(text.slice(lastIndex)));
+      node.replaceWith(fragment);
+    }
+  }
+
+  for (const link of doc.querySelectorAll("a[href]")) {
+    let url;
+    try { url = new URL(link.getAttribute("href"), window.location.origin); } catch { continue; }
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    }
+  }
+
+  return doc.body.innerHTML;
 });
 
 const getCategoryLabel = categoryName;
@@ -443,6 +497,19 @@ watch(
       line-height: 1.75;
       color: rgba(255, 255, 255, 0.85);
       margin-bottom: 2rem;
+
+      :deep(a) {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      :deep(a:hover),
+      :deep(a:focus-visible) {
+        color: #8ff4ed;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
 
       :deep(h2),
       :deep(h3) {

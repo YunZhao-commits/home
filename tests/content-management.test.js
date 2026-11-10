@@ -63,6 +63,7 @@ test('未登录不能读写管理数据；登录签发有效会话', async () =>
   env.ADMIN_EMAIL = configuredEmail;
   const blocked = await adminCall('posts');
   assert.equal(blocked.status, 401);
+  assert.equal((await adminCall('export')).status, 401);
   const denied = await adminCall('posts', 'POST', { body: { title: 'blocked' } });
   assert.equal(denied.status, 401);
   const login = await admin(context('http://localhost:5173/api/admin?action=login', 'POST', { body: { password: 'wrong' } }));
@@ -268,4 +269,32 @@ test('有文章引用的分类不能删除，空分类可删除；无效 Origin 
   assert.equal((await adminCall('categories', 'DELETE', { id: 'resources' })).status, 200);
   const blocked = await admin({ request: new Request('https://191607.xyz/api/admin?action=posts', { headers: { Origin: 'https://attacker.example', Host: '191607.xyz' } }), env });
   assert.equal(blocked.status, 403);
+});
+
+test('数据备份仅允许管理员下载，且包含完整帖子、设置、分类和封面文件', async () => {
+  const anonymous = await admin({
+    request: new Request('https://191607.xyz/api/admin?action=export', { headers: { Origin: origin, Host: 'localhost:5173' } }),
+    env,
+  });
+  assert.equal(anonymous.status, 401);
+
+  const savedSettings = db.prepare("SELECT value FROM site_settings WHERE key = 'site'").get();
+  const alteredSettings = { ...JSON.parse(savedSettings.value), ADMIN_PASSWORD: 'never-export-this' };
+  db.prepare("UPDATE site_settings SET value = ? WHERE key = 'site'").run(JSON.stringify(alteredSettings));
+
+  const exported = await adminCall('export');
+  assert.equal(exported.status, 200);
+  assert.match(exported.headers.get('content-type'), /application\/json/);
+  assert.match(exported.headers.get('content-disposition'), /attachment; filename="yunchu-site-backup-\d{4}-\d{2}-\d{2}\.json"/);
+  assert.equal(exported.headers.get('cache-control'), 'no-store');
+  const backup = await exported.json();
+  assert.equal(backup.format, 'yunchu-studio-backup');
+  assert.ok(backup.exported_at);
+  assert.ok(backup.posts.some(post => post.id === postId && post.content === '只用于本地测试'));
+  assert.ok(backup.categories.some(category => category.id === 'tools'));
+  assert.equal(backup.site_settings.site_name, '云初精选');
+  assert.equal(Object.hasOwn(backup.site_settings, 'ADMIN_PASSWORD'), false);
+  assert.ok(backup.media.some(file => `/api/media?id=${file.id}` === coverUrl && file.body));
+  assert.equal(Object.hasOwn(backup, 'ADMIN_PASSWORD'), false);
+  assert.equal((await adminCall('export', 'POST')).status, 405);
 });
