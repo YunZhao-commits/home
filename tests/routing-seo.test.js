@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { legacyRouteFromHash } from "../shared/legacy-route.js";
 import { onRequest as pageMetadata } from "../functions/_middleware.js";
@@ -15,6 +16,19 @@ const shell = `<!doctype html><html><head><title>Generic title</title>
 <meta name="twitter:image" content="https://191607.xyz/screenshots/main.jpg">
 <meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="https://191607.xyz/">
 </head><body><div id="app"></div></body></html>`;
+
+test("响应头与 HTML 回退 CSP 保持同步且不放行已废弃来源", async () => {
+  const headerSource = await readFile(new URL("../public/_headers", import.meta.url), "utf8");
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const headerPolicy = headerSource.match(/^\s+Content-Security-Policy:\s*(.+)$/m)?.[1]?.trim();
+  const metaPolicy = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
+
+  assert.ok(headerPolicy, "必须设置 CSP 响应头");
+  assert.ok(metaPolicy, "必须保留 CSP meta 回退");
+  assert.equal(headerPolicy, metaPolicy, "响应头和 HTML 回退策略必须一致");
+  assert.doesNotMatch(headerPolicy, /api\.coingecko\.com|v1\.hitokoto\.cn|api-meting\.imsyy\.top|api\.oioweb\.cn|cdn\.jsdelivr\.net/);
+  assert.doesNotMatch(headerPolicy, /connect-src\s+'self'\s+https:;/);
+});
 
 test("旧 hash 分享链接无损转换为可读路径，拒绝跨域形态", () => {
   assert.equal(legacyRouteFromHash("#/share?category=tools"), "/share?category=tools");
@@ -212,6 +226,7 @@ test("动态站点地图包含已发布文章并对 XML 与 HTTP 方法做约束
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type"), /application\/xml/);
   assert.match(xml, /<loc>https:\/\/191607\.xyz\/share\/member%26deal<\/loc><lastmod>2026-11-08<\/lastmod>/);
+  assert.doesNotMatch(xml, /https:\/\/191607\.xyz\/notes(?:<\/loc>|\/)/);
   assert.doesNotMatch(xml, /no-date<\/loc><lastmod>/);
   assert.doesNotMatch(xml, /admin/);
   assert.equal((await sitemap({ request: new Request("https://191607.xyz/sitemap.xml", { method: "POST" }), env: { DB: db } })).status, 405);

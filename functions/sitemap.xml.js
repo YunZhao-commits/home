@@ -1,5 +1,5 @@
 const SITE_ORIGIN = "https://191607.xyz";
-const STATIC_PATHS = ["/", "/share", "/about", "/notes"];
+const STATIC_PATHS = ["/", "/share", "/about"];
 
 function xmlEscape(value) {
   return String(value).replace(/[&<>"']/g, (char) => ({
