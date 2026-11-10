@@ -9,42 +9,21 @@
 <script setup>
 import { ref } from 'vue';
 import { managementRequest } from '@/api/management';
+import { compressCover } from '@/utils/coverCompression';
 const props = defineProps({ modelValue: { type: String, default: '' }, token: { type: String, required: true } });
 const emit = defineEmits(['update:modelValue', 'busy']);
 const busy = ref(false);
 const error = ref('');
-async function compress(file) {
-  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) throw new Error('请选择 10MB 内的 PNG、JPEG 或 WebP 图片');
-  const url = URL.createObjectURL(file);
-  try {
-    const image = new Image();
-    image.src = url;
-    await image.decode();
-    if (!image.naturalWidth || image.naturalWidth * image.naturalHeight > 50000000) throw new Error('图片尺寸过大，请先缩小图片');
-    const canvas = document.createElement('canvas');
-    const ratio = Math.min(1, 1280 / image.naturalWidth, 900 / image.naturalHeight);
-    canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
-    canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
-    const context = canvas.getContext('2d');
-    if (!context) throw new Error('浏览器无法处理图片');
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    for (const quality of [.84, .7, .55, .4]) {
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', quality));
-      if (blob && ['image/webp', 'image/png', 'image/jpeg'].includes(blob.type) && blob.size <= 262144) return blob;
-    }
-    throw new Error('图片细节过多，压缩后仍超过 256KB，请选择更小的图片');
-  } finally { URL.revokeObjectURL(url); }
-}
 async function upload(event) {
   const file = event.target.files?.[0];
   if (!file) return;
   busy.value = true; emit('busy', true); error.value = '';
   try {
-    const blob = await compress(file);
+    const blob = await compressCover(file);
     const result = await managementRequest('upload', props.token, { method: 'POST', file: blob });
     if (!result.url) throw new Error('上传没有返回封面地址');
     emit('update:modelValue', result.url);
-  } catch (e) { error.value = e.message || '上传失败'; }
+  } catch (e) { console.error('封面处理或上传失败', e); error.value = e.message || '上传失败'; }
   finally { busy.value = false; emit('busy', false); event.target.value = ''; }
 }
 </script>

@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { Buffer } from 'node:buffer';
 import { DatabaseSync } from 'node:sqlite';
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -244,7 +245,8 @@ test('封面上传限类型、校验签名、可取回；文章引用可安全�
   assert.equal(invalidMagic.status, 400);
   const tooLarge = await adminCall('upload', 'POST', { raw: new Uint8Array(262145), headers: { 'Content-Type': 'image/png' } });
   assert.equal(tooLarge.status, 413);
-  const bytes = new Uint8Array([137,80,78,71,13,10,26,10,0,1,2,3]);
+  // A complete, decodable 1x1 PNG, not merely a PNG signature.
+  const bytes = new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/aXcAAAAASUVORK5CYII=', 'base64'));
   const upload = await adminCall('upload', 'POST', { raw: bytes, headers: { 'Content-Type': 'image/png' } });
   assert.equal(upload.status, 200);
   coverUrl = (await upload.json()).url;
@@ -256,6 +258,14 @@ test('封面上传限类型、校验签名、可取回；文章引用可安全�
   assert.equal(image.status, 200);
   assert.equal(image.headers.get('content-type'), 'image/png');
   assert.deepEqual(new Uint8Array(await image.arrayBuffer()), bytes);
+  assert.equal((await adminCall('posts', 'PUT', { body: { id: postId, status: 'published' } })).status, 200);
+  const publicList = await posts({ request: new Request('https://191607.xyz/api/posts'), env });
+  assert.equal((await publicList.json()).data.find(row => row.id === postId).cover_url, coverUrl);
+  const editTitle = await adminCall('posts', 'PUT', { body: { id: postId, title: '只修改标题' } });
+  assert.equal(editTitle.status, 200);
+  const publicDetail = await posts({ request: new Request(`https://191607.xyz/api/posts?id=${postId}`), env });
+  assert.equal((await publicDetail.json()).data.cover_url, coverUrl);
+  assert.equal((await adminCall('posts', 'PUT', { body: { id: postId, status: 'draft' } })).status, 200);
   const bad = await adminCall('posts', 'PUT', { body: { id: postId, cover_url: 'https://evil.example/image.png' } });
   assert.equal(bad.status, 400);
   assert.equal((await media({ request: new Request('https://191607.xyz/api/media?id=bad'), env })).status, 404);
