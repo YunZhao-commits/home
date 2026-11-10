@@ -328,4 +328,9 @@ scrollbar-thumb {
   border-radius: 10px;
   background-color: #eeeeee;
 }
+
+// Service-worker notices are informational; keep navigation links underneath clickable.
+.site-update-message {
+  pointer-events: none !important;
+}
 @include meta.load-css('./mobile-cards.scss');

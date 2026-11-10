@@ -30,7 +30,12 @@ if (window.innerWidth >= 768) {
 let hadServiceWorkerController = Boolean(navigator.serviceWorker.controller);
 navigator.serviceWorker.addEventListener("controllerchange", () => {
   if (hadServiceWorkerController) {
-    ElMessage({ message: "站点已更新，请刷新页面", duration: 2500 });
+    ElMessage({
+      message: "站点已更新，请刷新页面",
+      duration: 2500,
+      offset: window.innerWidth <= 760 ? 84 : 76,
+      customClass: "site-update-message",
+    });
   }
   hadServiceWorkerController = true;
 });
