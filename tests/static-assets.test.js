@@ -28,3 +28,10 @@ test('首页主背景与多尺寸 favicon 保持在体积目标内', async () =>
   assert.equal(iconData.readUInt16LE(2), 1, '图标类型应为 ICO');
   assert.ok(iconData.readUInt16LE(4) >= 3, 'favicon 应包含多个尺寸');
 });
+
+test('社交入口只渲染已配置的有效链接', async () => {
+  const source = await readFile(new URL('../src/components/SocialLinks.vue', import.meta.url), 'utf8');
+  assert.match(source, /<nav v-if="socialLinks\.length"/);
+  assert.match(source, /\.filter\(item\s*=>\s*Boolean\(item\.url\)\)/);
+  assert.doesNotMatch(source, /链接尚未配置|is-unconfigured/);
+});

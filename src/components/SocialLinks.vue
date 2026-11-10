@@ -1,17 +1,15 @@
 <template>
-  <nav class="social" aria-label="社交链接">
+  <nav v-if="socialLinks.length" class="social" aria-label="社交链接">
     <component
       :is="item.url ? 'a' : 'span'"
       v-for="item in socialLinks"
       :key="item.name"
       class="social-link"
-      :class="{ 'is-unconfigured': !item.url }"
       :href="item.url"
-      :target="item.url && !item.url.startsWith('mailto:') ? '_blank' : null"
-      :rel="item.url && !item.url.startsWith('mailto:') ? 'noopener noreferrer' : null"
-      :aria-label="item.url ? item.name : `${item.name} 链接尚未配置`"
-      :aria-disabled="item.url ? null : 'true'"
-      :title="item.url ? item.tip : `${item.name} 链接尚未配置`"
+      :target="!item.url.startsWith('mailto:') ? '_blank' : null"
+      :rel="!item.url.startsWith('mailto:') ? 'noopener noreferrer' : null"
+      :aria-label="item.name"
+      :title="item.tip"
     >
       <img class="icon" :src="item.icon" alt="" width="27" height="27" />
       <span>{{ item.name }}</span>
@@ -30,12 +28,14 @@ const safeWebUrl = (value) => {
     return ["https:", "http:"].includes(url.protocol) ? url.href : "";
   } catch { return ""; }
 };
-const socialLinks = computed(() => baseLinks.map(item => ({
-  ...item,
-  url: item.name === "Email"
-    ? `mailto:${settings.value.contact_email}`
-    : safeWebUrl(settings.value[item.name === "WhatsApp" ? "whatsapp_url" : "telegram_url"]),
-})));
+const socialLinks = computed(() => baseLinks
+  .map(item => ({
+    ...item,
+    url: item.name === "Email"
+      ? (settings.value.contact_email ? `mailto:${settings.value.contact_email}` : "")
+      : safeWebUrl(settings.value[item.name === "WhatsApp" ? "whatsapp_url" : "telegram_url"]),
+  }))
+  .filter(item => Boolean(item.url)));
 </script>
 
 <style lang="scss" scoped>
@@ -92,12 +92,6 @@ const socialLinks = computed(() => baseLinks.map(item => ({
       border-radius: 999px;
     }
 
-    &.is-unconfigured {
-      color: rgba(255, 255, 255, 0.62);
-      cursor: default;
-      transform: none;
-      .icon { opacity: 0.62; }
-    }
   }
 
   .icon {
